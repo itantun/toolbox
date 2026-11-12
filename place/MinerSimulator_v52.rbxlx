@@ -1412,8 +1412,8 @@ GameConfig.RU_NAMES = {
 		"Хрустальная кирка", "Аметистовая кирка", "Кирка Бездны", "Золотая кирка", "Королевская кирка",
 	},
 	Backpacks = {
-		"Холщовый мешок", "Кожаный рюкзак", "Походный рюкзак", "Городской рюкзак", "Рюкзак «Авангард»",
-		"Шахтёрский ящик", "Рюкзак «Полярная звезда»", "Кристальный рюкзак", "Вулканический рюкзак", "Звёздный рюкзак",
+		"Холщовый ранец", "Кожаный рюкзак", "Походный рюкзак", "Городской рюкзак", "Рюкзак «Авангард»",
+		"Тактический рюкзак", "Рюкзак «Полярная звезда»", "Рюкзак «Неоновая корона»", "Вулканический рюкзак", "Квантовый рюкзак",
 	},
 }
 
@@ -1507,10 +1507,16 @@ GameConfig.PICKAXE_SWING_FX = {
 	TrailLifetime = 0.16,
 	ImpactSparks = 14,         -- искр цвета руды при ударе (Emit, без создания объектов)
 	ImpactSparksEpic = 26,
-	CameraShake = 0.10,        -- лёгкая тряска камеры при ударе (studs)
+	CameraShake = 0.04,        -- едва заметная тряска камеры при ударе (studs)
 	PulseSeconds = 0.9,        -- период пульсации свечения топовых кирок
 	PulseMin = 0.55,           -- доля яркости в нижней точке пульсации
 	FxRange = 90,              -- дальше этого расстояния чужие эффекты не проигрываются
+}
+
+-- Дрожание блока при ударе киркой (VFXModule). 1 — как в v51; меньше — спокойнее.
+GameConfig.BLOCK_HIT_SHAKE = {
+	Scale = 0.4,       -- доля прежней амплитуды сдвига и наклона блока
+	SwayScale = 0.45,  -- доля прежнего качания травинок и цветов на блоке
 }
 
 function GameConfig.GetPickaxeFx(level: number): PickaxeFxConfig
@@ -1540,7 +1546,8 @@ GameConfig.PHASE = {
 -- Освещение фаз. Яркость и Ambient берутся из GameConfig.LIGHTING (раздел 3).
 GameConfig.PHASE_LIGHTING = {
 	Day = {
-		ClockTime = 14,
+		ClockStart = 7.5,  -- часы неба в начале дня (утро)
+		ClockEnd = 17.5,   -- часы неба в конце дня (вечер, перед закатом)
 		AtmosphereColor = Color3.fromRGB(185, 210, 240),
 		AtmosphereDecay = Color3.fromRGB(95, 115, 145),
 		AtmosphereDensity = 0.24,
@@ -1549,13 +1556,14 @@ GameConfig.PHASE_LIGHTING = {
 		Tint = Color3.fromRGB(255, 255, 255),
 	},
 	Night = {
-		ClockTime = 0,
-		AtmosphereColor = Color3.fromRGB(70, 84, 150),
-		AtmosphereDecay = Color3.fromRGB(22, 26, 56),
+		ClockStart = 21,   -- ночная фаза всегда идёт под ночным небом: 21:00 ...
+		ClockEnd = 28,     -- ... 04:00 (28 = 24 + 4), рассвет наступает с открытием шахты
+		AtmosphereColor = Color3.fromRGB(34, 42, 84),
+		AtmosphereDecay = Color3.fromRGB(10, 12, 28),
 		AtmosphereDensity = 0.30,
-		BloomIntensity = 0.95,
-		BloomSize = 32,
-		Tint = Color3.fromRGB(196, 206, 255),
+		BloomIntensity = 0.80,
+		BloomSize = 30,
+		Tint = Color3.fromRGB(176, 188, 255),
 	},
 }
 
@@ -1595,7 +1603,7 @@ export type BoostConfig = {
 	Price: number,
 	Color: Color3,
 	Rarity: number,
-	InShop: boolean,       -- продаётся ли у торговца Гоши
+	InShop: boolean,       -- продаётся ли во вкладке «Бусты» магазина
 }
 
 GameConfig.BOOSTS = {
@@ -1631,17 +1639,11 @@ GameConfig.BOOSTS = {
 -- 17. МАГАЗИН И ОКНО РЮКЗАКА
 -- ============================================================================
 GameConfig.SHOP_UI = {
-	MaxDistance = 20,          -- сервер: дальше от торговца покупка и продажа отклоняются
-	AutoCloseDistance = 26,    -- клиент сам закрывает окно, если игрок ушёл
-	ActionCooldown = 0.3,      -- сервер: минимальный интервал между действиями магазина
-	WindowSize = Vector2.new(880, 580),
+	MaxDistance = 20,          -- сервер: дальше от магазина покупка буста отклоняется
+	AutoCloseDistance = 26,    -- клиент сам закрывает окно бустов, если игрок ушёл
+	ActionCooldown = 0.3,      -- сервер: минимальный интервал между покупками
+	WindowSize = Vector2.new(720, 384),
 	CardSize = Vector2.new(198, 276),
-	Tabs = {
-		{ Id = "Pickaxes", Title = "Кирки", Icon = "⛏️", Color = Color3.fromRGB(255, 176, 64) },
-		{ Id = "Backpacks", Title = "Рюкзаки", Icon = "🎒", Color = Color3.fromRGB(96, 200, 120) },
-		{ Id = "Boosts", Title = "Бусты", Icon = "⚡", Color = Color3.fromRGB(110, 170, 255) },
-		{ Id = "Sell", Title = "Продать руду", Icon = "💰", Color = Color3.fromRGB(255, 205, 70) },
-	},
 }
 
 GameConfig.BACKPACK_UI = {
@@ -1667,8 +1669,6 @@ GameConfig.SFX = {
 	Open = { Id = "rbxasset://sounds/switch.wav", Volume = 0.45, Pitch = 0.80 },
 	Success = { Id = "rbxasset://sounds/electronicpingshort.wav", Volume = 0.55, Pitch = 1.20 },
 	Error = { Id = "rbxasset://sounds/bass.wav", Volume = 0.50, Pitch = 0.90 },
-	Swing = { Id = "rbxasset://sounds/swordslash.wav", Volume = 0.14, Pitch = 1.35 },
-	Impact = { Id = "rbxasset://sounds/hit.wav", Volume = 0.16, Pitch = 1.50 },
 	WallRumble = { Id = "rbxasset://sounds/impact_explosion_03.mp3", Volume = 0.90, Pitch = 0.42 },
 	WallSlam = { Id = "rbxasset://sounds/action_jump_land.mp3", Volume = 1.00, Pitch = 0.55 },
 	PhaseBell = { Id = "rbxasset://sounds/electronicpingshort.wav", Volume = 0.45, Pitch = 0.60 },
@@ -1685,14 +1685,6 @@ GameConfig.ORE_ICON = {
 	CameraDistance = 5.6,
 	CameraHeight = 2.1,
 	Center = Vector3.new(0, 0.15, 0),
-}
-
--- Камера 3D-превью кирок и рюкзаков в карточках магазина
-GameConfig.SHOP_PREVIEW = {
-	PickaxeDistance = 9.6,
-	PickaxeHeight = 1.5,
-	BackpackDistance = 7.0,
-	BackpackHeight = 0.9,
 }
 
 -- ============================================================================
@@ -1715,7 +1707,7 @@ GameConfig.NIGHT_FX = {
 			Top = Color3.fromRGB(70, 58, 190), Bottom = Color3.fromRGB(22, 16, 70), Stroke = Color3.fromRGB(160, 150, 255),
 		},
 		NightJoin = {
-			Title = "🌙 СЕЙЧАС НОЧЬ", Sub = "Шахта откроется утром — загляни к торговцу Гоше",
+			Title = "🌙 СЕЙЧАС НОЧЬ", Sub = "Шахта откроется утром",
 			Top = Color3.fromRGB(70, 58, 190), Bottom = Color3.fromRGB(22, 16, 70), Stroke = Color3.fromRGB(160, 150, 255),
 		},
 		Day = {
@@ -1729,100 +1721,6 @@ GameConfig.NIGHT_FX = {
 	},
 }
 
-
--- ============================================================================
--- 19. ДЕТАЛИЗАЦИЯ РЮКЗАКОВ (швы, пряжки, фонарь, кристаллы, эмблемы) — модуль BackpackDetailer
--- Все цвета и размеры отделки живут здесь; в модуле нет «зашитых» значений.
--- ============================================================================
-export type BackpackDetailLevelCfg = {
-	Metal: Color3,           -- металл: пряжки, кольца, уголки
-	Accent: Color3,          -- главный акцент уровня (верёвка, латунь, золото, стекло, магма)
-	Accent2: Color3,         -- второй акцент (кожа, пластины, тёмный фиолет)
-	Glow: Color3,            -- цвет свечения (линза, кристаллы, неон)
-	Glow2: Color3,           -- запасной цвет свечения (звёздочки, искры)
-	Cloth: Color3,           -- ткань заплат, ремешков и тёмных рёбер
-	Thread: Color3,          -- нить швов
-	Count: number,           -- число кристаллов / осколков / ответвлений трещин / звёздочек
-	LightBrightness: number, -- яркость источника света (только на персонаже)
-	LightRange: number,      -- дальность источника света
-	EmitRate: number,        -- частота частиц в секунду (0 — без частиц)
-	Shine: number,           -- блеск металла и стекла (Reflectance)
-}
-
-GameConfig.BACKPACK_DETAIL_SHARED = {
-	Seed = 5200,        -- Random.new(Seed + уровень): раскладка стабильна
-	MaxParts = 45,      -- максимум дополнительных деталей на рюкзак
-	MaxLights = 2,      -- максимум источников света на рюкзак
-	MaxEmitters = 2,    -- максимум излучателей частиц на рюкзак
-	Lift = 0.015,       -- подъём детали над поверхностью (в долях масштаба)
-	StitchDash = 0.11,  -- длина одного стежка
-	StitchPerRow = 5,   -- стежков в ряду
-	ScuffCount = 3,     -- число потёртостей
-	WaistLimit = 0.44,  -- ниже CenterY − Height × значение детали не ставятся
-}
-
-GameConfig.BACKPACK_DETAIL = {
-	-- 1. Холщовый мешок: верёвка и заплата
-	[1] = {
-		Metal = Color3.fromRGB(198, 202, 210), Accent = Color3.fromRGB(196, 164, 110), Accent2 = Color3.fromRGB(150, 112, 66),
-		Glow = Color3.fromRGB(255, 214, 140), Glow2 = Color3.fromRGB(255, 236, 190), Cloth = Color3.fromRGB(122, 92, 56),
-		Thread = Color3.fromRGB(232, 212, 166), Count = 0, LightBrightness = 0, LightRange = 0, EmitRate = 0, Shine = 0.1,
-	},
-	-- 2. Кожаный рюкзак: латунные пряжки, заклёпки
-	[2] = {
-		Metal = Color3.fromRGB(214, 170, 70), Accent = Color3.fromRGB(214, 170, 70), Accent2 = Color3.fromRGB(120, 70, 36),
-		Glow = Color3.fromRGB(255, 214, 140), Glow2 = Color3.fromRGB(255, 236, 190), Cloth = Color3.fromRGB(92, 52, 30),
-		Thread = Color3.fromRGB(230, 196, 150), Count = 0, LightBrightness = 0, LightRange = 0, EmitRate = 0, Shine = 0.25,
-	},
-	-- 3. Походный рюкзак: скатка, фонарик, карабин
-	[3] = {
-		Metal = Color3.fromRGB(186, 190, 180), Accent = Color3.fromRGB(64, 72, 36), Accent2 = Color3.fromRGB(58, 60, 64),
-		Glow = Color3.fromRGB(255, 244, 200), Glow2 = Color3.fromRGB(255, 250, 225), Cloth = Color3.fromRGB(58, 66, 32),
-		Thread = Color3.fromRGB(208, 208, 160), Count = 0, LightBrightness = 1.4, LightRange = 16, EmitRate = 0, Shine = 0.25,
-	},
-	-- 4. Городской рюкзак: бегунки, светоотражающая лента, шильдик
-	[4] = {
-		Metal = Color3.fromRGB(178, 184, 194), Accent = Color3.fromRGB(150, 156, 166), Accent2 = Color3.fromRGB(88, 92, 102),
-		Glow = Color3.fromRGB(170, 182, 196), Glow2 = Color3.fromRGB(220, 230, 240), Cloth = Color3.fromRGB(30, 32, 38),
-		Thread = Color3.fromRGB(88, 92, 102), Count = 0, LightBrightness = 0, LightRange = 0, EmitRate = 0, Shine = 0.3,
-	},
-	-- 5. «Авангард»: уголки и светящиеся боковые полосы
-	[5] = {
-		Metal = Color3.fromRGB(196, 202, 212), Accent = Color3.fromRGB(230, 236, 250), Accent2 = Color3.fromRGB(22, 70, 160),
-		Glow = Color3.fromRGB(246, 249, 255), Glow2 = Color3.fromRGB(150, 200, 255), Cloth = Color3.fromRGB(16, 48, 120),
-		Thread = Color3.fromRGB(70, 140, 245), Count = 0, LightBrightness = 0.5, LightRange = 5, EmitRate = 0, Shine = 0.3,
-	},
-	-- 6. Шахтёрский ящик: клёпаные пластины, кристаллы, шахтёрская лампа
-	[6] = {
-		Metal = Color3.fromRGB(134, 138, 146), Accent = Color3.fromRGB(255, 190, 80), Accent2 = Color3.fromRGB(70, 72, 80),
-		Glow = Color3.fromRGB(80, 220, 255), Glow2 = Color3.fromRGB(140, 255, 200), Cloth = Color3.fromRGB(40, 42, 46),
-		Thread = Color3.fromRGB(88, 92, 100), Count = 3, LightBrightness = 1.6, LightRange = 12, EmitRate = 0, Shine = 0.3,
-	},
-	-- 7. «Полярная звезда»: золотой звёздный акцент
-	[7] = {
-		Metal = Color3.fromRGB(204, 210, 220), Accent = Color3.fromRGB(255, 205, 70), Accent2 = Color3.fromRGB(230, 236, 242),
-		Glow = Color3.fromRGB(40, 150, 255), Glow2 = Color3.fromRGB(120, 200, 255), Cloth = Color3.fromRGB(172, 178, 188),
-		Thread = Color3.fromRGB(172, 178, 188), Count = 2, LightBrightness = 0.6, LightRange = 6, EmitRate = 0, Shine = 0.3,
-	},
-	-- 8. Кристальный «Корона»: стеклянные пластины и внутреннее свечение
-	[8] = {
-		Metal = Color3.fromRGB(122, 112, 142), Accent = Color3.fromRGB(150, 90, 255), Accent2 = Color3.fromRGB(96, 50, 190),
-		Glow = Color3.fromRGB(190, 110, 255), Glow2 = Color3.fromRGB(230, 170, 255), Cloth = Color3.fromRGB(46, 42, 56),
-		Thread = Color3.fromRGB(72, 62, 92), Count = 4, LightBrightness = 1.0, LightRange = 7, EmitRate = 0, Shine = 0.12,
-	},
-	-- 9. Вулканический: огненные трещины и броневые рёбра
-	[9] = {
-		Metal = Color3.fromRGB(112, 106, 106), Accent = Color3.fromRGB(255, 110, 30), Accent2 = Color3.fromRGB(255, 190, 70),
-		Glow = Color3.fromRGB(255, 90, 20), Glow2 = Color3.fromRGB(255, 170, 50), Cloth = Color3.fromRGB(30, 24, 24),
-		Thread = Color3.fromRGB(72, 58, 58), Count = 2, LightBrightness = 0.8, LightRange = 7, EmitRate = 3, Shine = 0.2,
-	},
-	-- 10. Звёздный рюкзак: золотая звезда, космические пластины, блёстки
-	[10] = {
-		Metal = Color3.fromRGB(112, 126, 142), Accent = Color3.fromRGB(255, 200, 60), Accent2 = Color3.fromRGB(52, 24, 120),
-		Glow = Color3.fromRGB(120, 230, 255), Glow2 = Color3.fromRGB(255, 255, 255), Cloth = Color3.fromRGB(22, 40, 120),
-		Thread = Color3.fromRGB(52, 72, 86), Count = 8, LightBrightness = 0.8, LightRange = 7, EmitRate = 5, Shine = 0.15,
-	},
-} :: { [number]: BackpackDetailLevelCfg }
 
 -- ============================================================================
 -- v52: НОЧНАЯ СТЕНА У ВХОДА В ШАХТУ («БОЛЬШАЯ ШТУКА») И ЕЁ ЗАБОР-ПЕРИМЕТР.
@@ -1952,226 +1850,6 @@ GameConfig.NIGHT_WALL = {
 	},
 }
 
-
--- ============================================================================
--- 40. РЫНОК И ТОРГОВЕЦ ГОША (MarketBuilder + TraderAnimator)
--- Все цвета, размеры, дистанции, тайминги и тексты рынка — только здесь.
--- Координаты прилавка заданы относительно центра рынка:
--- +X вправо, +Z к покупателям (наружу), Y = 0 — верх земли.
--- ============================================================================
-GameConfig.MARKET = {
-	Seed = 4040,
-
-	-- Имена и теги (на них опираются клиентский аниматор и скрипт магазина)
-	ModelName = "MarketStall",
-	NpcModelName = "TraderGosha",
-	NpcTag = "TraderNPC",
-	PromptTag = "TraderShopPrompt",
-
-	-- Тексты
-	TraderName = "Торговец Гоша",
-	HintText = "[E] Открыть магазин",
-	ActionText = "Открыть магазин",
-	SignText = "РЫНОК",
-
-	-- Подсказка (ProximityPrompt) и табличка над головой
-	MaxActivationDistance = 12,
-	TagMaxDistance = 60,
-	PromptHeight = 3.9,
-	PromptZ = 2.3,
-
-	-- Анимация торговца (клиент)
-	LookDistance = 40,          -- дальше этого расстояния голова смотрит прямо
-	AnimateDistance = 90,       -- дальше — аниматор «спит»
-	LookInterval = 0.35,        -- пересчёт взгляда, сек
-	SleepInterval = 1,          -- проверка дистанции в режиме сна, сек
-	LookTweenTime = 0.25,
-	YawLimitDeg = 70,
-	PitchLimitDeg = 25,
-	SwayPeriod = 2.4,           -- полупериод покачивания, сек
-	SwayRollDeg = 1.6,
-	SwayPitchDeg = 1.1,
-	WaveIntervalMin = 9,
-	WaveIntervalMax = 18,
-	WaveRaiseTime = 0.4,
-	WaveSwingTime = 0.22,
-	WaveLowerTime = 0.45,
-	WaveSwingsMin = 2,
-	WaveSwingsMax = 3,
-	WaveForwardDeg = -20,       -- наклон поднятой руки вперёд
-	WaveRaiseDeg = 150,         -- подъём руки в сторону
-	WaveSwingDeg = 22,          -- размах кисти влево-вправо
-
-	-- Прилавок
-	Counter = {
-		Width = 14,
-		Depth = 3,
-		Height = 3,
-		TopThickness = 0.22,
-		PlankCount = 14,
-	},
-
-	-- Опорные столбы (X — смещение от центра, Z — перед/зад)
-	Pillars = {
-		X = 7.7,
-		FrontZ = 0.9,
-		BackZ = -6.6,
-		Size = 0.9,
-	},
-
-	-- Тент: перед выше нижним краем, к задней стене поднимается
-	Roof = {
-		FrontZ = 3.2,
-		BackZ = -7.8,
-		FrontY = 9.4,
-		BackY = 10.65,
-		HalfWidth = 9,
-		Stripes = 12,
-		Thickness = 0.25,
-		RafterX = { -8.4, -4.2, 0, 4.2, 8.4 },
-	},
-
-	-- Гирлянда лампочек (света — только 3 штуки на всю гирлянду)
-	Garland = {
-		Count = 13,
-		HalfSpan = 8.4,
-		Y = 8.7,
-		Sag = 1.0,
-		Z = 3.5,
-		SwagStep = 4,
-		LightEvery = 4,
-		LightOffset = 2,
-	},
-
-	-- Ковёр перед прилавком
-	Carpet = {
-		Width = 10,
-		Depth = 7,
-		ZCenter = 6.5,
-		Thickness = 0.12,
-	},
-
-	-- Торговец: позиция относительно центра рынка (стоит за прилавком, лицом к +Z)
-	Trader = {
-		X = 0,
-		Z = -3.4,
-	},
-
-	-- Свет (в сумме не больше 6 на рынок)
-	Lights = {
-		Lantern = { Brightness = 1.6, Range = 22 },
-		Garland = { Brightness = 0.9, Range = 14 },
-	},
-
-	Colors = {
-		-- Дерево
-		WoodLight = Color3.fromRGB(184, 130, 78),
-		WoodMid = Color3.fromRGB(146, 98, 56),
-		WoodDark = Color3.fromRGB(98, 62, 36),
-		WoodDeep = Color3.fromRGB(60, 38, 24),
-		WoodTones = {
-			Color3.fromRGB(176, 124, 74),
-			Color3.fromRGB(150, 102, 60),
-			Color3.fromRGB(128, 84, 48),
-			Color3.fromRGB(164, 114, 68),
-			Color3.fromRGB(112, 72, 42),
-			Color3.fromRGB(190, 138, 86),
-		},
-
-		-- Тент
-		AwningA = Color3.fromRGB(198, 52, 46),
-		AwningB = Color3.fromRGB(246, 228, 194),
-
-		-- Металл, камень, ткань
-		Metal = Color3.fromRGB(88, 92, 100),
-		MetalDark = Color3.fromRGB(48, 50, 56),
-		Brass = Color3.fromRGB(206, 164, 70),
-		Gold = Color3.fromRGB(255, 200, 60),
-		Rope = Color3.fromRGB(198, 166, 110),
-		Burlap = Color3.fromRGB(172, 136, 86),
-		BurlapDark = Color3.fromRGB(128, 96, 58),
-		Stone = Color3.fromRGB(104, 104, 110),
-		StoneDark = Color3.fromRGB(70, 72, 80),
-
-		-- Свет
-		WarmLight = Color3.fromRGB(255, 176, 90),
-		LanternGlass = Color3.fromRGB(255, 190, 100),
-		Bulbs = {
-			Color3.fromRGB(255, 224, 140),
-			Color3.fromRGB(255, 176, 84),
-			Color3.fromRGB(255, 236, 200),
-			Color3.fromRGB(255, 140, 90),
-		},
-
-		-- Образцы руды
-		GemGold = Color3.fromRGB(255, 200, 60),
-		GemRuby = Color3.fromRGB(230, 40, 70),
-		GemEmerald = Color3.fromRGB(50, 225, 120),
-		GemDiamond = Color3.fromRGB(160, 240, 255),
-		RockDark = Color3.fromRGB(70, 66, 74),
-
-		-- Ковёр
-		CarpetBase = Color3.fromRGB(138, 32, 44),
-		CarpetBorder = Color3.fromRGB(226, 178, 70),
-		CarpetInner = Color3.fromRGB(40, 66, 120),
-		CarpetPattern = Color3.fromRGB(244, 214, 150),
-		CarpetFringe = Color3.fromRGB(232, 214, 170),
-
-		-- Товары на полках
-		BookColors = {
-			Color3.fromRGB(170, 48, 48),
-			Color3.fromRGB(48, 96, 170),
-			Color3.fromRGB(60, 130, 80),
-			Color3.fromRGB(190, 150, 60),
-			Color3.fromRGB(110, 60, 140),
-			Color3.fromRGB(90, 70, 50),
-		},
-		ToolboxRed = Color3.fromRGB(200, 44, 40),
-		BottleGlass = Color3.fromRGB(120, 170, 130),
-		BottleBrown = Color3.fromRGB(120, 70, 40),
-		Cork = Color3.fromRGB(190, 150, 100),
-		TorchFire = Color3.fromRGB(255, 150, 50),
-		PotionBlue = Color3.fromRGB(80, 160, 255),
-		PotionPurple = Color3.fromRGB(190, 90, 255),
-		PotionGreen = Color3.fromRGB(90, 240, 140),
-		TopHat = Color3.fromRGB(28, 24, 30),
-		Steel = Color3.fromRGB(150, 160, 172),
-		Paper = Color3.fromRGB(236, 226, 196),
-
-		-- Вывеска
-		SignBoard = Color3.fromRGB(78, 48, 30),
-		SignText = Color3.fromRGB(255, 214, 110),
-		SignStroke = Color3.fromRGB(30, 18, 10),
-
-		-- Торговец
-		Skin = Color3.fromRGB(242, 196, 156),
-		SkinShade = Color3.fromRGB(232, 150, 128),
-		Shirt = Color3.fromRGB(238, 226, 200),
-		Cuff = Color3.fromRGB(214, 200, 172),
-		Apron = Color3.fromRGB(150, 98, 56),
-		ApronDark = Color3.fromRGB(104, 66, 38),
-		Trousers = Color3.fromRGB(66, 56, 74),
-		Boots = Color3.fromRGB(46, 30, 24),
-		Hat = Color3.fromRGB(32, 28, 36),
-		HatTop = Color3.fromRGB(52, 46, 58),
-		HatBand = Color3.fromRGB(186, 48, 52),
-		Moustache = Color3.fromRGB(82, 54, 34),
-		Hair = Color3.fromRGB(96, 64, 40),
-		GlassesFrame = Color3.fromRGB(224, 184, 74),
-		Lens = Color3.fromRGB(190, 225, 255),
-		EyeWhite = Color3.fromRGB(250, 250, 250),
-		Pupil = Color3.fromRGB(40, 30, 28),
-		Mouth = Color3.fromRGB(132, 46, 46),
-		Cheek = Color3.fromRGB(255, 150, 140),
-		BowTie = Color3.fromRGB(190, 40, 52),
-
-		-- Табличка над головой торговца
-		TagBg = Color3.fromRGB(24, 18, 14),
-		TagStroke = Color3.fromRGB(255, 200, 90),
-		TagName = Color3.fromRGB(255, 222, 130),
-		TagHint = Color3.fromRGB(236, 228, 210),
-	},
-}
 
 -- ============================================================================
 -- 🪨 v52: КАМЕННАЯ ПЛОЩАДЬ СПАВНА (SpawnPlazaBuilder)
@@ -4298,8 +3976,10 @@ local function shakeBlockLocal(block: BasePart)
 	local my = state.Token
 
 	local soft = SOFT_BLOCKS[tostring(block:GetAttribute("BlockId"))] == true
-	local amp = soft and 0.2 or 0.09
-	local tilt = soft and 0.035 or 0.012
+	-- v52: дрожание спокойнее — амплитуда и наклон умножаются на GameConfig.BLOCK_HIT_SHAKE
+	local shakeCfg = GameConfig.BLOCK_HIT_SHAKE
+	local amp = (soft and 0.2 or 0.09) * shakeCfg.Scale
+	local tilt = (soft and 0.035 or 0.012) * shakeCfg.Scale
 	local steps = soft and 8 or 5
 	local pivot = state.Pivot
 	local pivotInv = pivot:Inverse()
@@ -4317,7 +3997,7 @@ local function shakeBlockLocal(block: BasePart)
 				if rec.P.Parent then
 					local cf = move * rec.CF
 					if rec.Sway then
-						cf = cf * CFrame.Angles(0, 0, side * 0.22 * k)
+						cf = cf * CFrame.Angles(0, 0, side * 0.22 * shakeCfg.SwayScale * k)
 					end
 					rec.P.CFrame = cf
 				end
@@ -5582,7 +5262,6 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local GameConfig = require(ReplicatedStorage:WaitForChild("Modules"):WaitForChild("GameConfig"))
 local PickaxeJuice = require(script.Parent:WaitForChild("PickaxeJuice"))
-local BackpackDetailer = require(script.Parent:WaitForChild("BackpackDetailer"))
 
 local EquipmentManager = {}
 
@@ -7315,28 +6994,6 @@ function EquipmentManager.BuildBackpackParts(
 		end
 	end
 
-	-- v52: детализация рюкзака (швы, пряжки, фонари, кристаллы, эмблемы) — модуль BackpackDetailer.
-	-- Ошибка в отделке не должна ломать экипировку, поэтому вызов защищён pcall.
-	local okDetail, errDetail = pcall(BackpackDetailer.Decorate, {
-		Model = model,
-		Level = lvl,
-		Scale = s,
-		Anchored = anchored,
-		OnCharacter = isCharTorso,
-		Origin = originCF,
-		Width = BW,
-		Height = BH,
-		Depth = BD,
-		CenterY = yb,
-		CenterZ = zc,
-		FrontZ = front,
-		Palette = PAL,
-		Add = add,
-	})
-	if not okDetail then
-		warn("[EquipmentBuilder] BackpackDetailer: " .. tostring(errDetail))
-	end
-
 	model:SetAttribute("BackpackLevel", lvl)
 	model:SetAttribute("BodyDepth", BD)
 	model:SetAttribute("StyleName", style.Name)
@@ -7595,955 +7252,6 @@ return EquipmentManager
 -- Модульный фасад клиентского HUD и индикаторов глубины/энергии (раздел 10 ТЗ)
 local HudModule = require(script.Parent:WaitForChild("HudModule"))
 return HudModule
-</ProtectedString></Properties></Item><Item class="ModuleScript"><Properties><string name="Name">BackpackDetailer</string><ProtectedString name="Source">--!strict
--- ============================================================================
--- 🎒 МОДУЛЬ: BackpackDetailer (ReplicatedStorage.Modules.BackpackDetailer)
--- v52: «проход детализации» рюкзаков. После базовой сборки (EquipmentBuilder) модуль
--- сканирует реальную поверхность корпуса и кладёт поверх неё швы, потёртости, пряжки,
--- кольца и уникальные детали каждого из 10 уровней. Все детали создаются через ctx.Add
--- (Massless, без коллизий, привариваются к торсу). Цвета и размеры — GameConfig.BACKPACK_DETAIL.
--- ============================================================================
-
-local PartKit = require(script.Parent:WaitForChild("PartKit"))
-local GameConfig = require(script.Parent:WaitForChild("GameConfig"))
-
-local BackpackDetailer = {}
-
-export type AddOpts = {
-	Push: number?,
-	Inflate: boolean?,
-	DepthAxis: string?,
-	Tint: boolean?,
-	FillGlow: boolean?,
-	Shape: Enum.PartType?,
-	Rounded: boolean?,
-	Wedge: boolean?,
-	Reflectance: number?,
-	Transparency: number?,
-}
-
-export type DecorateContext = {
-	Model: Model,            -- модель рюкзака (в неё уже добавлены все базовые детали)
-	Level: number,           -- уровень рюкзака 1..10
-	Scale: number,           -- общий масштаб рюкзака
-	Anchored: boolean,       -- true для витрины / ViewportFrame
-	OnCharacter: boolean,    -- true, если рюкзак на спине персонажа (детали варятся к торсу)
-	Origin: CFrame,          -- мировая система координат рюкзака (CFrame торса или точки витрины)
-	Width: number,           -- габарит корпуса по X
-	Height: number,          -- габарит корпуса по Y
-	Depth: number,           -- габарит корпуса по Z
-	CenterY: number,         -- локальный Y центра корпуса
-	CenterZ: number,         -- локальный Z центра корпуса
-	FrontZ: number,          -- локальный Z внешней (дальней от спины) грани корпуса
-	Palette: { [string]: Color3 },
-	Add: (name: string, size: Vector3, localCF: CFrame, color: Color3, material: Enum.Material, opts: AddOpts?) -&gt; BasePart,
-}
-
--- ----------------------------------------------------------------------------
--- Настройки: значения по умолчанию на случай, если раздел конфига не найден
--- ----------------------------------------------------------------------------
-type LevelCfg = {
-	Metal: Color3, Accent: Color3, Accent2: Color3, Glow: Color3, Glow2: Color3, Cloth: Color3, Thread: Color3,
-	Count: number, LightBrightness: number, LightRange: number, EmitRate: number, Shine: number,
-}
-
-type SharedCfg = {
-	Seed: number, MaxParts: number, MaxLights: number, MaxEmitters: number, Lift: number,
-	StitchDash: number, StitchPerRow: number, ScuffCount: number, WaistLimit: number,
-}
-
-local DEFAULT_LEVEL: LevelCfg = {
-	Metal = Color3.fromRGB(190, 194, 202), Accent = Color3.fromRGB(214, 170, 70), Accent2 = Color3.fromRGB(90, 60, 40),
-	Glow = Color3.fromRGB(120, 220, 255), Glow2 = Color3.fromRGB(255, 255, 255), Cloth = Color3.fromRGB(60, 50, 40),
-	Thread = Color3.fromRGB(220, 200, 160), Count = 0, LightBrightness = 0, LightRange = 0, EmitRate = 0, Shine = 0.2,
-}
-
-local DEFAULT_SHARED: SharedCfg = {
-	Seed = 5200, MaxParts = 45, MaxLights = 2, MaxEmitters = 2, Lift = 0.015,
-	StitchDash = 0.11, StitchPerRow = 5, ScuffCount = 3, WaistLimit = 0.44,
-}
-
--- Копирует из источника только поля нужного типа; остальное берётся из значений по умолчанию
-local function mergeCfg(defaults: any, source: any): any
-	local out: { [string]: any } = {}
-	for k, v in pairs(defaults :: { [string]: any }) do
-		local sv = if typeof(source) == "table" then (source :: { [string]: any })[k] else nil
-		out[k] = if sv ~= nil and typeof(sv) == typeof(v) then sv else v
-	end
-	return out
-end
-
-local function loadConfig(level: number): (LevelCfg, SharedCfg)
-	local root = GameConfig :: any
-	local levels = root.BACKPACK_DETAIL
-	local lc: any = if typeof(levels) == "table" then levels[level] else nil
-	local sc: any = root.BACKPACK_DETAIL_SHARED
-	return mergeCfg(DEFAULT_LEVEL, lc) :: LevelCfg, mergeCfg(DEFAULT_SHARED, sc) :: SharedCfg
-end
-
--- ----------------------------------------------------------------------------
--- Сканирование поверхности: каждая деталь корпуса — осево-выровненный объём в локальной системе
--- ----------------------------------------------------------------------------
-type Box = {
-	Name: string, Color: Color3,
-	Cx: number, Cy: number, Cz: number, -- центр
-	Ex: number, Ey: number, Ez: number, -- полуразмеры осевой оболочки
-	Ell: boolean,                       -- эллипсоид (шар / SpecialMesh Sphere)
-	Push: number,
-}
-
-local function isEllipsoid(p: BasePart): boolean
-	if p:IsA("Part") and (p :: Part).Shape == Enum.PartType.Ball then
-		return true
-	end
-	local m = p:FindFirstChildOfClass("SpecialMesh")
-	return m ~= nil and m.MeshType == Enum.MeshType.Sphere
-end
-
-local function makeBox(p: BasePart, origin: CFrame): Box
-	local cf = origin:ToObjectSpace(p.CFrame)
-	local hx, hy, hz = p.Size.X / 2, p.Size.Y / 2, p.Size.Z / 2
-	local xv, yv, zv = cf.XVector, cf.YVector, cf.ZVector
-	local push = p:GetAttribute("Push")
-	return {
-		Name = p.Name, Color = p.Color,
-		Cx = cf.X, Cy = cf.Y, Cz = cf.Z,
-		Ex = math.max(math.abs(xv.X) * hx + math.abs(yv.X) * hy + math.abs(zv.X) * hz, 1e-3),
-		Ey = math.max(math.abs(xv.Y) * hx + math.abs(yv.Y) * hy + math.abs(zv.Y) * hz, 1e-3),
-		Ez = math.max(math.abs(xv.Z) * hx + math.abs(yv.Z) * hy + math.abs(zv.Z) * hz, 1e-3),
-		Ell = isEllipsoid(p),
-		Push = if typeof(push) == "number" then push else 0,
-	}
-end
-
--- Детали, которые не считаются «поверхностью» (нити, ручки, бегунки, лямки)
-local SKIP_PREFIX = { "Strap", "Stitch", "Handle", "Zip", "PocketZip", "Dtl" }
-
-local function isSurfacePart(p: BasePart, s: number): boolean
-	if p.Transparency &gt;= 0.9 then
-		return false
-	end
-	for _, pre in ipairs(SKIP_PREFIX) do
-		if string.sub(p.Name, 1, #pre) == pre then
-			return false
-		end
-	end
-	local sz = p.Size
-	return math.max(sz.X, sz.Y, sz.Z) &gt;= 0.12 * s
-end
-
--- ----------------------------------------------------------------------------
--- Главная функция
--- ----------------------------------------------------------------------------
-function BackpackDetailer.Decorate(ctx: DecorateContext)
-	local level = math.clamp(math.floor(ctx.Level), 1, 10)
-	local s: number = if ctx.Scale &gt; 0 then ctx.Scale else 1
-	local cfg, shared = loadConfig(level)
-	local rng = Random.new(shared.Seed + level)
-
-	local W, H, D = ctx.Width, ctx.Height, ctx.Depth
-	local cy, cz = ctx.CenterY, ctx.CenterZ
-	local backZ = cz - D / 2           -- ближе к торсу детали не ставятся
-	local minY = cy - H * shared.WaistLimit -- ниже пояса детали не ставятся
-	local LIFT = shared.Lift * s
-	local pal = ctx.Palette
-	local bodyColor: Color3 = pal.body or Color3.fromRGB(120, 100, 80)
-	local metalMat = Enum.Material.Metal
-
-	-- Сканирование существующих деталей модели
-	local surfaces: { Box } = {}
-	local byName: { [string]: { Box } } = {}
-	for _, d in ipairs(ctx.Model:GetDescendants()) do
-		if d:IsA("BasePart") and d.Transparency &lt; 0.9 then
-			local b = makeBox(d, ctx.Origin)
-			local list = byName[d.Name]
-			if not list then
-				list = {}
-				byName[d.Name] = list
-			end
-			table.insert(list :: { Box }, b)
-			if isSurfacePart(d, s) then
-				table.insert(surfaces, b)
-			end
-		end
-	end
-
-	local function find(name: string): Box?
-		local l = byName[name]
-		return if l then l[1] else nil
-	end
-
-	local function findAll(name: string): { Box }
-		return byName[name] or {}
-	end
-
-	-- Внешний Z поверхности в точке (x, y); nil, если точка не покрыта
-	local function zAtRaw(x: number, y: number): (number?, number)
-		local best: number? = nil
-		local push = 0
-		for _, b in ipairs(surfaces) do
-			local dx = (x - b.Cx) / b.Ex
-			local dy = (y - b.Cy) / b.Ey
-			local z: number? = nil
-			if b.Ell then
-				local d2 = dx * dx + dy * dy
-				if d2 &lt; 1 then
-					z = b.Cz + b.Ez * math.sqrt(1 - d2)
-				end
-			elseif math.abs(dx) &lt;= 1 and math.abs(dy) &lt;= 1 then
-				z = b.Cz + b.Ez
-			end
-			if z and (best == nil or z &gt; best) then
-				best = z
-				push = b.Push
-			end
-		end
-		return best, push
-	end
-
-	-- Если точка вне корпуса, ищем ближайшую покрытую, смещаясь к центру корпуса
-	local function zAt(x: number, y: number): (number, number)
-		for i = 0, 6 do
-			local f = 1 - i * 0.12
-			local z, push = zAtRaw(x * f, cy + (y - cy) * f)
-			if z then
-				return z, push
-			end
-		end
-		return ctx.FrontZ - 0.05 * s, 0
-	end
-
-	-- Верхняя поверхность над точкой (x, z)
-	local function topAt(x: number, z: number): (number?, number)
-		local best: number? = nil
-		local push = 0
-		for _, b in ipairs(surfaces) do
-			local dx = (x - b.Cx) / b.Ex
-			local dz = (z - b.Cz) / b.Ez
-			local y: number? = nil
-			if b.Ell then
-				local d2 = dx * dx + dz * dz
-				if d2 &lt; 1 then
-					y = b.Cy + b.Ey * math.sqrt(1 - d2)
-				end
-			elseif math.abs(dx) &lt;= 1 and math.abs(dz) &lt;= 1 then
-				y = b.Cy + b.Ey
-			end
-			if y and (best == nil or y &gt; best) then
-				best = y
-				push = b.Push
-			end
-		end
-		return best, push
-	end
-
-	-- Боковая поверхность (sign = ±1) в точке (y, z); возвращает координату X
-	local function sideAt(y: number, z: number, sign: number): (number?, number)
-		local best: number? = nil
-		local push = 0
-		for _, b in ipairs(surfaces) do
-			local dy = (y - b.Cy) / b.Ey
-			local dz = (z - b.Cz) / b.Ez
-			local x: number? = nil
-			if b.Ell then
-				local d2 = dy * dy + dz * dz
-				if d2 &lt; 1 then
-					x = b.Cx + sign * b.Ex * math.sqrt(1 - d2)
-				end
-			elseif math.abs(dy) &lt;= 1 and math.abs(dz) &lt;= 1 then
-				x = b.Cx + sign * b.Ex
-			end
-			if x and (best == nil or sign * x &gt; sign * best) then
-				best = x
-				push = b.Push
-			end
-		end
-		return best, push
-	end
-
-	-- Нормаль передней поверхности по градиенту Z (наклон ограничен, чтобы не скакать на стыках)
-	local function normalAt(x: number, y: number): Vector3
-		local d = 0.05 * s
-		local fx = math.clamp((zAt(x + d, y) - zAt(x - d, y)) / (2 * d), -0.7, 0.7)
-		local fy = math.clamp((zAt(x, y + d) - zAt(x, y - d)) / (2 * d), -0.7, 0.7)
-		return Vector3.new(-fx, -fy, 1).Unit
-	end
-
-	-- Точка на поверхности, смещённая вдоль нормали на extra
-	local function surfPoint(x: number, y: number, extra: number): (Vector3, number)
-		local z, push = zAt(x, y)
-		return Vector3.new(x, y, z) + normalAt(x, y) * (extra + LIFT), push
-	end
-
-	-- ------------------------------------------------------------------------
-	-- Создание деталей с учётом лимитов
-	-- ------------------------------------------------------------------------
-	local count, lights, emitters = 0, 0, 0
-
-	local function withPush(opts: AddOpts?, push: number?): AddOpts
-		local o: AddOpts = {}
-		if opts then
-			o.Shape = opts.Shape
-			o.Wedge = opts.Wedge
-			o.Reflectance = opts.Reflectance
-			o.Transparency = opts.Transparency
-		end
-		o.Push = push
-		return o
-	end
-
-	local function put(name: string, size: Vector3, cf: CFrame, color: Color3, mat: Enum.Material, opts: AddOpts?, onTop: boolean?): BasePart?
-		if count &gt;= shared.MaxParts then
-			return nil
-		end
-		local pos = cf.Position
-		if pos.Y &lt; minY or (not onTop and pos.Z &lt; backZ + 0.02 * s) then
-			return nil
-		end
-		count += 1
-		local ok, part = pcall(ctx.Add, "Dtl" .. name, size, cf, color, mat, opts)
-		if ok and typeof(part) == "Instance" and (part :: Instance):IsA("BasePart") then
-			return part :: BasePart
-		end
-		return nil
-	end
-
-	-- Плоская пластина, лежащая на поверхности и повёрнутая по её нормали
-	local function plate(name: string, w: number, h: number, thick: number, x: number, y: number, roll: number,
-		color: Color3, mat: Enum.Material, extra: number?, opts: AddOpts?): BasePart?
-		local z, push = zAt(x, y)
-		local n = normalAt(x, y)
-		local pos = Vector3.new(x, y, z) + n * (thick / 2 + LIFT + (extra or 0))
-		local cf = CFrame.lookAt(pos, pos - n) * CFrame.Angles(0, 0, roll)
-		return put(name, Vector3.new(w, h, thick), cf, color, mat, withPush(opts, push))
-	end
-
-	-- Диск (цилиндр, ось которого направлена по нормали поверхности): кольца, заклёпки
-	local function disc(name: string, diameter: number, thick: number, x: number, y: number,
-		color: Color3, mat: Enum.Material, extra: number?, opts: AddOpts?): BasePart?
-		local z, push = zAt(x, y)
-		local n = normalAt(x, y)
-		local pos = Vector3.new(x, y, z) + n * (thick / 2 + LIFT + (extra or 0))
-		local cf = CFrame.lookAt(pos, pos - n) * CFrame.Angles(0, math.rad(-90), 0)
-		local o = withPush(opts, push)
-		o.Shape = Enum.PartType.Cylinder
-		return put(name, Vector3.new(thick, diameter, diameter), cf, color, mat, o)
-	end
-
-	local function ball(name: string, diameter: number, pos: Vector3, color: Color3, mat: Enum.Material, push: number?, opts: AddOpts?): BasePart?
-		local o = withPush(opts, push)
-		o.Shape = Enum.PartType.Ball
-		return put(name, Vector3.new(diameter, diameter, diameter), CFrame.new(pos), color, mat, o)
-	end
-
-	-- Стержень между двумя точками (round = цилиндр, иначе брусок)
-	local function bar(name: string, a: Vector3, b: Vector3, t: number, color: Color3, mat: Enum.Material,
-		push: number?, round: boolean?, opts: AddOpts?): BasePart?
-		local d = b - a
-		local len = d.Magnitude
-		if len &lt; 1e-4 then
-			return nil
-		end
-		local dir = d / len
-		local ref = if math.abs(dir.Z) &lt; 0.9 then Vector3.zAxis else Vector3.yAxis
-		local cf = CFrame.fromMatrix((a + b) / 2, dir, ref:Cross(dir).Unit)
-		local o = withPush(opts, push)
-		if round then
-			o.Shape = Enum.PartType.Cylinder
-		end
-		return put(name, Vector3.new(len + t * 0.5, t, t), cf, color, mat, o)
-	end
-
-	-- Цепочка стержней по точкам поверхности
-	local function pathBars(name: string, pts: { Vector3 }, pushes: { number }, t: number, color: Color3,
-		mat: Enum.Material, round: boolean?, opts: AddOpts?, altColor: Color3?): { BasePart }
-		local out: { BasePart } = {}
-		for i = 1, #pts - 1 do
-			local c = if altColor and i % 2 == 0 then altColor else color
-			local p = bar(name, pts[i], pts[i + 1], t, c, mat, pushes[i], round, opts)
-			if p then
-				table.insert(out, p)
-			end
-		end
-		return out
-	end
-
-	local function addLight(parent: BasePart, color: Color3)
-		if not ctx.OnCharacter or lights &gt;= shared.MaxLights or cfg.LightBrightness &lt;= 0 then
-			return
-		end
-		lights += 1
-		PartKit.PointLight(parent, color, cfg.LightBrightness, cfg.LightRange)
-	end
-
-	local function addEmitter(parent: BasePart, props: PartKit.EmitterProps)
-		if not ctx.OnCharacter or emitters &gt;= shared.MaxEmitters or cfg.EmitRate &lt;= 0 then
-			return
-		end
-		emitters += 1
-		PartKit.Emitter(parent, props)
-	end
-
-	-- Ряд стежков вдоль отрезка по поверхности
-	local function stitchRow(x1: number, y1: number, x2: number, y2: number, n: number, color: Color3)
-		local ang = math.atan2(y2 - y1, x2 - x1)
-		for i = 1, n do
-			local t = (i - 0.5) / n
-			plate("Stitch", shared.StitchDash * s, 0.022 * s, 0.012 * s, x1 + (x2 - x1) * t, y1 + (y2 - y1) * t, ang,
-				color, Enum.Material.Fabric)
-		end
-	end
-
-	-- Горизонтальная полуширина разметки на объёме b на высоте долей dyFrac от его центра
-	local function span(b: Box, dyFrac: number): number
-		if b.Ell then
-			return b.Ex * math.sqrt(math.max(1 - dyFrac * dyFrac, 0.04)) * 0.8
-		end
-		return b.Ex * 0.85
-	end
-
-	-- Позиции плечевых лямок (для якорных колец и заклёпок)
-	local strapXs: { number } = { -0.26 * W, 0.26 * W }
-	do
-		local straps = findAll("StrapShoulder")
-		if #straps &gt;= 2 then
-			strapXs = { straps[1].Cx, straps[2].Cx }
-		end
-	end
-
-	-- Заклёпки на плечевых лямках (имя содержит «Strap» — они не прыгают отдельно от лямки)
-	local function shoulderRivets(color: Color3)
-		for _, b in ipairs(findAll("StrapShoulder")) do
-			for _, off in ipairs({ 0.30, 0.62 }) do
-				local z = b.Cz + b.Ez - off * s
-				put("StrapRivet", Vector3.new(0.03 * s, 0.09 * s, 0.09 * s),
-					CFrame.new(b.Cx, b.Cy + b.Ey + 0.012 * s, z) * CFrame.Angles(0, 0, math.rad(90)),
-					color, metalMat, { Shape = Enum.PartType.Cylinder, Reflectance = cfg.Shine }, true)
-			end
-		end
-	end
-
-	-- Бугельные полосы-стяжки скатки с латунной пряжкой (уровни 2 и 3)
-	local function bedrollBands(bandColor: Color3, buckleColor: Color3)
-		local b = find("Bedroll")
-		if not b or b.Ex &lt; b.Ey * 1.5 then
-			return
-		end
-		for _, sx in ipairs({ -1, 1 }) do
-			local x = b.Cx + sx * b.Ex * 0.62
-			local r = b.Ey + 0.025 * s
-			put("BedrollBand", Vector3.new(0.10 * s, r * 2, r * 2), CFrame.new(x, b.Cy, b.Cz),
-				bandColor, Enum.Material.Fabric, { Shape = Enum.PartType.Cylinder, Push = b.Push })
-			put("BedrollBuckle", Vector3.new(0.12 * s, 0.14 * s, 0.03 * s), CFrame.new(x, b.Cy, b.Cz + r + 0.014 * s),
-				buckleColor, metalMat, { Reflectance = cfg.Shine, Push = b.Push })
-		end
-	end
-
-	-- ------------------------------------------------------------------------
-	-- Особенности уровней
-	-- ------------------------------------------------------------------------
-	local features: { [number]: () -&gt; () } = {}
-
-	-- 1. Холщовый мешок: верёвочная перевязь с узлом и заплата со стежками
-	features[1] = function()
-		local y = cy + 0.34 * H
-		local t = 0.075 * s
-		local pts: { Vector3 } = {}
-		local pushes: { number } = {}
-		for i = 0, 8 do
-			local p, pp = surfPoint((-0.47 + i * 0.1175) * W, y, t * 0.5)
-			table.insert(pts, p)
-			table.insert(pushes, pp)
-		end
-		pathBars("Rope", pts, pushes, t, cfg.Accent, Enum.Material.Fabric, true)
-
-		local kx = 0.12 * W
-		local knotPos, kp = surfPoint(kx, y, t * 0.9)
-		ball("RopeKnot", 0.16 * s, knotPos, cfg.Accent2, Enum.Material.Fabric, kp)
-		local endA, pa = surfPoint(kx + 0.05 * W, y - 0.30 * s, 0.025 * s)
-		local endB, pb = surfPoint(kx - 0.03 * W, y - 0.26 * s, 0.025 * s)
-		bar("RopeEnd", knotPos, endA, 0.05 * s, cfg.Accent, Enum.Material.Fabric, pa, true)
-		bar("RopeEnd", knotPos, endB, 0.05 * s, cfg.Accent2, Enum.Material.Fabric, pb, true)
-
-		-- заплата с восемью стежками по краям
-		local px, py, pw, ph, pth = -0.30 * W, cy + 0.18 * H, 0.36 * s, 0.30 * s, 0.016 * s
-		plate("Patch", pw, ph, pth, px, py, 0.08, cfg.Cloth, Enum.Material.Fabric)
-		for _, sx in ipairs({ -0.5, 0.5 }) do
-			for _, sy in ipairs({ -1, 1 }) do
-				plate("Stitch", shared.StitchDash * s, 0.022 * s, 0.012 * s, px + sx * pw * 0.52, py + sy * ph * 0.40, 0.08 + math.rad(90),
-					cfg.Thread, Enum.Material.Fabric, pth)
-			end
-			for _, sy in ipairs({ -1, 1 }) do
-				plate("Stitch", shared.StitchDash * s, 0.022 * s, 0.012 * s, px + sx * pw * 0.40, py + sy * ph * 0.5, 0.08,
-					cfg.Thread, Enum.Material.Fabric, pth)
-			end
-		end
-	end
-
-	-- 2. Кожаный рюкзак: латунные пряжки на ремнях клапана, шляпки на боковых карманах, заклёпки
-	features[2] = function()
-		local buckles = findAll("BuckleFrame")
-		local spots: { Box } = {}
-		for _, b in ipairs(buckles) do
-			table.insert(spots, b)
-		end
-		if #spots == 0 then
-			for _, sx in ipairs({ -1, 1 }) do
-				table.insert(spots, { Name = "BuckleFrame", Color = cfg.Metal, Cx = sx * 0.25 * W, Cy = cy + 0.18 * H, Cz = cz,
-					Ex = 0.17 * s, Ey = 0.15 * s, Ez = 0.03 * s, Ell = false, Push = 0 })
-			end
-		end
-		for _, b in ipairs(spots) do
-			plate("BrassPin", b.Ex * 1.8, 0.04 * s, 0.03 * s, b.Cx, b.Cy, 0, cfg.Accent, metalMat, 0, { Reflectance = cfg.Shine })
-			for _, sx in ipairs({ -1, 1 }) do
-				disc("BrassRivet", 0.06 * s, 0.025 * s, b.Cx + sx * b.Ex * 0.78, b.Cy + b.Ey * 0.72, cfg.Accent, metalMat, 0,
-					{ Reflectance = cfg.Shine })
-			end
-		end
-		for _, f in ipairs(findAll("SidePocketFlap")) do
-			local sign = if f.Cx &lt; 0 then -1 else 1
-			for _, dz in ipairs({ -0.15, 0.15 }) do
-				local z = f.Cz + dz * s
-				local x, push = sideAt(f.Cy, z, sign)
-				if x then
-					ball("Stud", 0.07 * s, Vector3.new(x + sign * 0.02 * s, f.Cy, z), cfg.Accent, metalMat, push, { Reflectance = cfg.Shine })
-				end
-			end
-		end
-		bedrollBands(cfg.Accent2, cfg.Accent)
-		shoulderRivets(cfg.Accent)
-	end
-
-	-- 3. Походный рюкзак: стяжки скатки, фонарик с линзой и SpotLight, карабин
-	features[3] = function()
-		bedrollBands(cfg.Accent, cfg.Metal)
-
-		-- фонарик на боку: корпус вдоль оси Z, светит наружу от спины
-		local fy, fz = cy + 0.12 * H, cz
-		local sideX, fpush = sideAt(fy, fz, 1)
-		local r, len = 0.085 * s, 0.50 * s
-		local fx = (sideX or W / 2) + r + 0.012 * s
-		local axis = CFrame.Angles(0, math.rad(-90), 0) -- ось цилиндра X → +Z
-		local function lamp(name: string, length: number, diameter: number, dz: number, color: Color3, mat: Enum.Material): BasePart?
-			return put(name, Vector3.new(length, diameter, diameter), CFrame.new(fx, fy, fz + dz) * axis, color, mat,
-				{ Shape = Enum.PartType.Cylinder, Push = fpush, Reflectance = if mat == metalMat then cfg.Shine else 0 })
-		end
-		lamp("FlashBody", len, r * 2, 0, cfg.Accent2, Enum.Material.SmoothPlastic)
-		lamp("FlashCap", 0.05 * s, r * 2.05, -len / 2, cfg.Metal, metalMat)
-		lamp("FlashRing", 0.07 * s, r * 2 + 0.035 * s, len / 2 - 0.02 * s, cfg.Metal, metalMat)
-		local lens = lamp("FlashLens", 0.03 * s, r * 1.6, len / 2 + 0.02 * s, cfg.Glow, Enum.Material.Neon)
-		for _, dz in ipairs({ -0.14, 0.12 }) do
-			put("FlashClip", Vector3.new(r * 2 + 0.04 * s, r * 2 + 0.04 * s, 0.05 * s), CFrame.new(fx, fy, fz + dz * s),
-				cfg.Cloth, Enum.Material.Fabric, { Push = fpush })
-		end
-		if lens and ctx.OnCharacter and lights &lt; shared.MaxLights and cfg.LightBrightness &gt; 0 then
-			lights += 1
-			PartKit.SpotLight(lens, cfg.Glow, cfg.LightBrightness, cfg.LightRange, 60, Enum.NormalId.Right)
-		end
-
-		-- карабин на петле у левого нижнего угла
-		local kx, ky = -0.42 * W, cy - 0.28 * H
-		plate("LoopTab", 0.07 * s, 0.24 * s, 0.016 * s, kx, ky + 0.10 * s, 0, cfg.Cloth, Enum.Material.Fabric)
-		local cw, ch, bt = 0.17 * s, 0.27 * s, 0.026 * s
-		local cyk = ky - 0.06 * s
-		local lift = 0.016 * s
-		plate("Carabiner", cw, bt, bt, kx, cyk + ch / 2, 0, cfg.Metal, metalMat, lift, { Reflectance = cfg.Shine })
-		plate("Carabiner", cw, bt, bt, kx, cyk - ch / 2, 0, cfg.Metal, metalMat, lift, { Reflectance = cfg.Shine })
-		plate("Carabiner", bt, ch, bt, kx - cw / 2, cyk, 0, cfg.Metal, metalMat, lift, { Reflectance = cfg.Shine })
-		plate("Carabiner", bt, ch * 0.8, bt, kx + cw / 2, cyk - ch * 0.1, 0, cfg.Glow2, metalMat, lift, { Reflectance = cfg.Shine })
-		shoulderRivets(cfg.Metal)
-	end
-
-	-- 4. Городской рюкзак: бегунки молний, светоотражающая лента, стальной шильдик с заклёпками
-	features[4] = function()
-		-- бегунок на дальнем от штатной ручки конце молнии
-		local zips = findAll("Zip")
-		local pulls = findAll("ZipPull")
-		local sx0, sy0 = 0.20 * W, cy + 0.30 * H
-		if #zips &gt; 0 then
-			local ref = if #pulls &gt; 0 then pulls[1].Cx else 0
-			local far = zips[1]
-			for _, z in ipairs(zips) do
-				if math.abs(z.Cx - ref) &gt; math.abs(far.Cx - ref) then
-					far = z
-				end
-			end
-			sx0, sy0 = far.Cx, far.Cy
-		end
-		local function pull(x: number, y: number)
-			plate("ZipSlider", 0.12 * s, 0.07 * s, 0.04 * s, x, y, 0, cfg.Metal, metalMat, 0, { Reflectance = cfg.Shine })
-			plate("ZipPullTab", 0.05 * s, 0.20 * s, 0.02 * s, x, y - 0.12 * s, 0, cfg.Metal, metalMat, 0.02 * s, { Reflectance = cfg.Shine })
-		end
-		pull(sx0, sy0)
-		local pocket = find("FrontPocket")
-		if pocket then
-			pull(pocket.Cx + pocket.Ex * 0.45, pocket.Cy + pocket.Ey * 0.55)
-		end
-
-		-- светоотражающая лента на кармане
-		local pb: Box = pocket or { Name = "FrontPocket", Color = cfg.Metal, Cx = 0, Cy = cy - 0.12 * H, Cz = cz, Ex = 0.3 * W, Ey = 0.2 * H,
-			Ez = 0.1, Ell = false, Push = 0 }
-		local n = 5
-		local half = span(pb, 0.1)
-		local step = half * 2 / n
-		for i = 1, n do
-			plate("Reflect", step * 1.04, 0.07 * s, 0.014 * s, pb.Cx - half + (i - 0.5) * step, pb.Cy + pb.Ey * 0.1, 0,
-				cfg.Glow, Enum.Material.Neon, 0, { Transparency = 0.25 })
-		end
-
-		-- шильдик (поверх верхней нашивки, если она есть)
-		local patch = find("TopPatch")
-		local bx, by = if patch then patch.Cx else 0, if patch then patch.Cy else cy + 0.32 * H
-		plate("Badge", 0.42 * s, 0.20 * s, 0.03 * s, bx, by, 0, cfg.Accent, metalMat, 0, { Reflectance = cfg.Shine })
-		for _, sx in ipairs({ -1, 1 }) do
-			for _, sy in ipairs({ -1, 1 }) do
-				disc("BadgeRivet", 0.045 * s, 0.02 * s, bx + sx * 0.18 * s, by + sy * 0.075 * s, cfg.Metal, metalMat, 0.03 * s,
-					{ Reflectance = cfg.Shine })
-			end
-		end
-		for _, dy in ipairs({ -0.03, 0.03 }) do
-			plate("BadgeLine", 0.24 * s, 0.018 * s, 0.01 * s, bx, by + dy * s, 0, cfg.Accent2, metalMat, 0.03 * s)
-		end
-	end
-
-	-- 5. «Авангард»: металлические уголки и светящиеся боковые полосы цвета ромба
-	features[5] = function()
-		local emblem = find("EmblemDiamond")
-		local glow: Color3 = if emblem then emblem.Color else cfg.Glow
-		local panel = find("BasePanel")
-		-- нижние и верхние уголки: вертикальная и горизонтальная планки
-		local corners: { { number } } = {}
-		local bx = if panel then panel.Ex * 0.88 else 0.36 * W
-		local by = math.max(if panel then panel.Cy else cy - 0.30 * H, minY + 0.22 * s)
-		table.insert(corners, { -bx, by, 1, 1 })
-		table.insert(corners, { bx, by, -1, 1 })
-		table.insert(corners, { -0.34 * W, cy + 0.34 * H, 1, -1 })
-		table.insert(corners, { 0.34 * W, cy + 0.34 * H, -1, -1 })
-		for _, c in ipairs(corners) do
-			local x, y, inward, up = c[1], c[2], c[3], c[4]
-			plate("CornerGuard", 0.28 * s, 0.06 * s, 0.03 * s, x + inward * 0.11 * s, y - up * 0.12 * s, 0, cfg.Metal, metalMat, 0,
-				{ Reflectance = cfg.Shine })
-			plate("CornerGuard", 0.06 * s, 0.28 * s, 0.03 * s, x, y + up * 0.0, 0, cfg.Metal, metalMat, 0, { Reflectance = cfg.Shine })
-		end
-		-- светящиеся боковые полосы
-		local first: BasePart? = nil
-		for _, sign in ipairs({ -1, 1 }) do
-			local pts: { Vector3 } = {}
-			local pushes: { number } = {}
-			for i = 0, 3 do
-				local y = cy + (0.26 - i * 0.17) * H
-				local x, push = sideAt(y, cz, sign)
-				if x then
-					table.insert(pts, Vector3.new(x + sign * 0.02 * s, y, cz))
-					table.insert(pushes, push)
-				end
-			end
-			for _, p in ipairs(pathBars("SideGlow", pts, pushes, 0.04 * s, glow, Enum.Material.Neon)) do
-				first = first or p
-			end
-		end
-		if first then
-			addLight(first :: BasePart, glow)
-		end
-	end
-
-	-- 6. Шахтёрский ящик: уголки, клёпаные пластины, кристаллы руды, клетка-лампа
-	features[6] = function()
-		local lx = 0.30 * W
-		local corners: { { number } } = {
-			{ -0.36 * W, cy + 0.34 * H, 1, 1 }, { 0.36 * W, cy + 0.34 * H, -1, 1 },
-			{ -0.36 * W, cy - 0.32 * H, 1, -1 }, { 0.36 * W, cy - 0.32 * H, -1, -1 },
-		}
-		for _, c in ipairs(corners) do
-			local x, y, inward, up = c[1], c[2], c[3], c[4]
-			plate("Bracket", 0.28 * s, 0.06 * s, 0.03 * s, x + inward * 0.11 * s, y, 0, cfg.Metal, metalMat, 0, { Reflectance = cfg.Shine })
-			plate("Bracket", 0.06 * s, 0.28 * s, 0.03 * s, x, y - up * 0.11 * s, 0, cfg.Metal, metalMat, 0, { Reflectance = cfg.Shine })
-		end
-		for _, sx in ipairs({ -1, 1 }) do
-			local x, y = sx * 0.38 * W, cy + 0.02 * H
-			plate("RivetPlate", 0.30 * s, 0.50 * s, 0.03 * s, x, y, 0, cfg.Accent2, metalMat, 0, { Reflectance = cfg.Shine })
-			for _, sy in ipairs({ -1, 1 }) do
-				disc("PlateRivet", 0.05 * s, 0.02 * s, x, y + sy * 0.20 * s, cfg.Metal, metalMat, 0.03 * s, { Reflectance = cfg.Shine })
-			end
-		end
-
-		-- кристаллы руды торчат сверху наклонными призмами со скошенной вершиной
-		local xs = { -0.04, 0.16, 0.32 }
-		for i = 1, math.min(math.floor(cfg.Count), #xs) do
-			local x = xs[i] * W
-			local z0 = cz + 0.10 * D
-			local top, push = topAt(x, z0)
-			if top then
-				local h = rng:NextNumber(0.34, 0.50) * s
-				local frame = CFrame.new(x, top - 0.04 * s, z0)
-					* CFrame.Angles(math.rad(rng:NextNumber(-8, 12)), 0, math.rad(rng:NextNumber(-22, 22)))
-				local neon = i == 2
-				local color = if neon then cfg.Glow2 else cfg.Glow
-				local mat = if neon then Enum.Material.Neon else Enum.Material.Glass
-				local opts: AddOpts = { Push = push, Transparency = if neon then 0 else 0.25, Reflectance = if neon then 0 else 0.2 }
-				put("OreCrystal", Vector3.new(0.17 * s, h, 0.14 * s), frame * CFrame.new(0, h / 2, 0), color, mat, opts)
-				put("OreCrystalTip", Vector3.new(0.17 * s, 0.14 * s, 0.14 * s), frame * CFrame.new(0, h + 0.07 * s, 0), color, mat,
-					{ Push = push, Wedge = true, Transparency = opts.Transparency, Reflectance = opts.Reflectance })
-			end
-		end
-
-		-- тяжёлая лампа-клетка: основание, четыре прута, крышка, лампочка и свет
-		local lz = cz - 0.05 * D
-		local top, lpush = topAt(-lx, lz)
-		if top then
-			local base = top + 0.02 * s
-			put("LampBase", Vector3.new(0.22 * s, 0.05 * s, 0.22 * s), CFrame.new(-lx, base, lz), cfg.Metal, metalMat,
-				{ Push = lpush, Reflectance = cfg.Shine })
-			for _, ox in ipairs({ -1, 1 }) do
-				for _, oz in ipairs({ -1, 1 }) do
-					put("LampBar", Vector3.new(0.025 * s, 0.26 * s, 0.025 * s),
-						CFrame.new(-lx + ox * 0.085 * s, base + 0.155 * s, lz + oz * 0.085 * s), cfg.Metal, metalMat, { Push = lpush })
-				end
-			end
-			put("LampCap", Vector3.new(0.22 * s, 0.03 * s, 0.22 * s), CFrame.new(-lx, base + 0.30 * s, lz), cfg.Metal, metalMat, { Push = lpush })
-			local bulb = ball("LampBulb", 0.15 * s, Vector3.new(-lx, base + 0.15 * s, lz), cfg.Accent, Enum.Material.Neon, lpush)
-			if bulb then
-				addLight(bulb, cfg.Accent)
-			end
-		end
-	end
-
-	-- 7. «Полярная звезда»: золотые диагональные лучи, наконечники, заклёпки и искорки
-	features[7] = function()
-		local plateBox = find("StarPlate")
-		local ex, ey = if plateBox then plateBox.Cx else 0, if plateBox then plateBox.Cy else cy + 0.12 * H
-		local halfX = if plateBox then plateBox.Ex else 0.30 * s
-		local halfY = if plateBox then plateBox.Ey else 0.30 * s
-		local gold = cfg.Accent
-		local R = 0.17 * s
-		for _, ang in ipairs({ 45, 135 }) do
-			plate("StarRay", R * 2, 0.04 * s, 0.025 * s, ex, ey, math.rad(ang), gold, metalMat, 0.012 * s, { Reflectance = cfg.Shine })
-		end
-		for _, a in ipairs({ 45, 135, 225, 315 }) do
-			local dx, dy = math.cos(math.rad(a)) * R, math.sin(math.rad(a)) * R
-			plate("StarTip", 0.07 * s, 0.07 * s, 0.03 * s, ex + dx, ey + dy, math.rad(45), gold, metalMat, 0.012 * s, { Reflectance = cfg.Shine })
-		end
-		local sx = { -0.8, 0.8 }
-		for _, kx in ipairs(sx) do
-			for _, ky in ipairs(sx) do
-				ball("StarStud", 0.05 * s, (surfPoint(ex + kx * halfX, ey + ky * halfY, 0.02 * s)), gold, metalMat, 0, { Reflectance = cfg.Shine })
-			end
-		end
-		local centerPos, cp = surfPoint(ex, ey, 0.05 * s)
-		local core = ball("StarBead", 0.09 * s, centerPos, gold, Enum.Material.Neon, cp)
-		if core then
-			addLight(core, cfg.Glow)
-		end
-		-- пара синих «✦» на верхней части корпуса
-		for _, side in ipairs({ -1, 1 }) do
-			local x, y = side * 0.28 * W, cy + 0.30 * H
-			plate("Twinkle", 0.14 * s, 0.025 * s, 0.015 * s, x, y, 0, cfg.Glow, Enum.Material.Neon)
-			plate("Twinkle", 0.025 * s, 0.14 * s, 0.015 * s, x, y, 0, cfg.Glow2, Enum.Material.Neon)
-		end
-	end
-
-	-- 8. Кристальный «Корона»: стеклянные пластины, внутреннее свечение, осколки сверху
-	features[8] = function()
-		local glassMat = Enum.Material.Glass
-		local layout: { { number } } = {
-			{ -0.34, 0.14, 0.24, 0.34, 0.45 }, { 0.34, 0.14, 0.24, 0.34, 0.45 },
-			{ -0.36, -0.22, 0.22, 0.26, 0.38 }, { 0.36, -0.22, 0.22, 0.26, 0.38 },
-		}
-		local firstCore: BasePart? = nil
-		for i, l in ipairs(layout) do
-			local x, y = l[1] * W, cy + l[2] * H
-			plate("GlassShell", l[3] * W, l[4] * H, 0.03 * s, x, y, if i % 2 == 0 then 0.10 else -0.10, cfg.Accent, glassMat, 0.02 * s,
-				{ Transparency = l[5], Reflectance = cfg.Shine })
-			if i &lt;= 2 then
-				local pos, push = surfPoint(x, y, 0.035 * s)
-				local core = ball("CrystalCore", 0.14 * s, pos, cfg.Glow, Enum.Material.Neon, push)
-				if i == 1 then
-					firstCore = core
-				end
-			end
-		end
-		if firstCore then
-			addLight(firstCore :: BasePart, cfg.Glow)
-		end
-		-- осколки кристалла на верхней грани
-		local xs = { -0.30, -0.10, 0.10, 0.30 }
-		for i = 1, math.min(math.floor(cfg.Count), #xs) do
-			local x = xs[i] * W
-			local z0 = cz + 0.05 * D
-			local top, push = topAt(x, z0)
-			if top then
-				local h = rng:NextNumber(0.26, 0.42) * s
-				local frame = CFrame.new(x, top - 0.03 * s, z0)
-					* CFrame.Angles(math.rad(rng:NextNumber(-8, 8)), 0, math.rad(rng:NextNumber(-20, 20)))
-				local color = if i % 2 == 0 then cfg.Glow2 else cfg.Accent
-				local opts: AddOpts = { Push = push, Transparency = 0.3, Reflectance = cfg.Shine }
-				put("Shard", Vector3.new(0.12 * s, h, 0.10 * s), frame * CFrame.new(0, h / 2, 0), color, glassMat, opts)
-				put("ShardTip", Vector3.new(0.12 * s, 0.11 * s, 0.10 * s), frame * CFrame.new(0, h + 0.055 * s, 0), color, glassMat,
-					{ Push = push, Wedge = true, Transparency = 0.3, Reflectance = cfg.Shine })
-			end
-		end
-	end
-
-	-- 9. Вулканический: огненные трещины, броневые рёбра, редкие угольки
-	features[9] = function()
-		local t = 0.035 * s
-		local firstBar: BasePart? = nil
-		local function crack(startX: number, dir: number, colorA: Color3, colorB: Color3)
-			local x, y = startX, cy + 0.30 * H
-			local pts: { Vector3 } = {}
-			local pushes: { number } = {}
-			local function addPoint()
-				local p, pp = surfPoint(x, y, t * 0.5)
-				table.insert(pts, p)
-				table.insert(pushes, pp)
-			end
-			addPoint()
-			for _ = 1, 4 do
-				x += dir * rng:NextNumber(-0.05, 0.07) * W
-				y -= rng:NextNumber(0.07, 0.11) * H
-				addPoint()
-			end
-			for _, p in ipairs(pathBars("EmberCrack", pts, pushes, t, colorA, Enum.Material.Neon, false, nil, colorB)) do
-				firstBar = firstBar or p
-			end
-			return pts, pushes
-		end
-		local ptsA, pushA = crack(-0.34 * W, 1, cfg.Glow, cfg.Glow2)
-		local ptsB, pushB = crack(0.34 * W, -1, cfg.Glow2, cfg.Glow)
-		for i = 1, math.min(math.floor(cfg.Count), 2) do
-			local pts, pushes = if i == 1 then ptsA else ptsB, if i == 1 then pushA else pushB
-			if #pts &gt;= 3 then
-				local from = pts[3]
-				local sign = if i == 1 then -1 else 1
-				local toPos = surfPoint(from.X + sign * 0.10 * W, from.Y - 0.05 * H, t * 0.5)
-				bar("EmberBranch", from, toPos, t * 0.8, cfg.Glow, Enum.Material.Neon, pushes[3])
-			end
-		end
-		-- броневые рёбра по бокам лицевой панели
-		for _, sx in ipairs({ -1, 1 }) do
-			for k, dy in ipairs({ 0.28, 0.12, -0.04 }) do
-				plate("ArmorRib", 0.24 * W, 0.075 * s, 0.035 * s, sx * 0.38 * W, cy + dy * H, sx * (0.06 + 0.02 * k),
-					cfg.Cloth, metalMat, 0, { Reflectance = cfg.Shine })
-			end
-		end
-		if firstBar then
-			local fb = firstBar :: BasePart
-			addLight(fb, cfg.Glow)
-			addEmitter(fb, {
-				Name = "Embers", Texture = PartKit.TEXTURE_FIRE, Color = cfg.Glow2, Color2 = cfg.Glow,
-				Rate = math.min(cfg.EmitRate, 4), Lifetime = NumberRange.new(0.7, 1.2), Speed = NumberRange.new(0.2, 0.6),
-				SizeStart = 0.14 * s, SizeEnd = 0, Spread = 40, Acceleration = Vector3.new(0, 0.8, 0), Transparency = 0.2,
-				LightEmission = 1,
-			})
-		end
-	end
-
-	-- 10. Звёздный рюкзак: золотая пентаграмма на эмблеме, космические пластины, неоновые «звёзды»
-	features[10] = function()
-		local emblem = find("QuantumDiamond")
-		local ex, ey = if emblem then emblem.Cx else 0, if emblem then emblem.Cy else cy + 0.22 * H
-		local R = 0.19 * s
-		local t = 0.035 * s
-		local pts: { Vector3 } = {}
-		local pushes: { number } = {}
-		for k = 0, 4 do
-			local a = math.rad(72 * k)
-			local p, pp = surfPoint(ex + math.sin(a) * R, ey + math.cos(a) * R, t * 0.5 + 0.01 * s)
-			table.insert(pts, p)
-			table.insert(pushes, pp)
-		end
-		for k = 1, 5 do
-			local a, b = pts[k], pts[(k + 1) % 5 + 1]
-			bar("GoldStar", a, b, t, cfg.Accent, metalMat, pushes[k], false, { Reflectance = cfg.Shine * 2 })
-		end
-		local centerPos, cp = surfPoint(ex, ey, 0.07 * s)
-		local bead = ball("StarBead", 0.08 * s, centerPos, cfg.Accent, Enum.Material.Neon, cp)
-		if bead then
-			addLight(bead, cfg.Accent2)
-			addEmitter(bead, {
-				Name = "Sparkles", Texture = PartKit.TEXTURE_SPARKLE, Color = cfg.Accent, Color2 = cfg.Glow,
-				Rate = math.min(cfg.EmitRate, 6), Lifetime = NumberRange.new(0.8, 1.4), Speed = NumberRange.new(0.3, 0.9),
-				SizeStart = 0.18 * s, SizeEnd = 0, Spread = 180, LightEmission = 1,
-			})
-		end
-		-- космические пластины двух оттенков
-		local layout: { { number } } = {
-			{ -0.36, 0.12, 0.22, 0.30 }, { 0.36, 0.12, 0.22, 0.30 },
-			{ -0.36, -0.22, 0.22, 0.24 }, { 0.36, -0.22, 0.22, 0.24 },
-		}
-		for i, l in ipairs(layout) do
-			plate("CosmicPlate", l[3] * W, l[4] * H, 0.03 * s, l[1] * W, cy + l[2] * H, if i % 2 == 0 then 0.08 else -0.08,
-				if i % 2 == 0 then cfg.Cloth else cfg.Accent2, metalMat, 0, { Reflectance = cfg.Shine })
-		end
-		-- мелкие неоновые «звёзды» на пластинах (детерминированный разброс)
-		local starColors = { cfg.Glow2, cfg.Glow, cfg.Accent }
-		for i = 1, math.floor(cfg.Count) do
-			local l = layout[(i - 1) % #layout + 1]
-			local x = (l[1] + rng:NextNumber(-0.09, 0.09)) * W
-			local y = cy + (l[2] + rng:NextNumber(-0.10, 0.10)) * H
-			local pos, push = surfPoint(x, y, 0.03 * s)
-			ball("CosmicStar", rng:NextNumber(0.035, 0.055) * s, pos, starColors[(i - 1) % #starColors + 1], Enum.Material.Neon, push)
-		end
-	end
-
-	-- ------------------------------------------------------------------------
-	-- Запуск: сначала особенности уровня, затем общие детали (в остаток лимита)
-	-- ------------------------------------------------------------------------
-	local feature = features[level]
-	if feature then
-		feature()
-	end
-
-	-- Шов по краю клапана / кармана и нижний шов лицевой панели
-	local lid = find("Lid")
-	local flap = lid or find("PocketFlap")
-	local n = math.max(1, math.floor(shared.StitchPerRow))
-	if flap then
-		local dyFrac = if lid then -0.80 else -0.55
-		local half = span(flap, math.abs(dyFrac))
-		local y = flap.Cy + flap.Ey * dyFrac
-		stitchRow(flap.Cx - half, y, flap.Cx + half, y, n, cfg.Thread)
-	else
-		stitchRow(-0.30 * W, cy + 0.05 * H, 0.30 * W, cy + 0.05 * H, n, cfg.Thread)
-	end
-	stitchRow(-0.30 * W, cy - 0.34 * H, 0.30 * W, cy - 0.34 * H, n, cfg.Thread)
-
-	-- Потёртости: на мягких рюкзаках заплатки светлее/темнее, на технических — тонкие царапины
-	local soft = level &lt;= 6
-	for i = 1, math.max(0, math.floor(shared.ScuffCount)) do
-		local x = rng:NextNumber(-0.36, 0.36) * W
-		local y = cy + rng:NextNumber(-0.26, 0.34) * H
-		local roll = rng:NextNumber(-0.5, 0.5)
-		if soft then
-			local color = if i % 2 == 0 then PartKit.Lighten(bodyColor, 0.14) else PartKit.Darken(bodyColor, 0.18)
-			plate("Scuff", rng:NextNumber(0.20, 0.32) * s, rng:NextNumber(0.13, 0.20) * s, 0.012 * s, x, y, roll, color, Enum.Material.Fabric)
-		else
-			plate("Scratch", rng:NextNumber(0.22, 0.36) * s, 0.014 * s, 0.01 * s, x, y, roll, PartKit.Lighten(bodyColor, 0.30), metalMat, 0,
-				{ Reflectance = 0.2 })
-		end
-	end
-
-	-- Якорные кольца у основания плечевых лямок на верхней грани
-	for _, x in ipairs(strapXs) do
-		local z0 = cz - D * 0.22
-		local top, push = topAt(x, z0)
-		if top then
-			put("TopRing", Vector3.new(0.025 * s, 0.15 * s, 0.15 * s), CFrame.new(x, top + 0.012 * s, z0) * CFrame.Angles(0, 0, math.rad(90)),
-				cfg.Metal, metalMat, { Shape = Enum.PartType.Cylinder, Push = push, Reflectance = cfg.Shine })
-		end
-	end
-
-	-- Кольца с хвостиками ремней и металлическими наконечниками у нижних углов
-	for _, sx in ipairs({ -1, 1 }) do
-		local x, y = sx * 0.40 * W, cy - 0.20 * H
-		disc("Ring", 0.16 * s, 0.03 * s, x, y, cfg.Metal, metalMat, 0, { Reflectance = cfg.Shine })
-		plate("Tail", 0.09 * s, 0.26 * s, 0.016 * s, x, y - 0.17 * s, sx * 0.05, cfg.Cloth, Enum.Material.Fabric, 0.02 * s)
-		plate("TailTip", 0.10 * s, 0.05 * s, 0.022 * s, x + sx * 0.012 * s, y - 0.31 * s, sx * 0.05, cfg.Metal, metalMat, 0.02 * s,
-			{ Reflectance = cfg.Shine })
-	end
-end
-
-return BackpackDetailer
 </ProtectedString></Properties></Item><Item class="ModuleScript"><Properties><string name="Name">ClientBus</string><ProtectedString name="Source">--!strict
 -- ============================================================================
 -- 🔗 МОДУЛЬ: ClientBus (ReplicatedStorage.Modules.ClientBus) — КЛИЕНТ
@@ -8562,8 +7270,8 @@ local function event(name: string): BindableEvent
 	return e
 end
 
-ClientBus.OpenShop = event("OpenShop")     -- Fire(tabId: string?) — открыть / переключить окно магазина
-ClientBus.CloseShop = event("CloseShop")   -- Fire() — закрыть магазин
+ClientBus.OpenShop = event("OpenShop")     -- Fire() — открыть окно бустов (вкладка «Бусты» в меню магазина)
+ClientBus.CloseShop = event("CloseShop")   -- Fire() — закрыть окно бустов
 ClientBus.ToggleBag = event("ToggleBag")   -- Fire() — открыть / закрыть окно рюкзака
 ClientBus.CloseAll = event("CloseAll")     -- Fire() — закрыть все окна v52
 
@@ -10307,9 +9015,7 @@ function DataManager.SellResourcesServer(
 	mode: string?,
 	selectedKeys: { [string]: boolean }?,
 	syncRemote: RemoteEvent?,
-	silentOutOfZone: boolean?,
-	zoneCenter: Vector3?, -- v52: продажа у торговца Гоши — другая точка и радиус
-	zoneRadius: number?
+	silentOutOfZone: boolean?
 ): (number, number)
 	local now = os.clock()
 	if (now - (SellDebounce[player.UserId] or 0)) &lt; 0.65 then return 0, 0 end
@@ -10320,9 +9026,9 @@ function DataManager.SellResourcesServer(
 	-- Проверка, что игрок находится в зоне приёма руды "$ SELL"
 	local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart") :: BasePart?
 	if not root then return 0, 0 end
-	local sellCenter = zoneCenter or GameConfig.WHITE_SELL_PAD_POS
+	local sellCenter = GameConfig.WHITE_SELL_PAD_POS
 	local horizDist = (Vector3.new(root.Position.X, 0, root.Position.Z) - Vector3.new(sellCenter.X, 0, sellCenter.Z)).Magnitude
-	if horizDist &gt; (zoneRadius or (GameConfig.SELL_ZONE_RADIUS + 4)) or math.abs(root.Position.Y - sellCenter.Y) &gt; 10 then
+	if horizDist &gt; GameConfig.SELL_ZONE_RADIUS + 4 or math.abs(root.Position.Y - sellCenter.Y) &gt; 10 then
 		if not silentOutOfZone then
 			VFXModule.SpawnFloatingText(
 				root.Position + Vector3.new(0, 2, 0),
@@ -10388,20 +9094,6 @@ end
 -- Автопродажа: вызывается сервером, когда игрок стоит в зоне «$ SELL». Меню и кнопки не нужны.
 function DataManager.AutoSellOnWhitePad(player: Player, syncRemote: RemoteEvent?): (number, number)
 	return DataManager.SellResourcesServer(player, "all", nil, syncRemote, true)
-end
-
--- v52: продажа у торговца Гоши (вкладка «Продать руду»). selectedKeys = nil — продать всё.
--- Расстояние до прилавка, наличие руды и защита от спама проверяются тут же, на сервере.
-function DataManager.SellAtTrader(player: Player, selectedKeys: { [string]: boolean }?, syncRemote: RemoteEvent?): (number, number)
-	return DataManager.SellResourcesServer(
-		player,
-		selectedKeys and "selected" or "all",
-		selectedKeys,
-		syncRemote,
-		true,
-		GameConfig.GREEN_SHOP_PAD_POS,
-		GameConfig.SHOP_UI.MaxDistance
-	)
 end
 
 -- ============================================================================
@@ -10778,7 +9470,6 @@ local GameConfig = require(ReplicatedStorage:WaitForChild("Modules"):WaitForChil
 local SoundManager = require(ReplicatedStorage:WaitForChild("Modules"):WaitForChild("SoundManager"))
 -- v52: процедурные постройки «сочного» обновления
 local SpawnPlazaBuilder = require(script.Parent:WaitForChild("SpawnPlazaBuilder"))
-local MarketBuilder = require(script.Parent:WaitForChild("MarketBuilder"))
 local VFXModule = require(ReplicatedStorage:WaitForChild("Modules"):WaitForChild("VFXModule"))
 
 local WorldBuilder = {}
@@ -13248,8 +11939,7 @@ function WorldBuilder.BuildWorld(
 
 	-- Строим современный Пункт Приёма Руды "$ SELL" (слева) и Неоновый Павильон "🛒 SHOP" (справа)
 	local whiteSellPad = WorldBuilder.BuildModernSellMarket(worldFolder, GameConfig.WHITE_SELL_PAD_POS)
-	-- v52: деревянный рынок с торговцем Гошей вместо неонового павильона «SHOP»
-	local greenShopPad = MarketBuilder.Build(worldFolder, GameConfig.GREEN_SHOP_PAD_POS).Pad
+	local greenShopPad = WorldBuilder.BuildNeonShopPavilion(worldFolder, GameConfig.GREEN_SHOP_PAD_POS, equipmentManager)
 
 	WorldBuilder.BuildDeepMineArchitecture(worldFolder, onClaimCaveChest)
 	WorldBuilder.BuildGravelPath(worldFolder)
@@ -15721,854 +14411,6 @@ function BoostService.Start()
 end
 
 return BoostService
-</ProtectedString></Properties></Item><Item class="ModuleScript"><Properties><string name="Name">MarketBuilder</string><ProtectedString name="Source">--!strict
--- ============================================================================
--- 🛒 МОДУЛЬ: MarketBuilder (ServerScriptService.Modules.MarketBuilder)
--- Процедурно строит рынок: деревянный прилавок с тентом и гирляндой, ковёр,
--- бочки, ящики, весы, образцы руды, полки с товарами и НОВОГО торговца Гошу
--- (модель из деталей, без Humanoid, на Motor6D — анимируется на клиенте
--- скриптом TraderAnimator). Только Part/Cylinder/Ball, внешних ассетов нет.
--- Лавка смотрит в +Z; торговец стоит за прилавком (Z меньше центра).
--- Сервер НЕ подключает Triggered — это делает скрипт магазина.
--- ============================================================================
-
-local CollectionService = game:GetService("CollectionService")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-
-local Shared = ReplicatedStorage:WaitForChild("Modules")
-local GameConfig = require(Shared:WaitForChild("GameConfig"))
-local PartKit = require(Shared:WaitForChild("PartKit"))
-
-local CFG = GameConfig.MARKET
-local COL = CFG.Colors
-local M = Enum.Material
-
-export type MarketRefs = {
-	Model: Model,
-	Prompt: ProximityPrompt,
-	Trader: Model,
-	Pad: BasePart,
-}
-
-local MarketBuilder = {}
-
--- Состояние текущей сборки: центр рынка и детерминированный генератор
-local ox = 0
-local oz = 0
-local rng: Random = Random.new(CFG.Seed)
-
--- ============================================================================
--- Помощники
--- ============================================================================
-
--- Мировой CFrame из локальных координат рынка (Y — абсолютный, земля = 0)
-local function at(x: number, y: number, z: number): CFrame
-	return CFrame.new(ox + x, y, oz + z)
-end
-
-local function world(x: number, y: number, z: number): Vector3
-	return Vector3.new(ox + x, y, oz + z)
-end
-
-local function folder(parent: Instance, name: string): Folder
-	local f = Instance.new("Folder")
-	f.Name = name
-	f.Parent = parent
-	return f
-end
-
-local function box(parent: Instance, name: string, size: Vector3, cf: CFrame, color: Color3, mat: Enum.Material, collide: boolean?): Part
-	return PartKit.Block(parent, name, size, cf, color, mat, { CanCollide = collide == true })
-end
-
-local function cyl(parent: Instance, name: string, d: number, h: number, cf: CFrame, color: Color3, mat: Enum.Material, collide: boolean?): Part
-	return PartKit.Cylinder(parent, name, d, h, cf, color, mat, { CanCollide = collide == true })
-end
-
-local function ball(parent: Instance, name: string, d: number, cf: CFrame, color: Color3, mat: Enum.Material): Part
-	return PartKit.Ball(parent, name, d, cf, color, mat)
-end
-
-local function ell(parent: Instance, name: string, size: Vector3, cf: CFrame, color: Color3, mat: Enum.Material): Part
-	return PartKit.Ellipsoid(parent, name, size, cf, color, mat)
-end
-
--- Тонкий стержень/цепь/проволока между двумя точками
-local function rod(parent: Instance, name: string, a: Vector3, b: Vector3, thick: number, color: Color3, mat: Enum.Material): Part
-	local len = math.max((b - a).Magnitude, 0.05)
-	return PartKit.Block(parent, name, Vector3.new(thick, thick, len), CFrame.lookAt((a + b) / 2, b), color, mat)
-end
-
-local function tone(list: { Color3 }): Color3
-	return list[rng:NextInteger(1, #list)]
-end
-
--- Небольшой разброс яркости, чтобы доски не выглядели одинаковыми
-local function vary(c: Color3, a: number): Color3
-	local t = rng:NextNumber(-a, a)
-	if t &gt;= 0 then
-		return PartKit.Lighten(c, t)
-	end
-	return PartKit.Darken(c, -t)
-end
-
--- Высота нижней стороны тента на заданном Z (локальные координаты)
-local function roofUnderY(z: number): number
-	local r = CFG.Roof
-	return r.FrontY + (r.FrontZ - z) * (r.BackY - r.FrontY) / (r.FrontZ - r.BackZ)
-end
-
--- ============================================================================
--- Мелкие модели: кристалл, образец руды, мешок, ящик, бочка, фонарь
--- ============================================================================
-
--- Кристалл: cf — основание, растёт вдоль +Y
-local function crystal(parent: Instance, cf: CFrame, h: number, color: Color3)
-	local w = h * 0.34
-	local shaft = box(parent, "Crystal", Vector3.new(w, h, w), cf * CFrame.new(0, h / 2, 0), color, M.Neon)
-	shaft.Transparency = 0.1
-	local tip = box(parent, "CrystalTip", Vector3.new(w * 0.72, w * 0.72, w * 0.72), cf * CFrame.new(0, h + w * 0.1, 0) * CFrame.Angles(math.pi / 4, math.pi / 4, 0), PartKit.Lighten(color, 0.35), M.Neon)
-	tip.Transparency = 0.05
-end
-
--- Образец: камень с двумя кристаллами
-local function oreSample(parent: Instance, cf: CFrame, color: Color3)
-	box(parent, "SampleRock", Vector3.new(0.95, 0.5, 0.8), cf * CFrame.new(0, 0.25, 0) * CFrame.Angles(0, rng:NextNumber(-0.4, 0.4), 0), COL.RockDark, M.Slate)
-	crystal(parent, cf * CFrame.new(-0.18, 0.45, 0.05) * CFrame.Angles(0.15, 0, 0.2), 0.5, color)
-	crystal(parent, cf * CFrame.new(0.2, 0.4, -0.1) * CFrame.Angles(-0.2, 0, -0.3), 0.35, color)
-end
-
--- Мешок с завязкой; gem — необязательные кристаллы сверху
-local function sack(parent: Instance, cf: CFrame, s: number, gem: Color3?)
-	ell(parent, "SackBody", Vector3.new(1.5 * s, 1.5 * s, 1.3 * s), cf * CFrame.new(0, 0.7 * s, 0), vary(COL.Burlap, 0.06), M.Fabric)
-	ell(parent, "SackFold", Vector3.new(0.9 * s, 0.55 * s, 0.8 * s), cf * CFrame.new(0, 1.45 * s, 0), COL.BurlapDark, M.Fabric)
-	cyl(parent, "SackTie", 0.85 * s, 0.1, cf * CFrame.new(0, 1.25 * s, 0), COL.Rope, M.Fabric)
-	if s &gt;= 1 then
-		box(parent, "SackPatch", Vector3.new(0.5 * s, 0.45 * s, 0.06), cf * CFrame.new(0.3 * s, 0.75 * s, -0.62 * s), COL.BurlapDark, M.Fabric)
-	end
-	if gem then
-		crystal(parent, cf * CFrame.new(-0.2 * s, 1.5 * s, 0) * CFrame.Angles(0, 0, 0.25), 0.55 * s, gem)
-		crystal(parent, cf * CFrame.new(0.22 * s, 1.5 * s, 0.05) * CFrame.Angles(0.2, 0, -0.3), 0.42 * s, gem)
-	end
-end
-
--- Деревянный ящик (каркас + рейки): cf — центр основания, s — размер
-local function crate(parent: Instance, cf: CFrame, s: number)
-	box(parent, "CrateCore", Vector3.new(s - 0.08, s - 0.08, s - 0.08), cf * CFrame.new(0, s / 2, 0), COL.WoodDeep, M.Wood, true)
-	local e = s / 2 - 0.1
-	for _, sx in ipairs({ -1, 1 }) do
-		for _, sz in ipairs({ -1, 1 }) do
-			box(parent, "CratePost", Vector3.new(0.2, s, 0.2), cf * CFrame.new(sx * e, s / 2, sz * e), vary(COL.WoodDark, 0.08), M.Wood)
-		end
-	end
-	if s &lt; 1.6 then
-		return -- маленькие ящики: только каркас, без реек
-	end
-	for _, sz in ipairs({ -1, 1 }) do
-		for _, ky in ipairs({ 0.3, 0.7 }) do
-			box(parent, "CrateSlat", Vector3.new(s - 0.1, 0.26, 0.08), cf * CFrame.new(0, s * ky, sz * (s / 2 - 0.02)), vary(tone(COL.WoodTones), 0.06), M.Wood)
-		end
-	end
-	for _, sx in ipairs({ -1, 1 }) do
-		box(parent, "CrateSlatSide", Vector3.new(0.08, 0.26, s - 0.1), cf * CFrame.new(sx * (s / 2 - 0.02), s * 0.5, 0), vary(tone(COL.WoodTones), 0.06), M.Wood)
-	end
-end
-
--- Бочка с металлическими обручами: cf — центр основания; withOre — открытая, с самородками
-local function barrel(parent: Instance, cf: CFrame, withOre: boolean)
-	cyl(parent, "BarrelLow", 1.7, 0.9, cf * CFrame.new(0, 0.45, 0), vary(COL.WoodMid, 0.06), M.Wood, true)
-	cyl(parent, "BarrelMid", 2.0, 1.0, cf * CFrame.new(0, 1.4, 0), vary(COL.WoodMid, 0.06), M.Wood, true)
-	cyl(parent, "BarrelTop", 1.7, 0.9, cf * CFrame.new(0, 2.35, 0), vary(COL.WoodMid, 0.06), M.Wood, true)
-	cyl(parent, "BarrelHoop", 1.78, 0.12, cf * CFrame.new(0, 0.35, 0), COL.Metal, M.Metal)
-	cyl(parent, "BarrelHoop", 2.07, 0.12, cf * CFrame.new(0, 1.0, 0), COL.Metal, M.Metal)
-	cyl(parent, "BarrelHoop", 2.07, 0.12, cf * CFrame.new(0, 1.8, 0), COL.Metal, M.Metal)
-	cyl(parent, "BarrelHoop", 1.78, 0.12, cf * CFrame.new(0, 2.5, 0), COL.Metal, M.Metal)
-	if withOre then
-		cyl(parent, "BarrelInside", 1.5, 0.06, cf * CFrame.new(0, 2.8, 0), COL.WoodDeep, M.Slate)
-		for i = 1, 3 do
-			local a = i * 2.1
-			ball(parent, "Nugget", 0.4, cf * CFrame.new(math.cos(a) * 0.35, 2.95, math.sin(a) * 0.35), COL.GemGold, M.Neon)
-		end
-	else
-		cyl(parent, "BarrelLid", 1.62, 0.06, cf * CFrame.new(0, 2.8, 0), COL.WoodLight, M.Wood)
-	end
-end
-
--- Фонарь: cf — основание. Свет внутри — только если withLight
-local function lantern(parent: Instance, cf: CFrame, s: number, withLight: boolean)
-	local gh = 0.9 * s
-	box(parent, "LanternBase", Vector3.new(0.7 * s, 0.1 * s, 0.7 * s), cf * CFrame.new(0, 0.05 * s, 0), COL.MetalDark, M.Metal)
-	local core = box(parent, "LanternGlow", Vector3.new(0.5 * s, gh, 0.5 * s), cf * CFrame.new(0, 0.1 * s + gh / 2, 0), COL.LanternGlass, M.Neon)
-	core.Transparency = 0.1
-	for _, sx in ipairs({ -1, 1 }) do
-		for _, sz in ipairs({ -1, 1 }) do
-			box(parent, "LanternPost", Vector3.new(0.08 * s, gh + 0.1 * s, 0.08 * s), cf * CFrame.new(sx * 0.28 * s, 0.1 * s + gh / 2, sz * 0.28 * s), COL.MetalDark, M.Metal)
-		end
-	end
-	box(parent, "LanternTop", Vector3.new(0.72 * s, 0.1 * s, 0.72 * s), cf * CFrame.new(0, 0.15 * s + gh, 0), COL.MetalDark, M.Metal)
-	box(parent, "LanternCap", Vector3.new(0.45 * s, 0.14 * s, 0.45 * s), cf * CFrame.new(0, 0.27 * s + gh, 0), COL.MetalDark, M.Metal)
-	cyl(parent, "LanternRing", 0.32 * s, 0.05, cf * CFrame.new(0, 0.38 * s + gh, 0), COL.Brass, M.Metal)
-	if withLight then
-		PartKit.PointLight(core, COL.WarmLight, CFG.Lights.Lantern.Brightness, CFG.Lights.Lantern.Range)
-	end
-end
-
--- ============================================================================
--- Стойка: пол, прилавок, столбы, задняя стена, тент, гирлянда, вывеска
--- ============================================================================
-
--- Дощатый настил за прилавком
-local function buildFloor(root: Instance)
-	local f = folder(root, "Floor")
-	local n = 5
-	local zFrom, zTo = -7.0, -1.8
-	local step = (zTo - zFrom) / n
-	for i = 1, n do
-		box(f, "FloorPlank", Vector3.new(14.6, 0.1, step - 0.03), at(0, 0.05, zFrom + (i - 0.5) * step), vary(tone(COL.WoodTones), 0.08), M.WoodPlanks)
-	end
-end
-
--- Прилавок: доски, рамки, столешница с бортиками
-local function buildCounter(root: Instance)
-	local f = folder(root, "Counter")
-	local CT = CFG.Counter
-	local W, D, H, T = CT.Width, CT.Depth, CT.Height, CT.TopThickness
-	local pw = W / CT.PlankCount
-	local ph = H - 0.55
-
-	for i = 1, CT.PlankCount do
-		local x = -W / 2 + (i - 0.5) * pw
-		box(f, "FrontPlank", Vector3.new(pw - 0.03, ph, 0.22), at(x, 0.4 + ph / 2, D / 2 - 0.11 + rng:NextNumber(-0.02, 0.03)), vary(tone(COL.WoodTones), 0.06), M.Wood, true)
-	end
-	box(f, "BackPanel", Vector3.new(W - 0.2, H - 0.4, 0.2), at(0, 0.2 + (H - 0.4) / 2, -D / 2 + 0.1), COL.WoodDark, M.Wood, true)
-	for _, sx in ipairs({ -1, 1 }) do
-		box(f, "SidePanel", Vector3.new(0.24, H - 0.4, D), at(sx * (W / 2 - 0.12), 0.2 + (H - 0.4) / 2, 0), COL.WoodMid, M.Wood, true)
-	end
-	-- Цоколь, рейки и угловые стойки
-	box(f, "Kickboard", Vector3.new(W + 0.1, 0.4, 0.34), at(0, 0.2, D / 2 + 0.07), COL.WoodDeep, M.Wood, true)
-	box(f, "MidRail", Vector3.new(W, 0.2, 0.1), at(0, 1.55, D / 2 + 0.05), COL.WoodDark, M.Wood)
-	box(f, "TopRail", Vector3.new(W + 0.1, 0.3, 0.3), at(0, H - 0.15, D / 2 + 0.1), COL.WoodDark, M.Wood, true)
-	for _, sx in ipairs({ -1, 1 }) do
-		box(f, "CornerTrim", Vector3.new(0.4, H, 0.4), at(sx * (W / 2 - 0.2), H / 2, D / 2 - 0.05), COL.WoodDeep, M.Wood)
-	end
-	-- Диагональные раскосы на передней панели (по две X-образные пары)
-	for _, cx in ipairs({ -4.4, 4.4 }) do
-		rod(f, "Brace", world(cx - 1.4, 0.7, D / 2 + 0.14), world(cx + 1.4, 2.5, D / 2 + 0.14), 0.16, COL.WoodDeep, M.Wood)
-		rod(f, "Brace", world(cx - 1.4, 2.5, D / 2 + 0.14), world(cx + 1.4, 0.7, D / 2 + 0.14), 0.16, COL.WoodDeep, M.Wood)
-	end
-
-	-- Столешница из четырёх досок
-	local topW = W + 0.6
-	local topD = D + 0.6
-	for j = 1, 4 do
-		local z = -topD / 2 + (j - 0.5) * (topD / 4)
-		box(f, "TopBoard", Vector3.new(topW, T, topD / 4 - 0.02), at(0, H + T / 2, z), vary(PartKit.Lighten(tone(COL.WoodTones), 0.05), 0.05), M.Wood, true)
-	end
-	box(f, "LipFront", Vector3.new(topW + 0.28, 0.34, 0.14), at(0, H + 0.11, topD / 2 + 0.07), COL.WoodDark, M.Wood)
-	box(f, "LipBack", Vector3.new(topW + 0.28, 0.34, 0.14), at(0, H + 0.11, -topD / 2 - 0.07), COL.WoodDark, M.Wood)
-	for _, sx in ipairs({ -1, 1 }) do
-		box(f, "LipSide", Vector3.new(0.14, 0.34, topD), at(sx * (topW / 2 + 0.07), H + 0.11, 0), COL.WoodDark, M.Wood)
-		for _, sz in ipairs({ -1, 1 }) do
-			box(f, "CornerPlate", Vector3.new(0.34, 0.08, 0.34), at(sx * (topW / 2 - 0.1), H + T + 0.02, sz * (topD / 2 - 0.1)), COL.Brass, M.Metal)
-		end
-	end
-end
-
--- Четыре столба с каменными основаниями, оковками, балками и раскосами
-local function buildPillars(root: Instance)
-	local f = folder(root, "Pillars")
-	local P = CFG.Pillars
-	local R = CFG.Roof
-	local pts = {
-		{ -P.X, P.FrontZ }, { P.X, P.FrontZ }, { -P.X, P.BackZ }, { P.X, P.BackZ },
-	}
-	for _, p in ipairs(pts) do
-		local px, pz = p[1], p[2]
-		local top = roofUnderY(pz) - 0.4
-		box(f, "Pillar", Vector3.new(P.Size, top, P.Size), at(px, top / 2, pz), vary(COL.WoodDark, 0.05), M.Wood, true)
-		box(f, "PillarPlinth", Vector3.new(1.35, 0.5, 1.35), at(px, 0.25, pz), COL.Stone, M.Cobblestone, true)
-		box(f, "PillarCap", Vector3.new(1.2, 0.35, 1.2), at(px, top - 0.17, pz), COL.WoodDeep, M.Wood)
-		box(f, "PillarBand", Vector3.new(1.0, 0.2, 1.0), at(px, 1.4, pz), COL.Metal, M.Metal)
-		box(f, "PillarBand", Vector3.new(1.0, 0.2, 1.0), at(px, top - 1.2, pz), COL.Metal, M.Metal)
-		-- Косынка под балкой (внутрь рынка)
-		local dir = if px &lt; 0 then 1 else -1
-		rod(f, "KneeBrace", world(px + dir * 0.45, top - 1.6, pz), world(px + dir * 2.0, top - 0.4, pz), 0.28, COL.WoodMid, M.Wood)
-	end
-
-	-- Поперечные балки спереди и сзади
-	local beamW = (P.X + 0.6) * 2
-	for _, pz in ipairs({ P.FrontZ, P.BackZ }) do
-		box(f, "Beam", Vector3.new(beamW, 0.4, 0.5), at(0, roofUnderY(pz) - 0.2, pz), COL.WoodDeep, M.Wood)
-	end
-	-- Боковые балки вдоль уклона тента
-	local dz = P.FrontZ - P.BackZ
-	local ang = math.atan2(R.BackY - R.FrontY, R.FrontZ - R.BackZ)
-	local midZ = (P.FrontZ + P.BackZ) / 2
-	local midY = (roofUnderY(P.FrontZ) + roofUnderY(P.BackZ)) / 2 - 0.2
-	for _, sx in ipairs({ -1, 1 }) do
-		box(f, "SideBeam", Vector3.new(0.4, 0.4, dz / math.cos(ang)), at(sx * P.X, midY, midZ) * CFrame.Angles(ang, 0, 0), COL.WoodDeep, M.Wood)
-	end
-
-	-- Верёвочная обмотка на переднем правом столбе
-	for i = 0, 4 do
-		cyl(f, "RopeCoil", 1.05, 0.11, at(P.X, 4.4 + i * 0.17, P.FrontZ), COL.Rope, M.Fabric)
-	end
-	rod(f, "RopeEnd", world(P.X + 0.45, 4.5, P.FrontZ + 0.2), world(P.X + 0.7, 3.4, P.FrontZ + 0.5), 0.1, COL.Rope, M.Fabric)
-end
-
--- Задняя стена из горизонтальных досок
-local function buildBackWall(root: Instance)
-	local f = folder(root, "BackWall")
-	local rows, rh = 11, 0.95
-	for i = 1, rows do
-		box(f, "WallPlank", Vector3.new(14.6, rh - 0.03, 0.3), at(0, (i - 0.5) * rh, -7.1 + rng:NextNumber(-0.03, 0.03)), PartKit.Darken(vary(tone(COL.WoodTones), 0.08), 0.15), M.WoodPlanks, true)
-	end
-	for _, bx in ipairs({ -4.8, 0, 4.8 }) do
-		box(f, "WallBatten", Vector3.new(0.34, rows * rh, 0.1), at(bx, rows * rh / 2, -6.92), COL.WoodDeep, M.Wood)
-	end
-end
-
--- Тент: полосатые полосы со скруглённым (фестонным) передним краем
-local function buildRoof(root: Instance)
-	local f = folder(root, "Awning")
-	local R = CFG.Roof
-	local dz = R.FrontZ - R.BackZ
-	local dy = R.BackY - R.FrontY
-	local ang = math.atan2(dy, dz)
-	local len = math.sqrt(dz * dz + dy * dy)
-	local th = R.Thickness
-	local n = R.Stripes
-	local w = R.HalfWidth * 2 / n
-	local frame = at(0, (R.FrontY + R.BackY) / 2 + th / 2, (R.FrontZ + R.BackZ) / 2) * CFrame.Angles(ang, 0, 0)
-
-	for i = 1, n do
-		local x = -R.HalfWidth + (i - 0.5) * w
-		local col = if i % 2 == 1 then COL.AwningA else COL.AwningB
-		local strip = frame * CFrame.new(x, 0, 0)
-		box(f, "AwningStripe", Vector3.new(w - 0.02, th, len), strip, col, M.Fabric)
-		-- Полукруглый «зубец» свисает под передним краем полосы
-		ell(f, "AwningScallop", Vector3.new(w - 0.04, 1.0, 0.26), strip * CFrame.new(0, -th / 2 - 0.35, len / 2 - 0.1), col, M.Fabric)
-	end
-	for _, rx in ipairs(R.RafterX) do
-		box(f, "Rafter", Vector3.new(0.3, 0.3, len), frame * CFrame.new(rx, -th / 2 - 0.15, 0), COL.WoodDark, M.Wood)
-	end
-	for _, sx in ipairs({ -1, 1 }) do
-		box(f, "AwningSide", Vector3.new(0.28, 0.6, len), frame * CFrame.new(sx * (R.HalfWidth + 0.1), 0.05, 0), COL.WoodDeep, M.Wood)
-	end
-	box(f, "AwningBack", Vector3.new(R.HalfWidth * 2 + 0.5, 0.6, 0.3), frame * CFrame.new(0, 0.05, -len / 2), COL.WoodDeep, M.Wood)
-end
-
--- Гирлянда: неоновые шарики на провисающей проволоке, света — всего три
-local function buildGarland(root: Instance)
-	local f = folder(root, "Garland")
-	local G = CFG.Garland
-	local step = G.HalfSpan * 2 / (G.Count - 1)
-	local pts: { Vector3 } = {}
-	for i = 0, G.Count - 1 do
-		local x = -G.HalfSpan + i * step
-		local phase = (i % G.SwagStep) / G.SwagStep
-		local y = G.Y - G.Sag * math.sin(math.pi * phase)
-		pts[#pts + 1] = world(x, y, G.Z)
-	end
-	for i = 1, #pts - 1 do
-		rod(f, "GarlandWire", pts[i], pts[i + 1], 0.05, COL.MetalDark, M.Metal)
-	end
-	for i, p in ipairs(pts) do
-		local bulb = ball(f, "Bulb", 0.4, CFrame.new(p), COL.Bulbs[(i % #COL.Bulbs) + 1], M.Neon)
-		if (i - 1) % G.LightEvery == G.LightOffset then
-			PartKit.PointLight(bulb, COL.WarmLight, CFG.Lights.Garland.Brightness, CFG.Lights.Garland.Range)
-		end
-	end
-end
-
--- Вывеска «РЫНОК» на крыше тента (текст на SurfaceGui)
-local function buildSign(root: Instance)
-	local f = folder(root, "Sign")
-	local z = 2.2
-	local cy = 11.0
-	local roofTop = roofUnderY(z) + CFG.Roof.Thickness
-	for _, sx in ipairs({ -1, 1 }) do
-		box(f, "SignPost", Vector3.new(0.35, cy - roofTop + 0.4, 0.35), at(sx * 2.8, roofTop + (cy - roofTop + 0.4) / 2 - 0.2, z), COL.WoodDeep, M.Wood)
-	end
-	local board = box(f, "SignBoard", Vector3.new(6.7, 1.7, 0.3), at(0, cy, z), COL.SignBoard, M.WoodPlanks)
-	PartKit.SurfaceLabel(board, Enum.NormalId.Back, CFG.SignText, {
-		TextColor = COL.SignText,
-		StrokeColor = COL.SignStroke,
-		PixelsPerStud = 50,
-		StrokeThickness = 4,
-		Name = "SignLabel",
-	})
-	box(f, "SignFrameTop", Vector3.new(7.2, 0.25, 0.46), at(0, cy + 0.98, z), COL.WoodDark, M.Wood)
-	box(f, "SignFrameBottom", Vector3.new(7.2, 0.25, 0.46), at(0, cy - 0.98, z), COL.WoodDark, M.Wood)
-	for _, sx in ipairs({ -1, 1 }) do
-		box(f, "SignFrameSide", Vector3.new(0.25, 2.2, 0.46), at(sx * 3.47, cy, z), COL.WoodDark, M.Wood)
-		for _, sy in ipairs({ -1, 1 }) do
-			ball(f, "SignNail", 0.18, at(sx * 3.1, cy + sy * 0.6, z + 0.17), COL.Brass, M.Metal)
-		end
-	end
-end
-
--- Подвесной фонарь на кронштейне (левый передний столб) + фонарик на прилавке
-local function buildLanterns(root: Instance)
-	local f = folder(root, "Lanterns")
-	local P = CFG.Pillars
-	local armY = roofUnderY(P.FrontZ) - 1.2
-	local armX = -P.X
-	local armZ = P.FrontZ + 0.45
-	box(f, "LanternArm", Vector3.new(0.22, 0.22, 1.6), at(armX, armY, armZ + 0.9), COL.WoodDeep, M.Wood)
-	rod(f, "LanternArmBrace", world(armX, armY - 1.0, armZ), world(armX, armY, armZ + 1.5), 0.14, COL.WoodDeep, M.Wood)
-	local hangZ = armZ + 1.6
-	rod(f, "LanternChain", world(armX, armY - 0.1, hangZ), world(armX, armY - 0.75, hangZ), 0.06, COL.MetalDark, M.Metal)
-	lantern(f, at(armX, armY - 0.75 - 1.3, hangZ), 1.0, true)
-	-- Фонарик на столешнице
-	local topY = CFG.Counter.Height + CFG.Counter.TopThickness
-	lantern(f, at(-6.4, topY, -0.6), 0.9, true)
-end
-
--- ============================================================================
--- Ковёр
--- ============================================================================
-
-local function buildCarpet(root: Instance): Part
-	local f = folder(root, "Carpet")
-	local CP = CFG.Carpet
-	local w, d, zc, t = CP.Width, CP.Depth, CP.ZCenter, CP.Thickness
-	local pad = PartKit.Block(f, "Carpet", Vector3.new(w, t, d), at(0, t / 2, zc), COL.CarpetBase, M.Fabric)
-	local y = t + 0.015
-	local function flat(name: string, size: Vector3, x: number, z: number, color: Color3, yaw: number?)
-		box(f, name, Vector3.new(size.X, 0.03, size.Z), at(x, y, zc + z) * CFrame.Angles(0, yaw or 0, 0), color, M.Fabric)
-	end
-	-- Две каймы: золотая и синяя
-	flat("BorderGold", Vector3.new(w - 0.6, 0, 0.28), 0, -(d / 2 - 0.3), COL.CarpetBorder)
-	flat("BorderGold", Vector3.new(w - 0.6, 0, 0.28), 0, d / 2 - 0.3, COL.CarpetBorder)
-	flat("BorderGold", Vector3.new(0.28, 0, d - 0.6), -(w / 2 - 0.3), 0, COL.CarpetBorder)
-	flat("BorderGold", Vector3.new(0.28, 0, d - 0.6), w / 2 - 0.3, 0, COL.CarpetBorder)
-	flat("BorderBlue", Vector3.new(w - 1.4, 0, 0.5), 0, -(d / 2 - 0.85), COL.CarpetInner)
-	flat("BorderBlue", Vector3.new(w - 1.4, 0, 0.5), 0, d / 2 - 0.85, COL.CarpetInner)
-	flat("BorderBlue", Vector3.new(0.5, 0, d - 1.8), -(w / 2 - 0.85), 0, COL.CarpetInner)
-	flat("BorderBlue", Vector3.new(0.5, 0, d - 1.8), w / 2 - 0.85, 0, COL.CarpetInner)
-	-- Два вложенных ромба в центре
-	for _, r in ipairs({ 2.2, 1.4 }) do
-		for _, qx in ipairs({ -1, 1 }) do
-			for _, qz in ipairs({ -1, 1 }) do
-				local yaw = if qx * qz &gt; 0 then math.pi / 4 else -math.pi / 4
-				flat("Diamond", Vector3.new(r * 1.4142, 0, 0.18), qx * r / 2, qz * r / 2, COL.CarpetPattern, yaw)
-			end
-		end
-	end
-	flat("Medallion", Vector3.new(0.7, 0, 0.7), 0, 0, COL.CarpetBorder, math.pi / 4)
-	-- Бахрома по коротким краям
-	for i = -3, 3 do
-		flat("Fringe", Vector3.new(0.14, 0, 0.4), i * 1.4, -(d / 2 + 0.2), COL.CarpetFringe)
-		flat("Fringe", Vector3.new(0.14, 0, 0.4), i * 1.4, d / 2 + 0.2, COL.CarpetFringe)
-	end
-	return pad
-end
-
--- ============================================================================
--- Реквизит: ящики, бочки, мешки, камни, весы, образцы, полки
--- ============================================================================
-
-local function buildProps(root: Instance)
-	local f = folder(root, "Props")
-	-- Слева: стопка ящиков и мешки с рудой
-	crate(f, at(-9.6, 0, 0.3), 2.2)
-	crate(f, at(-9.7, 2.2, 0.2) * CFrame.Angles(0, 0.26, 0), 1.5)
-	crate(f, at(-11.9, 0, -1.2) * CFrame.Angles(0, -0.2, 0), 1.8)
-	sack(f, at(-11.8, 0, 1.3) * CFrame.Angles(0, 0.5, 0), 1.1, COL.GemRuby)
-	sack(f, at(-9.5, 0, -3.3) * CFrame.Angles(0, -0.4, 0), 1.0, COL.GemGold)
-	-- Справа: бочки и небольшой ящик
-	barrel(f, at(9.4, 0, 0.6), true)
-	barrel(f, at(10.9, 0, -1.0), false)
-	barrel(f, at(9.0, 0, -2.7), false)
-	crate(f, at(11.7, 0, 1.2) * CFrame.Angles(0, 0.3, 0), 1.4)
-	-- Камни с кристаллами по краям
-	local function rocks(x: number, z: number, color: Color3)
-		box(f, "GroundRock", Vector3.new(1.6, 0.9, 1.3), at(x, 0.4, z) * CFrame.Angles(0.1, 0.5, 0.08), COL.StoneDark, M.Slate)
-		box(f, "GroundRock", Vector3.new(0.9, 0.6, 0.8), at(x + 1.0, 0.25, z + 0.5) * CFrame.Angles(0, -0.4, 0.1), COL.Stone, M.Rock)
-		crystal(f, at(x - 0.2, 0.75, z) * CFrame.Angles(0.15, 0, 0.2), 0.8, color)
-		crystal(f, at(x + 0.3, 0.7, z - 0.15) * CFrame.Angles(-0.2, 0, -0.3), 0.55, color)
-	end
-	rocks(-11.6, -3.6, COL.GemEmerald)
-	rocks(11.0, -4.2, COL.GemDiamond)
-end
-
--- Весы, образцы руды, монеты и книга учёта на столешнице
-local function buildCounterProps(root: Instance)
-	local f = folder(root, "CounterProps")
-	local topY = CFG.Counter.Height + CFG.Counter.TopThickness
-	-- Весы: основание, стойка, коромысло, чаши на цепочках
-	local sx, sz = -4.2, 0.3
-	box(f, "ScaleBase", Vector3.new(1.4, 0.18, 0.9), at(sx, topY + 0.09, sz), COL.WoodDeep, M.Wood)
-	cyl(f, "ScalePost", 0.16, 1.7, at(sx, topY + 1.0, sz), COL.Brass, M.Metal)
-	ball(f, "ScaleCap", 0.28, at(sx, topY + 1.9, sz), COL.Brass, M.Metal)
-	box(f, "ScaleBeam", Vector3.new(3.2, 0.1, 0.12), at(sx, topY + 1.85, sz), COL.Brass, M.Metal)
-	for _, side in ipairs({ -1, 1 }) do
-		local ex = sx + side * 1.5
-		cyl(f, "ScalePan", 0.95, 0.08, at(ex, topY + 0.85, sz), COL.Brass, M.Metal)
-		rod(f, "ScaleChain", world(ex, topY + 1.82, sz), world(ex - 0.35, topY + 0.88, sz), 0.03, COL.Metal, M.Metal)
-		rod(f, "ScaleChain", world(ex, topY + 1.82, sz), world(ex + 0.35, topY + 0.88, sz), 0.03, COL.Metal, M.Metal)
-	end
-	box(f, "ScaleWeight", Vector3.new(0.35, 0.35, 0.35), at(sx - 1.5, topY + 1.07, sz) * CFrame.Angles(0, 0.4, 0), COL.Gold, M.Metal)
-	ball(f, "ScaleStone", 0.3, at(sx + 1.4, topY + 1.03, sz), COL.GemDiamond, M.Neon)
-	ball(f, "ScaleStone", 0.26, at(sx + 1.62, topY + 1.01, sz), COL.GemRuby, M.Neon)
-
-	-- Образцы руды: золото, рубин, изумруд, алмаз
-	local gems = { COL.GemGold, COL.GemRuby, COL.GemEmerald, COL.GemDiamond }
-	for i, c in ipairs(gems) do
-		oreSample(f, at(2.8 + (i - 1) * 1.25, topY, 0.7), c)
-	end
-
-	-- Стопка монет и книга учёта
-	for i = 0, 3 do
-		cyl(f, "Coin", 0.6, 0.08, at(-1.2, topY + 0.04 + i * 0.08, 1.0) * CFrame.Angles(0, i * 0.5, 0), COL.Gold, M.Metal)
-	end
-	box(f, "Ledger", Vector3.new(1.0, 0.14, 0.75), at(0.2, topY + 0.07, 1.0) * CFrame.Angles(0, 0.14, 0), COL.CarpetBase, M.Fabric)
-	box(f, "LedgerPages", Vector3.new(0.9, 0.08, 0.66), at(0.2, topY + 0.1, 1.0) * CFrame.Angles(0, 0.14, 0), COL.Paper, M.SmoothPlastic)
-end
-
--- Три полки на задней стене и товары на них
-local function buildShelves(root: Instance)
-	local f = folder(root, "Shelves")
-	local zS = -6.4
-	local S1, S2, S3 = 3.6, 5.4, 7.2
-	for _, sy in ipairs({ S1, S2, S3 }) do
-		box(f, "ShelfBoard", Vector3.new(14.4, 0.2, 1.1), at(0, sy - 0.1, zS), vary(COL.WoodMid, 0.06), M.Wood, true)
-		for _, sx in ipairs({ -6.8, 6.8 }) do
-			rod(f, "ShelfBracket", world(sx, sy - 0.2, zS + 0.5), world(sx, sy - 1.0, zS - 0.5), 0.14, COL.WoodDeep, M.Wood)
-		end
-	end
-
-	-- Нижняя полка: мешки и ящичек
-	sack(f, at(-6.2, S1, zS), 0.7, nil)
-	sack(f, at(-5.0, S1, zS + 0.1) * CFrame.Angles(0, 0.4, 0), 0.7, nil)
-	crate(f, at(-3.6, S1, zS), 1.0)
-	sack(f, at(5.8, S1, zS), 0.7, nil)
-	sack(f, at(4.5, S1, zS + 0.1) * CFrame.Angles(0, -0.4, 0), 0.7, nil)
-
-	-- Средняя полка: книги, красный ящик с инструментами, бутылки
-	local bx = -6.8
-	for i = 1, 6 do
-		local bw = rng:NextNumber(0.22, 0.36)
-		local bh = rng:NextNumber(0.8, 1.15)
-		local lean = if i == 6 then CFrame.Angles(0, 0, math.rad(-14)) else CFrame.identity
-		box(f, "Book", Vector3.new(bw, bh, 0.7), at(bx + bw / 2, S2 + bh / 2, zS) * lean, tone(COL.BookColors), M.SmoothPlastic)
-		bx += bw + 0.02
-	end
-	box(f, "Toolbox", Vector3.new(1.3, 0.7, 0.6), at(-4.4, S2 + 0.35, zS), COL.ToolboxRed, M.SmoothPlastic)
-	box(f, "ToolboxHandle", Vector3.new(0.8, 0.06, 0.06), at(-4.4, S2 + 0.8, zS), COL.MetalDark, M.Metal)
-	box(f, "ToolboxPlate", Vector3.new(0.42, 0.42, 0.02), at(-4.4, S2 + 0.37, zS + 0.31), COL.Paper, M.SmoothPlastic)
-	local glassColors = { COL.BottleGlass, COL.BottleBrown, COL.BottleGlass }
-	for i, gc in ipairs(glassColors) do
-		local x = 3.4 + (i - 1) * 0.6
-		local b = cyl(f, "Bottle", 0.5, 0.7, at(x, S2 + 0.35, zS), gc, M.Glass)
-		b.Transparency = 0.15
-		cyl(f, "BottleNeck", 0.2, 0.3, at(x, S2 + 0.85, zS), gc, M.Glass)
-	end
-
-	-- Верхняя полка: факелы, цилиндр, зелья с неоновой жидкостью
-	for i = 0, 2 do
-		local tilt = (i - 1) * 0.14
-		local base = at(-6.0 + i * 0.5, S3 + 0.55, zS) * CFrame.Angles(0, 0, tilt)
-		cyl(f, "Torch", 0.12, 1.1, base, COL.WoodDeep, M.Wood)
-		ball(f, "TorchFlame", 0.3, base * CFrame.new(0, 0.65, 0), COL.TorchFire, M.Neon)
-	end
-	cyl(f, "HatBrim", 1.4, 0.08, at(-3.3, S3 + 0.04, zS), COL.TopHat, M.Fabric)
-	cyl(f, "HatCrown", 0.9, 0.8, at(-3.3, S3 + 0.48, zS), COL.TopHat, M.Fabric)
-	cyl(f, "HatBand", 0.94, 0.14, at(-3.3, S3 + 0.2, zS), COL.HatBand, M.Fabric)
-	local potions = { COL.PotionBlue, COL.PotionPurple, COL.PotionGreen }
-	for i, pc in ipairs(potions) do
-		local x = 3.8 + (i - 1) * 1.0
-		ball(f, "Potion", 0.55, at(x, S3 + 0.28, zS), pc, M.Neon)
-		cyl(f, "PotionNeck", 0.18, 0.3, at(x, S3 + 0.62, zS), COL.BottleGlass, M.Glass)
-		ball(f, "PotionCork", 0.16, at(x, S3 + 0.82, zS), COL.Cork, M.Wood)
-	end
-
-	-- Запасная кирка на стене над полками
-	local pk = at(4.0, 8.6, -6.78) * CFrame.Angles(0, 0, math.rad(8))
-	cyl(f, "SparePickHandle", 0.2, 3.4, pk * CFrame.Angles(0, 0, math.pi / 2), COL.WoodLight, M.Wood)
-	box(f, "SparePickHead", Vector3.new(0.3, 0.3, 0.3), pk * CFrame.new(-1.6, 0, 0), COL.Steel, M.Metal)
-	box(f, "SparePickBlade", Vector3.new(0.26, 0.8, 0.26), pk * CFrame.new(-1.7, 0.55, 0) * CFrame.Angles(0, 0, math.rad(18)), COL.Steel, M.Metal)
-	box(f, "SparePickBlade", Vector3.new(0.26, 0.8, 0.26), pk * CFrame.new(-1.7, -0.55, 0) * CFrame.Angles(0, 0, math.rad(-18)), COL.Steel, M.Metal)
-	for _, px in ipairs({ 3.4, 5.4 }) do
-		box(f, "WallPeg", Vector3.new(0.14, 0.14, 0.3), at(px, 8.6 + (px - 4.0) * 0.14 - 0.15, -6.82), COL.MetalDark, M.Metal)
-	end
-end
-
--- ============================================================================
--- Торговец Гоша
--- ============================================================================
-
-local function npcOpts(transparency: number?): PartKit.Opts
-	return { Anchored = false, Massless = true, CanCollide = false, CanQuery = false, Transparency = transparency }
-end
-
-local function makeMotor(name: string, owner: BasePart, p0: BasePart, p1: BasePart, pivot: CFrame): Motor6D
-	local m = Instance.new("Motor6D")
-	m.Name = name
-	m.Part0 = p0
-	m.Part1 = p1
-	m.C0 = p0.CFrame:ToObjectSpace(pivot)
-	m.C1 = p1.CFrame:ToObjectSpace(pivot)
-	m:SetAttribute("BaseC0", m.C0)
-	m.Parent = owner
-	return m
-end
-
--- Табличка с именем и подсказкой над головой (тёмная плашка с золотой обводкой)
-local function buildTag(head: BasePart)
-	local gui = Instance.new("BillboardGui")
-	gui.Name = "TraderTag"
-	gui.Adornee = head
-	gui.Size = UDim2.fromOffset(250, 66)
-	gui.StudsOffsetWorldSpace = Vector3.new(0, 3.1, 0)
-	gui.AlwaysOnTop = true
-	gui.MaxDistance = CFG.TagMaxDistance
-	gui.LightInfluence = 0
-	gui.Parent = head
-
-	local plate = Instance.new("Frame")
-	plate.Name = "Plate"
-	plate.Size = UDim2.fromScale(1, 1)
-	plate.BackgroundColor3 = COL.TagBg
-	plate.BackgroundTransparency = 0.15
-	plate.BorderSizePixel = 0
-	plate.Parent = gui
-
-	local corner = Instance.new("UICorner")
-	corner.CornerRadius = UDim.new(0, 12)
-	corner.Parent = plate
-
-	local stroke = Instance.new("UIStroke")
-	stroke.Color = COL.TagStroke
-	stroke.Thickness = 2
-	stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-	stroke.Parent = plate
-
-	local name = Instance.new("TextLabel")
-	name.Name = "Name"
-	name.BackgroundTransparency = 1
-	name.Position = UDim2.fromScale(0, 0.04)
-	name.Size = UDim2.fromScale(1, 0.56)
-	name.Font = Enum.Font.GothamBlack
-	name.TextScaled = true
-	name.Text = CFG.TraderName
-	name.TextColor3 = COL.TagName
-	name.TextStrokeTransparency = 0.5
-	name.Parent = plate
-
-	local hint = Instance.new("TextLabel")
-	hint.Name = "Hint"
-	hint.BackgroundTransparency = 1
-	hint.Position = UDim2.fromScale(0, 0.6)
-	hint.Size = UDim2.fromScale(1, 0.34)
-	hint.Font = Enum.Font.GothamBold
-	hint.TextScaled = true
-	hint.Text = CFG.HintText
-	hint.TextColor3 = COL.TagHint
-	hint.Parent = plate
-end
-
--- Сборка торговца: Root (закреплён) + Motor6D-суставы + приваренные аксессуары
-local function buildTrader(parent: Instance): Model
-	local model = Instance.new("Model")
-	model.Name = CFG.NpcModelName
-
-	local frame = CFrame.new(ox + CFG.Trader.X, 0, oz + CFG.Trader.Z) * CFrame.Angles(0, math.pi, 0)
-	local function L(x: number, y: number, z: number): CFrame
-		return frame * CFrame.new(x, y, z)
-	end
-
-	-- Помощники привязки к конечности
-	local function nBlock(limb: BasePart, name: string, size: Vector3, cf: CFrame, color: Color3, mat: Enum.Material, tr: number?): Part
-		local p = PartKit.Block(model, name, size, cf, color, mat, npcOpts(tr))
-		PartKit.WeldTo(p, limb)
-		return p
-	end
-	local function nBall(limb: BasePart, name: string, d: number, cf: CFrame, color: Color3, mat: Enum.Material): Part
-		local p = PartKit.Ball(model, name, d, cf, color, mat, npcOpts(nil))
-		PartKit.WeldTo(p, limb)
-		return p
-	end
-	local function nCyl(limb: BasePart, name: string, d: number, h: number, cf: CFrame, color: Color3, mat: Enum.Material, tr: number?): Part
-		local p = PartKit.Cylinder(model, name, d, h, cf, color, mat, npcOpts(tr))
-		PartKit.WeldTo(p, limb)
-		return p
-	end
-	local function nEll(limb: BasePart, name: string, size: Vector3, cf: CFrame, color: Color3, mat: Enum.Material): Part
-		local p = PartKit.Ellipsoid(model, name, size, cf, color, mat, npcOpts(nil))
-		PartKit.WeldTo(p, limb)
-		return p
-	end
-
-	-- Корень (бёдра) и основные части тела
-	local rootPart = PartKit.Block(model, "Root", Vector3.new(1, 1, 1), L(0, 2.2, 0), COL.Trousers, M.SmoothPlastic, { Anchored = true, CanCollide = false, CanQuery = false, Transparency = 1 })
-	local torsoCF = L(0, 3.55, 0)
-	local torso = PartKit.Block(model, "Torso", Vector3.new(3.0, 2.7, 1.9), torsoCF, COL.Shirt, M.SmoothPlastic, npcOpts(nil))
-	local headCF = L(0, 5.9, 0)
-	local head = PartKit.Ball(model, "Head", 2.1, headCF, COL.Skin, M.SmoothPlastic, npcOpts(nil))
-
-	-- Руки: в покое наклонены вперёд на 70°, кисти лежат на столешнице
-	local restTilt = CFrame.Angles(math.rad(70), 0, 0)
-	local pivotL = L(-1.95, 4.5, 0) * restTilt
-	local pivotR = L(1.95, 4.5, 0) * restTilt
-	local armL = PartKit.Block(model, "ArmL", Vector3.new(0.85, 2.6, 0.85), pivotL * CFrame.new(0, -1.3, 0), COL.Shirt, M.SmoothPlastic, npcOpts(nil))
-	local armR = PartKit.Block(model, "ArmR", Vector3.new(0.85, 2.6, 0.85), pivotR * CFrame.new(0, -1.3, 0), COL.Shirt, M.SmoothPlastic, npcOpts(nil))
-
-	-- Ноги приварены к Root
-	local legs: { BasePart } = {}
-	for _, sx in ipairs({ -1, 1 }) do
-		local leg = nBlock(rootPart, "Leg", Vector3.new(1.3, 2.1, 1.3), L(sx * 0.8, 1.15, 0), COL.Trousers, M.SmoothPlastic)
-		leg.Name = if sx &lt; 0 then "LegL" else "LegR"
-		legs[#legs + 1] = leg
-		nBlock(rootPart, "Boot", Vector3.new(1.4, 0.6, 1.8), L(sx * 0.8, 0.3, -0.25), COL.Boots, M.Leather)
-	end
-
-	-- Суставы: pivot строится из итоговых позиций, поэтому ничего не «прыгает»
-	makeMotor("Waist", rootPart, rootPart, torso, L(0, 2.2, 0))
-	makeMotor("Neck", torso, torso, head, L(0, 4.9, 0))
-	makeMotor("ShoulderL", torso, torso, armL, pivotL)
-	makeMotor("ShoulderR", torso, torso, armR, pivotR)
-
-	-- Туловище: фартук, ремень, лямки, карман, бабочка, воротник
-	nBlock(torso, "Apron", Vector3.new(2.4, 2.1, 0.12), torsoCF * CFrame.new(0, -0.3, -1.0), COL.Apron, M.Leather)
-	nBlock(torso, "ApronPocket", Vector3.new(1.1, 0.7, 0.08), torsoCF * CFrame.new(0, -0.6, -1.08), COL.ApronDark, M.Leather)
-	nBlock(torso, "Belt", Vector3.new(3.06, 0.25, 1.96), torsoCF * CFrame.new(0, -1.0, 0), COL.ApronDark, M.Leather)
-	nBlock(torso, "Buckle", Vector3.new(0.5, 0.4, 0.1), torsoCF * CFrame.new(0, -1.0, -1.0), COL.Gold, M.Metal)
-	for _, sx in ipairs({ -1, 1 }) do
-		nBlock(torso, "ApronStrap", Vector3.new(0.25, 0.7, 0.1), torsoCF * CFrame.new(sx * 0.85, 1.05, -0.99), COL.ApronDark, M.Leather)
-		nBall(torso, "Rivet", 0.14, torsoCF * CFrame.new(sx * 1.0, 0.65, -1.07), COL.Brass, M.Metal)
-		nBlock(torso, "Collar", Vector3.new(0.6, 0.35, 0.1), torsoCF * CFrame.new(sx * 0.45, 1.3, -0.97) * CFrame.Angles(0, 0, sx * math.rad(-35)), COL.Cuff, M.SmoothPlastic)
-		nEll(torso, "BowWing", Vector3.new(0.6, 0.42, 0.2), torsoCF * CFrame.new(sx * 0.38, 1.12, -1.02), COL.BowTie, M.Fabric)
-	end
-	nBall(torso, "BowKnot", 0.3, torsoCF * CFrame.new(0, 1.12, -1.04), COL.BowTie, M.Fabric)
-
-	-- Руки: манжеты и кисти
-	local function dressArm(arm: BasePart, pivot: CFrame)
-		nBlock(arm, "Cuff", Vector3.new(1.0, 0.35, 1.0), pivot * CFrame.new(0, -1.1, 0), COL.Cuff, M.SmoothPlastic)
-		nBall(arm, "Hand", 0.75, pivot * CFrame.new(0, -1.5, 0), COL.Skin, M.SmoothPlastic)
-	end
-	dressArm(armL, pivotL)
-	dressArm(armR, pivotR)
-
-	-- Голова: уши, нос, румянец, глаза, брови
-	local HR = 1.05
-	for _, sx in ipairs({ -1, 1 }) do
-		nBall(head, "Ear", 0.4, headCF * CFrame.new(sx * 1.02, 0, -0.05), COL.Skin, M.SmoothPlastic)
-		nBall(head, "Sideburn", 0.5, headCF * CFrame.new(sx * 0.93, 0.45, 0.25), COL.Hair, M.Fabric)
-		nEll(head, "Cheek", Vector3.new(0.4, 0.25, 0.15), headCF * CFrame.new(sx * 0.72, -0.2, -0.72) * CFrame.Angles(0, sx * math.rad(35), 0), COL.Cheek, M.SmoothPlastic).Transparency = 0.35
-		nBall(head, "EyeWhite", 0.42, headCF * CFrame.new(sx * 0.42, 0.15, -0.86), COL.EyeWhite, M.SmoothPlastic)
-		nBall(head, "Pupil", 0.22, headCF * CFrame.new(sx * 0.42, 0.13, -0.98), COL.Pupil, M.SmoothPlastic)
-		nBlock(head, "Brow", Vector3.new(0.6, 0.14, 0.14), headCF * CFrame.new(sx * 0.45, 0.62, -0.88) * CFrame.Angles(0, 0, sx * math.rad(-12)), COL.Moustache, M.Fabric)
-	end
-	nBall(head, "Nose", 0.5, headCF * CFrame.new(0, -0.08, -1.05), COL.SkinShade, M.SmoothPlastic)
-
-	-- Круглые очки: оправа (кольцо) + стёкла, переносица и дужки
-	for _, sx in ipairs({ -1, 1 }) do
-		local lensCF = headCF * CFrame.new(sx * 0.47, 0.15, -1.14) * CFrame.Angles(math.pi / 2, 0, 0)
-		nCyl(head, "GlassesRing", 0.88, 0.12, lensCF, COL.GlassesFrame, M.Metal)
-		nCyl(head, "Lens", 0.7, 0.1, lensCF * CFrame.new(0, -0.02, 0), COL.Lens, M.Glass, 0.55)
-		nBlock(head, "GlassesTemple", Vector3.new(0.08, 0.08, 1.0), headCF * CFrame.new(sx * 0.97, 0.2, -0.62), COL.GlassesFrame, M.Metal)
-	end
-	nBlock(head, "GlassesBridge", Vector3.new(0.16, 0.08, 0.08), headCF * CFrame.new(0, 0.2, -1.14), COL.GlassesFrame, M.Metal)
-
-	-- Большие закрученные усы
-	for _, sx in ipairs({ -1, 1 }) do
-		nEll(head, "Moustache", Vector3.new(0.9, 0.42, 0.45), headCF * CFrame.new(sx * 0.48, -0.36, -1.0) * CFrame.Angles(0, 0, sx * math.rad(18)), COL.Moustache, M.Fabric)
-		nBall(head, "MoustacheTip", 0.3, headCF * CFrame.new(sx * 0.88, -0.2, -0.72), COL.Moustache, M.Fabric)
-	end
-
-	-- Улыбка: дуга из маленьких шариков по поверхности головы
-	for i = -3, 3 do
-		local sx = i * 0.14
-		local sy = -0.8 + 0.15 * (sx / 0.42) ^ 2
-		local sz = -math.sqrt(math.max(0.05, HR * HR - sx * sx - sy * sy)) - 0.03
-		nBall(head, "Smile", 0.11, headCF * CFrame.new(sx, sy, sz), COL.Mouth, M.SmoothPlastic)
-	end
-
-	-- Шляпа с широкими полями и красной лентой (чуть набекрень)
-	local hatCF = headCF * CFrame.Angles(0, 0, math.rad(-4))
-	nCyl(head, "HatBrim", 3.1, 0.12, hatCF * CFrame.new(0, 0.8, -0.1), COL.Hat, M.Fabric)
-	nCyl(head, "HatCrown", 1.85, 1.0, hatCF * CFrame.new(0, 1.3, 0), COL.Hat, M.Fabric)
-	nCyl(head, "HatBand", 1.9, 0.24, hatCF * CFrame.new(0, 0.98, 0), COL.HatBand, M.Fabric)
-	nCyl(head, "HatTop", 1.6, 0.06, hatCF * CFrame.new(0, 1.83, 0), COL.HatTop, M.Fabric)
-
-	buildTag(head)
-
-	-- Невидимый блок, чтобы игроки не проходили сквозь торговца
-	local blocker = PartKit.Block(model, "TraderCollider", Vector3.new(3.6, 7.5, 2.4), L(0, 3.75, 0), COL.Hat, M.SmoothPlastic, { Anchored = true, CanCollide = true, CanQuery = true, Transparency = 1 })
-	blocker.CanTouch = false
-
-	model.PrimaryPart = rootPart
-	CollectionService:AddTag(model, CFG.NpcTag)
-	model.Parent = parent
-	return model
-end
-
--- ============================================================================
--- ProximityPrompt на невидимой опоре у прилавка
--- ============================================================================
-
-local function buildPrompt(root: Instance): ProximityPrompt
-	local anchor = PartKit.Block(root, "ShopPromptAnchor", Vector3.new(4, 1.6, 0.6), at(0, CFG.PromptHeight, CFG.PromptZ), COL.WoodDark, M.SmoothPlastic, { Transparency = 1, CanCollide = false })
-	local prompt = Instance.new("ProximityPrompt")
-	prompt.Name = "ShopPrompt"
-	prompt.ActionText = CFG.ActionText
-	prompt.ObjectText = CFG.TraderName
-	prompt.KeyboardKeyCode = Enum.KeyCode.E
-	prompt.HoldDuration = 0
-	prompt.RequiresLineOfSight = false
-	prompt.MaxActivationDistance = CFG.MaxActivationDistance
-	prompt.Parent = anchor
-	CollectionService:AddTag(prompt, CFG.PromptTag)
-	return prompt
-end
-
--- ============================================================================
--- Публичный API
--- ============================================================================
-
-function MarketBuilder.Build(parent: Instance, centerPos: Vector3): MarketRefs
-	ox = centerPos.X
-	oz = centerPos.Z
-	rng = Random.new(CFG.Seed)
-
-	local old = parent:FindFirstChild(CFG.ModelName)
-	if old then
-		old:Destroy()
-	end
-
-	local model = Instance.new("Model")
-	model.Name = CFG.ModelName
-
-	buildFloor(model)
-	buildBackWall(model)
-	buildCounter(model)
-	buildPillars(model)
-	buildRoof(model)
-	buildGarland(model)
-	buildSign(model)
-	buildLanterns(model)
-	buildShelves(model)
-	buildCounterProps(model)
-	buildProps(model)
-	local pad = buildCarpet(model)
-	local trader = buildTrader(model)
-	local prompt = buildPrompt(model)
-
-	local count = 0
-	for _, d in ipairs(model:GetDescendants()) do
-		if d:IsA("BasePart") then
-			count += 1
-		end
-	end
-	model:SetAttribute("PartCount", count)
-
-	model.Parent = parent
-	return { Model = model, Prompt = prompt, Trader = trader, Pad = pad }
-end
-
-return MarketBuilder
 </ProtectedString></Properties></Item><Item class="ModuleScript"><Properties><string name="Name">NightCycleService</string><ProtectedString name="Source">--!strict
 -- ============================================================================
 -- 🌙 МОДУЛЬ: NightCycleService (ServerScriptService.Modules.NightCycleService)
@@ -16697,7 +14539,6 @@ function NightCycleService.Start(deps: Deps)
 		deps.WorldBuilder.SetNightMineBarrierActive(true)
 		deps.WorldBuilder.SetNightLightsActive(true)
 		deps.MineManager.ClearMorningVeinsForNight()
-		setPhase("Night", P.NightSeconds)
 		deps.NoticeRemote:FireAllClients("Night")
 		-- 3) пока шахта пуста, восстанавливаем выработанные блоки к новому утру
 		task.delay(P.BlockRespawnDelay, function()
@@ -16713,7 +14554,6 @@ function NightCycleService.Start(deps: Deps)
 		deps.NightWallBuilder.SetRaised(deps.WallRefs, false)
 		deps.WorldBuilder.SetNightMineBarrierActive(false)
 		deps.WorldBuilder.SetNightLightsActive(false)
-		setPhase("Day", P.DaySeconds)
 		if announce then
 			local veinCount, veinList = deps.MineManager.SpawnMorningVeins()
 			deps.NoticeRemote:FireAllClients("Day", veinCount, table.concat(veinList, ", "))
@@ -16724,16 +14564,34 @@ function NightCycleService.Start(deps: Deps)
 		LastZoneWarn[player.UserId] = nil
 	end)
 
-	-- Первая фаза выставляется сразу, чтобы атрибуты существовали до входа первого игрока
-	beginDay(false)
+	-- Ведёт одну фазу. Длительность отсчитывается по монотонным часам сервера, а опубликованный
+	-- момент конца подправляется, если серверное время «прыгнуло» (синхронизация часов), —
+	-- поэтому ночь не может начаться раньше срока, а таймеры клиентов остаются точными.
+	local function runPhase(name: string, length: number, interval: number, onTick: (left: number) -&gt; ())
+		local started = os.clock()
+		local endsAt = setPhase(name, length)
+		while true do
+			local left = length - (os.clock() - started)
+			if left &lt;= 0 then
+				break
+			end
+			local expected = serverNow() + left
+			if math.abs(expected - endsAt) &gt; 0.75 then
+				endsAt = expected
+				ReplicatedStorage:SetAttribute(P.AttrEndsAt, endsAt)
+			end
+			onTick(left)
+			task.wait(math.clamp(left, 0.05, interval))
+		end
+	end
 
 	task.spawn(function()
+		-- Первая фаза выставляется сразу (до первого ожидания), чтобы атрибуты существовали до входа игроков
+		beginDay(false)
 		while true do
-			-- ДЕНЬ: ждём конца фазы, за N секунд до ночи — предупреждение
-			local dayEndsAt = ReplicatedStorage:GetAttribute(P.AttrEndsAt) :: number
+			-- ДЕНЬ: за N секунд до ночи — предупреждение
 			local eveningAnnounced = false
-			while serverNow() &lt; dayEndsAt do
-				local left = dayEndsAt - serverNow()
+			runPhase("Day", P.DaySeconds, 0.25, function(left: number)
 				if not eveningAnnounced and left &lt;= P.EveningWarningSeconds then
 					eveningAnnounced = true
 					deps.DayNightEvent:FireAllClients(
@@ -16741,18 +14599,15 @@ function NightCycleService.Start(deps: Deps)
 						string.format("🌆 Вечер! Шахта закроется через %d с — заканчивай копать!", math.ceil(left))
 					)
 				end
-				task.wait(math.clamp(left, 0.05, 0.25))
-			end
+			end)
 
 			-- НОЧЬ: телепорт, стена, проверка зоны раз в ZoneCheckInterval
 			beginNight()
-			local nightEndsAt = ReplicatedStorage:GetAttribute(P.AttrEndsAt) :: number
-			while serverNow() &lt; nightEndsAt do
+			runPhase("Night", P.NightSeconds, P.ZoneCheckInterval, function(_left: number)
 				for _, player in ipairs(Players:GetPlayers()) do
 					evictFromMine(player)
 				end
-				task.wait(math.clamp(nightEndsAt - serverNow(), 0.05, P.ZoneCheckInterval))
-			end
+			end)
 
 			-- УТРО
 			beginDay(true)
@@ -17330,10 +15185,10 @@ return NightWallBuilder
 </ProtectedString></Properties></Item><Item class="ModuleScript"><Properties><string name="Name">ShopService</string><ProtectedString name="Source">--!strict
 -- ============================================================================
 -- 🛒 МОДУЛЬ: ShopService (ServerScriptService.Modules.ShopService)
--- v52: серверная часть нового магазина торговца Гоши.
--- Клиент только ПРОСИТ («купи кирку 3», «купи буст Luck», «продай руду»), сервер
--- проверяет всё сам: тип и диапазон аргументов, кулдаун, расстояние до торговца,
--- цену и монеты, наличие руды. Клиенту возвращается результат для анимации окна.
+-- v52: серверная покупка бустов (вкладка «⚡ Бусты» в меню магазина).
+-- Клиент только ПРОСИТ («купи буст Luck»), сервер проверяет всё сам: тип аргументов,
+-- кулдаун, расстояние до магазина, цену и монеты. Клиенту возвращается результат для
+-- анимации окна. Кирки и рюкзаки покупаются как раньше (Remote-ы BuyPickaxe / BuyBackpack).
 -- Настройки — GameConfig.SHOP_UI и GameConfig.BOOSTS.
 -- ============================================================================
 
@@ -17346,9 +15201,7 @@ local ShopService = {}
 
 export type Deps = {
 	DataManager: any,
-	EquipmentManager: any,
 	BoostService: any,
-	SoundManager: any,
 	SyncRemote: RemoteEvent,
 	ActionRemote: RemoteEvent, -- клиент -&gt; сервер: (action: string, arg: any)
 	ResultRemote: RemoteEvent, -- сервер -&gt; клиент: (ok: boolean, action: string, info: { [string]: any })
@@ -17357,19 +15210,11 @@ export type Deps = {
 local LastAction: { [number]: number } = {}
 local Initialized = false
 
--- Игрок должен стоять у прилавка (по горизонтали) и на уровне площади
-local function isNearTrader(root: BasePart): boolean
+-- Игрок должен стоять у магазина (по горизонтали) и на уровне площади
+local function isNearShop(root: BasePart): boolean
 	local center = GameConfig.GREEN_SHOP_PAD_POS
 	local flat = Vector3.new(root.Position.X - center.X, 0, root.Position.Z - center.Z).Magnitude
 	return flat &lt;= GameConfig.SHOP_UI.MaxDistance and math.abs(root.Position.Y - center.Y) &lt;= 12
-end
-
-local function toLevel(arg: any, maxLevel: number): number?
-	local n = tonumber(arg)
-	if not n or n ~= n or n ~= math.floor(n) or n &lt; 1 or n &gt; maxLevel then
-		return nil
-	end
-	return n
 end
 
 function ShopService.Init(deps: Deps)
@@ -17378,12 +15223,8 @@ function ShopService.Init(deps: Deps)
 	end
 	Initialized = true
 
-	local function reply(player: Player, ok: boolean, action: string, info: { [string]: any })
-		deps.ResultRemote:FireClient(player, ok, action, info)
-	end
-
 	deps.ActionRemote.OnServerEvent:Connect(function(player: Player, action: any, arg: any)
-		if type(action) ~= "string" then
+		if action ~= "BuyBoost" or type(arg) ~= "string" then
 			return
 		end
 		local now = os.clock()
@@ -17392,6 +15233,10 @@ function ShopService.Init(deps: Deps)
 		end
 		LastAction[player.UserId] = now
 
+		local cfg = GameConfig.BOOSTS.Items[arg]
+		if not cfg or not cfg.InShop then
+			return
+		end
 		local profile = deps.DataManager.GetProfile(player)
 		local char = player.Character
 		local hum = char and char:FindFirstChildOfClass("Humanoid")
@@ -17399,67 +15244,19 @@ function ShopService.Init(deps: Deps)
 		if not profile or not hum or hum.Health &lt;= 0 or not root or not root:IsA("BasePart") then
 			return
 		end
-		if not isNearTrader(root) then
-			reply(player, false, action, { Reason = "Far" })
+		if not isNearShop(root) then
+			deps.ResultRemote:FireClient(player, false, action, { Id = cfg.Id, Reason = "Far" })
 			return
 		end
-
-		if action == "BuyPickaxe" or action == "BuyBackpack" then
-			local isPick = action == "BuyPickaxe"
-			local level = toLevel(arg, isPick and GameConfig.MAX_PICKAXE_LEVEL or GameConfig.MAX_BACKPACK_LEVEL)
-			if not level then
-				return
-			end
-			local outcome: string?
-			if isPick then
-				outcome = deps.DataManager.BuyOrEquip3DPickaxe(player, level, deps.EquipmentManager, deps.SyncRemote)
-			else
-				outcome = deps.DataManager.BuyOrEquip3DBackpack(player, level, deps.EquipmentManager, deps.SyncRemote)
-			end
-			if outcome == "Bought" or outcome == "Equipped" then
-				reply(player, true, action, { Level = level, Outcome = outcome })
-			elseif outcome == "NoCoins" then
-				reply(player, false, action, { Level = level, Reason = "NoCoins" })
-			end
-		elseif action == "BuyBoost" then
-			if type(arg) ~= "string" then
-				return
-			end
-			local cfg = GameConfig.BOOSTS.Items[arg]
-			if not cfg or not cfg.InShop then
-				return
-			end
-			if (profile.Coins or 0) &lt; cfg.Price then
-				reply(player, false, action, { Id = cfg.Id, Reason = "NoCoins" })
-				return
-			end
-			profile.Coins -= cfg.Price
-			local remaining = deps.BoostService.Activate(player, cfg.Id)
-			deps.DataManager.UpdateLeaderstats(player)
-			deps.DataManager.SyncToClient(player, deps.SyncRemote)
-			reply(player, true, action, { Id = cfg.Id, Remaining = remaining })
-		elseif action == "SellOre" then
-			-- arg: "All" либо ключ стопки руды ("Reg_&lt;Id&gt;" — обычная, "Morn_&lt;Id&gt;" — утренняя жила)
-			local selected: { [string]: boolean }? = nil
-			if arg ~= "All" then
-				if type(arg) ~= "string" or #arg &gt; 40 then
-					return
-				end
-				local kind, oreId = string.match(arg, "^(%a+)_(%w+)$")
-				if (kind ~= "Reg" and kind ~= "Morn") or not oreId or not GameConfig.BLOCK_TYPES[oreId] then
-					return
-				end
-				selected = { [arg] = true }
-			end
-			local earned, count = deps.DataManager.SellAtTrader(player, selected, deps.SyncRemote)
-			if earned &gt; 0 then
-				reply(player, true, action, { Earned = earned, Count = count, Key = arg })
-			else
-				-- 0 монет: либо рюкзак пуст, либо сработала серверная защита от слишком частых продаж
-				local reason = deps.DataManager.GetBackpackUsed(player) &gt; 0 and "Cooldown" or "Empty"
-				reply(player, false, action, { Reason = reason, Key = arg })
-			end
+		if (profile.Coins or 0) &lt; cfg.Price then
+			deps.ResultRemote:FireClient(player, false, action, { Id = cfg.Id, Reason = "NoCoins" })
+			return
 		end
+		profile.Coins -= cfg.Price
+		local remaining = deps.BoostService.Activate(player, cfg.Id)
+		deps.DataManager.UpdateLeaderstats(player)
+		deps.DataManager.SyncToClient(player, deps.SyncRemote)
+		deps.ResultRemote:FireClient(player, true, action, { Id = cfg.Id, Remaining = remaining })
 	end)
 
 	Players.PlayerRemoving:Connect(function(player: Player)
@@ -19135,16 +16932,14 @@ end)
 
 DataManager.StartAutoSaveLoop()
 
--- v52: бусты (сервер хранит время конца) и магазин торговца Гоши (все запросы проверяет сервер)
+-- v52: бусты (сервер хранит время конца) и их покупка в магазине (все запросы проверяет сервер)
 BoostService.SetChangedCallback(function(player: Player)
 	DataManager.SyncToClient(player, SyncPlayerData)
 end)
 BoostService.Start()
 ShopService.Init({
 	DataManager = DataManager,
-	EquipmentManager = EquipmentManager,
 	BoostService = BoostService,
-	SoundManager = SoundManager,
 	SyncRemote = SyncPlayerData,
 	ActionRemote = ShopActionRemote,
 	ResultRemote = ShopResultRemote,
@@ -19218,7 +17013,7 @@ local HudModule = require(Modules:WaitForChild("HudModule"))
 local EquipmentBuilder = require(Modules:WaitForChild("EquipmentBuilder"))
 local ToolAnimator = require(Modules:WaitForChild("ToolAnimator"))
 ToolAnimator.Start()
-local ClientBus = require(Modules:WaitForChild("ClientBus")) -- v52: шина новых окон (ShopUI / BackpackUI) и эффектов
+local ClientBus = require(Modules:WaitForChild("ClientBus")) -- v52: шина новых окон (BackpackUI, BoostShopUI) и эффектов
 
 SoundManager.EnsureSoundsFolder()
 
@@ -20181,17 +17976,22 @@ local function makeCategoryTab(name: string, icon: string, caption: string, xOff
 	b.MouseButton1Click:Connect(onClick)
 	return b
 end
-local tabPickaxesBtn = makeCategoryTab("TabPickaxes", "⛏️", "Pickaxes", 18, function()
+local tabPickaxesBtn = makeCategoryTab("TabPickaxes", "⛏️", "Кирки", 18, function()
 	ShopCategory = "Pickaxes"
 	SelectedShopLevel = math.clamp(State.PickaxeTier, 1, 10)
 	SoundManager.PlayUISound("ShopSwipe")
 	refreshShopView()
 end)
-local tabBackpacksBtn = makeCategoryTab("TabBackpacks", "🎒", "Backpacks", 102, function()
+local tabBackpacksBtn = makeCategoryTab("TabBackpacks", "🎒", "Рюкзаки", 102, function()
 	ShopCategory = "Backpacks"
 	SelectedShopLevel = math.clamp(State.BackpackLevel, 1, 10)
 	SoundManager.PlayUISound("ShopSwipe")
 	refreshShopView()
+end)
+-- v52: третья вкладка (справа, рядом с крестиком) — бусты «Удача / Скорость / Монеты» в окне BoostShopUI
+makeCategoryTab("TabBoosts", "⚡", "Бусты", 834, function()
+	SoundManager.PlayUISound("ShopSwipe")
+	ClientBus.OpenShop:Fire()
 end)
 
 -- Область карусели
@@ -20883,16 +18683,17 @@ local function isOnShopPad(): boolean
 	return dist &lt;= 6.2 and math.abs(p.Y - padPos.Y) &lt; 6
 end
 local function openShopMenuHere()
-	-- v52: старая карусель больше не показывается — открываем новый магазин (ShopUI)
 	bagModal.Visible = false
-	shopModal.Visible = false
-	ClientBus.OpenShop:Fire()
+	ClientBus.CloseAll:Fire() -- v52: новое окно рюкзака закрывается
+	shopModal.Visible = true
+	SoundManager.PlayUISound("ShopOpen") -- v28: shop open swoosh
+	refreshShopView()
 end
 local function goToShop()
 	bagModal.Visible = false
 	if isOnShopPad() then
-		if ClientBus.IsWindowOpen("Shop") then -- v52
-			ClientBus.CloseShop:Fire()
+		if shopModal.Visible then
+			shopModal.Visible = false
 		else
 			openShopMenuHere()
 		end
@@ -20905,7 +18706,7 @@ local function goToShop()
 	TeleportToShopRemote:FireServer()
 	-- the SHOP zone check opens the menu on arrival; this is only a fallback
 	task.delay(0.9, function()
-		if not ClientBus.IsWindowOpen("Shop") and isOnShopPad() then
+		if not shopModal.Visible and isOnShopPad() then
 			openShopMenuHere()
 		end
 	end)
@@ -20963,11 +18764,13 @@ do
 	busBag.Parent = uiBus
 	busShop.Event:Connect(function() goToShop() end) -- v27: teleport to the shop, the menu opens there
 	busBag.Event:Connect(function()
+		shopModal.Visible = false
 		ClientBus.ToggleBag:Fire() -- v52: новое окно рюкзака с 3D-иконками руды (BackpackUI)
 	end)
 end
 hud = HudModule.new(screenGui, {
 	OnBackpackClick = function()
+		shopModal.Visible = false
 		ClientBus.ToggleBag:Fire() -- v52: новое окно рюкзака с 3D-иконками руды (BackpackUI)
 	end,
 })
@@ -21128,6 +18931,7 @@ end)
 UserInputService.InputBegan:Connect(function(input: InputObject, gpe: boolean)
 	if gpe then return end
 	if input.KeyCode == Enum.KeyCode.B or input.KeyCode == Enum.KeyCode.I then
+		shopModal.Visible = false
 		ClientBus.ToggleBag:Fire() -- v52: новое окно рюкзака с 3D-иконками руды (BackpackUI)
 	elseif input.KeyCode == Enum.KeyCode.M then
 		goToShop() -- v27: same as the Shop button
@@ -21381,8 +19185,18 @@ RunService.RenderStepped:Connect(function(dt: number)
 		local distShop = (Vector3.new(pos.X, 0, pos.Z) - Vector3.new(shopPadPos.X, 0, shopPadPos.Z)).Magnitude
 		local onShopPad = (distShop &lt;= 6.2) and (math.abs(pos.Y - shopPadPos.Y) &lt; 6)
 
-		-- v52: магазин открывает ProximityPrompt торговца Гоши (и кнопка «Shop»), а не вход в зону
-		WasOnShopPad = onShopPad
+		if onShopPad and not WasOnShopPad then
+			WasOnShopPad = true
+			bagModal.Visible = false
+			ClientBus.CloseAll:Fire() -- v52: новое окно рюкзака закрывается
+			shopModal.Visible = true
+			SoundManager.PlayUISound("ShopOpen") -- v28: shop open swoosh
+			refreshShopView()
+		elseif not onShopPad and WasOnShopPad then
+			WasOnShopPad = false
+			shopModal.Visible = false
+			ClientBus.CloseShop:Fire() -- v52: окно бустов закрывается вместе с магазином
+		end
 
 		-- v14: окно продажи не открывается. Автопродажу выполняет сервер при входе в зону «$ SELL».
 	end
@@ -21728,7 +19542,7 @@ local HudModule = require(Modules:WaitForChild("HudModule"))
 local EquipmentBuilder = require(Modules:WaitForChild("EquipmentBuilder"))
 local ToolAnimator = require(Modules:WaitForChild("ToolAnimator"))
 ToolAnimator.Start()
-local ClientBus = require(Modules:WaitForChild("ClientBus")) -- v52: шина новых окон (ShopUI / BackpackUI) и эффектов
+local ClientBus = require(Modules:WaitForChild("ClientBus")) -- v52: шина новых окон (BackpackUI, BoostShopUI) и эффектов
 
 SoundManager.EnsureSoundsFolder()
 
@@ -22691,17 +20505,22 @@ local function makeCategoryTab(name: string, icon: string, caption: string, xOff
 	b.MouseButton1Click:Connect(onClick)
 	return b
 end
-local tabPickaxesBtn = makeCategoryTab("TabPickaxes", "⛏️", "Pickaxes", 18, function()
+local tabPickaxesBtn = makeCategoryTab("TabPickaxes", "⛏️", "Кирки", 18, function()
 	ShopCategory = "Pickaxes"
 	SelectedShopLevel = math.clamp(State.PickaxeTier, 1, 10)
 	SoundManager.PlayUISound("ShopSwipe")
 	refreshShopView()
 end)
-local tabBackpacksBtn = makeCategoryTab("TabBackpacks", "🎒", "Backpacks", 102, function()
+local tabBackpacksBtn = makeCategoryTab("TabBackpacks", "🎒", "Рюкзаки", 102, function()
 	ShopCategory = "Backpacks"
 	SelectedShopLevel = math.clamp(State.BackpackLevel, 1, 10)
 	SoundManager.PlayUISound("ShopSwipe")
 	refreshShopView()
+end)
+-- v52: третья вкладка (справа, рядом с крестиком) — бусты «Удача / Скорость / Монеты» в окне BoostShopUI
+makeCategoryTab("TabBoosts", "⚡", "Бусты", 834, function()
+	SoundManager.PlayUISound("ShopSwipe")
+	ClientBus.OpenShop:Fire()
 end)
 
 -- Область карусели
@@ -23393,16 +21212,17 @@ local function isOnShopPad(): boolean
 	return dist &lt;= 6.2 and math.abs(p.Y - padPos.Y) &lt; 6
 end
 local function openShopMenuHere()
-	-- v52: старая карусель больше не показывается — открываем новый магазин (ShopUI)
 	bagModal.Visible = false
-	shopModal.Visible = false
-	ClientBus.OpenShop:Fire()
+	ClientBus.CloseAll:Fire() -- v52: новое окно рюкзака закрывается
+	shopModal.Visible = true
+	SoundManager.PlayUISound("ShopOpen") -- v28: shop open swoosh
+	refreshShopView()
 end
 local function goToShop()
 	bagModal.Visible = false
 	if isOnShopPad() then
-		if ClientBus.IsWindowOpen("Shop") then -- v52
-			ClientBus.CloseShop:Fire()
+		if shopModal.Visible then
+			shopModal.Visible = false
 		else
 			openShopMenuHere()
 		end
@@ -23415,7 +21235,7 @@ local function goToShop()
 	TeleportToShopRemote:FireServer()
 	-- the SHOP zone check opens the menu on arrival; this is only a fallback
 	task.delay(0.9, function()
-		if not ClientBus.IsWindowOpen("Shop") and isOnShopPad() then
+		if not shopModal.Visible and isOnShopPad() then
 			openShopMenuHere()
 		end
 	end)
@@ -23473,11 +21293,13 @@ do
 	busBag.Parent = uiBus
 	busShop.Event:Connect(function() goToShop() end) -- v27: teleport to the shop, the menu opens there
 	busBag.Event:Connect(function()
+		shopModal.Visible = false
 		ClientBus.ToggleBag:Fire() -- v52: новое окно рюкзака с 3D-иконками руды (BackpackUI)
 	end)
 end
 hud = HudModule.new(screenGui, {
 	OnBackpackClick = function()
+		shopModal.Visible = false
 		ClientBus.ToggleBag:Fire() -- v52: новое окно рюкзака с 3D-иконками руды (BackpackUI)
 	end,
 })
@@ -23638,6 +21460,7 @@ end)
 UserInputService.InputBegan:Connect(function(input: InputObject, gpe: boolean)
 	if gpe then return end
 	if input.KeyCode == Enum.KeyCode.B or input.KeyCode == Enum.KeyCode.I then
+		shopModal.Visible = false
 		ClientBus.ToggleBag:Fire() -- v52: новое окно рюкзака с 3D-иконками руды (BackpackUI)
 	elseif input.KeyCode == Enum.KeyCode.M then
 		goToShop() -- v27: same as the Shop button
@@ -23891,8 +21714,18 @@ RunService.RenderStepped:Connect(function(dt: number)
 		local distShop = (Vector3.new(pos.X, 0, pos.Z) - Vector3.new(shopPadPos.X, 0, shopPadPos.Z)).Magnitude
 		local onShopPad = (distShop &lt;= 6.2) and (math.abs(pos.Y - shopPadPos.Y) &lt; 6)
 
-		-- v52: магазин открывает ProximityPrompt торговца Гоши (и кнопка «Shop»), а не вход в зону
-		WasOnShopPad = onShopPad
+		if onShopPad and not WasOnShopPad then
+			WasOnShopPad = true
+			bagModal.Visible = false
+			ClientBus.CloseAll:Fire() -- v52: новое окно рюкзака закрывается
+			shopModal.Visible = true
+			SoundManager.PlayUISound("ShopOpen") -- v28: shop open swoosh
+			refreshShopView()
+		elseif not onShopPad and WasOnShopPad then
+			WasOnShopPad = false
+			shopModal.Visible = false
+			ClientBus.CloseShop:Fire() -- v52: окно бустов закрывается вместе с магазином
+		end
 
 		-- v14: окно продажи не открывается. Автопродажу выполняет сервер при входе в зону «$ SELL».
 	end
@@ -26967,8 +24800,8 @@ local function refresh()
 	local bagName = GameConfig.RU_NAMES.Backpacks[State.BackpackLevel] or ""
 	local penalty = math.floor(GameConfig.GetDirtPenalty(State.DirtBlocks) * 100 + 0.5)
 	subtitle.Text = bagName .. (penalty &gt; 0 and string.format("  ·  грязь: −%d%% мест", penalty) or "  ·  чистый")
-	footer.Text = empty and "Руду можно продать торговцу Гоше на рынке или в зоне $ SELL"
-		or string.format("💰 Всё содержимое стоит %s 🪙 — продай торговцу Гоше или в зоне $ SELL", UIKit.FormatCoins(State.BagValue))
+	footer.Text = empty and "Руда продаётся в зоне $ SELL на поверхности"
+		or string.format("💰 Всё содержимое стоит %s 🪙 — продай в зоне $ SELL", UIKit.FormatCoins(State.BagValue))
 end
 
 -- ---------------------------------------------------------------------------
@@ -27067,11 +24900,432 @@ SyncPlayerData.OnClientEvent:Connect(function(data: any)
 		refresh()
 	end
 end)
+</ProtectedString></Properties></Item><Item class="LocalScript"><Properties><string name="Name">BoostShopUI</string><ProtectedString name="Source">--!strict
+-- ============================================================================
+-- ⚡ КЛИЕНТ: BoostShopUI (StarterPlayerScripts.BoostShopUI)
+-- v52: окно бустов (Удача / Скорость / Монеты). Открывается вкладкой «⚡ Бусты»
+-- в обычном меню магазина (ClientController) — сам магазин кирок и рюкзаков остался прежним.
+--   • Карточки с рамкой цвета буста, диагональным бликом, мерцающими «✦» и «попом» при наведении.
+--   • Кнопка «🪙 Цена» / «ПРОДЛИТЬ · 🪙 Цена»; на карточке — живой остаток активного буста.
+--   • Не хватает монет — тряска карточки, красный тост и звук ошибки.
+--     Покупка — зелёная вспышка, конфетти и звук успеха.
+--   • Плавное открытие (Back); закрытие — крестик, клик мимо окна, Esc или уход с площадки магазина.
+-- Клиент только отправляет запрос (Remote ShopAction) — цену, монеты, расстояние и кулдаун
+-- проверяет сервер (ShopService). Анимации работают только пока окно открыто.
+-- ============================================================================
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+
+local player = Players.LocalPlayer
+if not player then
+	return
+end
+
+local Modules = ReplicatedStorage:WaitForChild("Modules")
+local GameConfig = require(Modules:WaitForChild("GameConfig"))
+local UIKit = require(Modules:WaitForChild("UIKit"))
+local ClientBus = require(Modules:WaitForChild("ClientBus"))
+
+local Remotes = ReplicatedStorage:WaitForChild("Remotes")
+local SyncPlayerData = Remotes:WaitForChild("SyncPlayerData") :: RemoteEvent
+local ShopAction = Remotes:WaitForChild("ShopAction") :: RemoteEvent
+local ShopResult = Remotes:WaitForChild("ShopResult") :: RemoteEvent
+
+local UI = GameConfig.UI
+local CFG = GameConfig.SHOP_UI
+local WIN = CFG.WindowSize
+local CARD = CFG.CardSize
+
+type Card = {
+	Body: Frame,
+	Line1: TextLabel,
+	Button: TextButton,
+	ButtonGrad: UIGradient,
+	Shine: UIGradient,
+	Twinkles: { TextLabel },
+	Id: string,
+}
+
+local Coins = 0
+local IsOpen = false
+local OpenToken = 0
+local Cards: { Card } = {}
+local ActiveTweens: { Tween } = {}
+
+-- ---------------------------------------------------------------------------
+-- Каркас окна
+-- ---------------------------------------------------------------------------
+local playerGui = player:WaitForChild("PlayerGui")
+local gui = Instance.new("ScreenGui")
+gui.Name = "BoostShopV52"
+gui.ResetOnSpawn = false
+gui.IgnoreGuiInset = true
+gui.DisplayOrder = 30
+gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+gui.Enabled = false
+gui.Parent = playerGui
+
+-- Затемнение: клик мимо окна закрывает его
+local dim = Instance.new("TextButton")
+dim.Name = "Dim"
+dim.Size = UDim2.fromScale(1, 1)
+dim.BackgroundColor3 = Color3.new(0, 0, 0)
+dim.BackgroundTransparency = 1
+dim.BorderSizePixel = 0
+dim.AutoButtonColor = false
+dim.Text = ""
+dim.Parent = gui
+
+local window = UIKit.Frame(gui, "Window", UDim2.fromOffset(WIN.X, WIN.Y), UDim2.fromScale(0.5, 0.5), Color3.new(1, 1, 1))
+window.AnchorPoint = Vector2.new(0.5, 0.5)
+window.Active = true -- окно «съедает» клики, чтобы они не закрывали его
+window.ZIndex = 2
+UIKit.Corner(window, 22)
+UIKit.Gradient(window, UI.BgTop, UI.BgBottom, 90)
+local windowStroke = UIKit.Stroke(window, Color3.new(1, 1, 1), 3)
+UIKit.Gradient(windowStroke, UI.Gold, UI.Purple, 35)
+local winScale = Instance.new("UIScale")
+winScale.Parent = window
+UIKit.BindScale(winScale, WIN.X, WIN.Y, 1.1)
+
+-- Слой эффектов (тосты и конфетти) — отдельный всегда включённый ScreenGui поверх окна
+local fxGui = Instance.new("ScreenGui")
+fxGui.Name = "BoostShopV52Fx"
+fxGui.ResetOnSpawn = false
+fxGui.IgnoreGuiInset = true
+fxGui.DisplayOrder = 40
+fxGui.Parent = playerGui
+local fxLayer = UIKit.Frame(fxGui, "FxLayer", UDim2.fromScale(1, 1), UDim2.new(), nil, 1)
+fxLayer.Active = false
+
+UIKit.Label(window, {
+	Name = "Title", Text = "⚡ БУСТЫ", Size = UDim2.new(0, 300, 0, 40), Position = UDim2.fromOffset(24, 14),
+	Font = UI.FontTitle, TextSize = 28, XAlign = Enum.TextXAlignment.Left, Color = UI.Gold, Stroke = true, ZIndex = 3,
+})
+UIKit.Label(window, {
+	Name = "Subtitle", Text = "Повторная покупка продлевает буст", Size = UDim2.new(0, 340, 0, 16), Position = UDim2.fromOffset(26, 50),
+	TextSize = 12, XAlign = Enum.TextXAlignment.Left, Color = UI.TextDim, ZIndex = 3,
+})
+
+local coinsPill = UIKit.Frame(window, "Coins", UDim2.fromOffset(200, 40), UDim2.new(1, -268, 0, 16), UI.Panel)
+coinsPill.ZIndex = 3
+UIKit.Corner(coinsPill, 20)
+UIKit.Stroke(coinsPill, UI.Gold, 2, 0.2)
+local coinsLabel = UIKit.Label(coinsPill, {
+	Name = "Value", Text = "🪙 0", Font = UI.FontBlack, TextSize = 19, Color = UI.Gold, ZIndex = 4,
+})
+
+local closeBtn = UIKit.Button(window, "Close", "✕", UDim2.fromOffset(40, 40), UDim2.new(1, -56, 0, 16), UI.Red, UI.RedDark)
+closeBtn.TextSize = 20
+closeBtn.ZIndex = 4
+
+local row = UIKit.Frame(window, "Cards", UDim2.new(1, -40, 0, CARD.Y), UDim2.fromOffset(20, 84), nil, 1)
+row.ZIndex = 3
+local rowLayout = Instance.new("UIListLayout")
+rowLayout.FillDirection = Enum.FillDirection.Horizontal
+rowLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+rowLayout.Padding = UDim.new(0, 16)
+rowLayout.SortOrder = Enum.SortOrder.LayoutOrder
+rowLayout.Parent = row
+
+-- ---------------------------------------------------------------------------
+-- Карточки бустов
+-- ---------------------------------------------------------------------------
+local function boostRemaining(id: string): number
+	local endsAt = player:GetAttribute("Boost_" .. id .. "_EndsAt")
+	if type(endsAt) ~= "number" then
+		return 0
+	end
+	return math.max(0, endsAt - workspace:GetServerTimeNow())
+end
+
+local function failFeedback(card: Card?, message: string)
+	UIKit.PlaySfx("Error")
+	UIKit.Toast(fxLayer, message, UI.Red)
+	if card then
+		UIKit.Shake(card.Body)
+		UIKit.Flash(card.Body, UI.Red, 16)
+	end
+end
+
+local function makeCard(cfg: any, order: number, rng: Random): Card
+	local rarity = GameConfig.RARITY[cfg.Rarity] or GameConfig.RARITY[1]
+	local color: Color3 = cfg.Color
+
+	-- внешний кадр держит место в ряду, внутренний «Body» можно трясти и масштабировать
+	local root = UIKit.Frame(row, "Card_" .. cfg.Id, UDim2.fromOffset(CARD.X, CARD.Y), UDim2.new(), nil, 1)
+	root.LayoutOrder = order
+	root.ZIndex = 3
+	local body = UIKit.Frame(root, "Body", UDim2.fromScale(1, 1), UDim2.fromScale(0.5, 0.5), Color3.new(1, 1, 1))
+	body.AnchorPoint = Vector2.new(0.5, 0.5)
+	body.ZIndex = 3
+	UIKit.Corner(body, 16)
+	UIKit.Gradient(body, UI.PanelLight:Lerp(color, 0.12), UI.BgBottom, 90)
+	local stroke = UIKit.Stroke(body, Color3.new(1, 1, 1), 2.5, 0.15)
+	UIKit.Gradient(stroke, color:Lerp(Color3.new(1, 1, 1), 0.35), color:Lerp(Color3.new(0, 0, 0), 0.25), 60)
+	local scale = Instance.new("UIScale")
+	scale.Parent = body
+
+	local preview = UIKit.Frame(body, "Preview", UDim2.new(1, -20, 0, 118), UDim2.fromOffset(10, 10), Color3.new(1, 1, 1))
+	preview.ZIndex = 4
+	UIKit.Corner(preview, 12)
+	UIKit.Gradient(preview, color:Lerp(UI.BgBottom, 0.55), UI.BgBottom, 90)
+
+	local function tag(text: string, right: boolean)
+		local t = UIKit.Frame(preview, right and "MultTag" or "RarityTag", UDim2.fromOffset(right and 54 or 96, 18),
+			right and UDim2.new(1, -60, 0, 6) or UDim2.fromOffset(6, 6), color:Lerp(Color3.new(0, 0, 0), 0.45))
+		t.ZIndex = 8
+		UIKit.Corner(t, 9)
+		UIKit.Label(t, { Text = text, Font = UI.FontBlack, TextSize = 10, Color = color:Lerp(Color3.new(1, 1, 1), 0.6), ZIndex = 9 })
+	end
+	tag(rarity.Name, false)
+	tag("×" .. tostring(cfg.Multiplier), true)
+
+	-- крупная иконка в светящемся круге
+	local halo = UIKit.Frame(preview, "Halo", UDim2.fromOffset(84, 84), UDim2.new(0.5, -42, 0.5, -36), color, 0.55)
+	halo.ZIndex = 5
+	UIKit.Corner(halo, 42)
+	UIKit.Stroke(halo, color:Lerp(Color3.new(1, 1, 1), 0.4), 2, 0.2)
+	UIKit.Label(halo, { Text = cfg.Icon, TextSize = 46, ZIndex = 6 })
+
+	UIKit.Label(body, {
+		Name = "Title", Text = cfg.Name .. " ×" .. tostring(cfg.Multiplier), Size = UDim2.new(1, -16, 0, 22),
+		Position = UDim2.fromOffset(8, 134), Font = UI.FontBlack, TextSize = 15, Color = color:Lerp(Color3.new(1, 1, 1), 0.55), ZIndex = 5,
+	})
+	local line1 = UIKit.Label(body, {
+		Name = "Line1", Size = UDim2.new(1, -16, 0, 18), Position = UDim2.fromOffset(8, 160), TextSize = 13, ZIndex = 5,
+	})
+	UIKit.Label(body, {
+		Name = "Line2", Text = cfg.Desc, Size = UDim2.new(1, -16, 0, 32), Position = UDim2.fromOffset(8, 180), TextSize = 12,
+		Color = UI.TextDim, Wrapped = true, YAlign = Enum.TextYAlignment.Top, ZIndex = 5,
+	})
+
+	local button, buttonGrad = UIKit.Button(body, "Action", "", UDim2.new(1, -20, 0, 40), UDim2.new(0, 10, 1, -50), UI.Gold, Color3.fromRGB(214, 130, 20))
+	button.ZIndex = 6
+
+	local twinkles = UIKit.AddTwinkles(preview, 3, color, rng, 7)
+	local shine = UIKit.AddShine(body, 16, 9)
+
+	-- наведение: плавный «поп» и более яркая рамка
+	body.MouseEnter:Connect(function()
+		TweenService:Create(scale, TweenInfo.new(0.16, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Scale = UI.HoverScale }):Play()
+		TweenService:Create(stroke, TweenInfo.new(0.16), { Thickness = 4, Transparency = 0 }):Play()
+	end)
+	body.MouseLeave:Connect(function()
+		TweenService:Create(scale, TweenInfo.new(0.16, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Scale = 1 }):Play()
+		TweenService:Create(stroke, TweenInfo.new(0.16), { Thickness = 2.5, Transparency = 0.15 }):Play()
+	end)
+
+	local card: Card = {
+		Body = body, Line1 = line1, Button = button, ButtonGrad = buttonGrad, Shine = shine, Twinkles = twinkles, Id = cfg.Id,
+	}
+	button.Activated:Connect(function()
+		if Coins &lt; cfg.Price then
+			failFeedback(card, string.format("Не хватает монет! Нужно ещё %s 🪙", UIKit.FormatCoins(cfg.Price - Coins)))
+			return
+		end
+		UIKit.PlaySfx("Click")
+		ShopAction:FireServer("BuyBoost", cfg.Id)
+	end)
+	return card
+end
+
+do
+	local rng = Random.new(5203)
+	local order = 0
+	for _, id in ipairs(GameConfig.BOOSTS.Order) do
+		local cfg = GameConfig.BOOSTS.Items[id]
+		if cfg and cfg.InShop then
+			order += 1
+			table.insert(Cards, makeCard(cfg, order, rng))
+		end
+	end
+end
+
+local function refresh()
+	coinsLabel.Text = "🪙 " .. UIKit.FormatCoins(Coins)
+	for _, card in ipairs(Cards) do
+		local cfg = GameConfig.BOOSTS.Items[card.Id]
+		local left = boostRemaining(card.Id)
+		local price = "🪙 " .. UIKit.FormatCoins(cfg.Price)
+		if left &gt; 0 then
+			card.Line1.Text = "✅ Активен: " .. UIKit.FormatTime(left)
+			card.Line1.TextColor3 = UI.Green
+			price = "ПРОДЛИТЬ · " .. price
+		else
+			card.Line1.Text = "⏱ " .. UIKit.FormatTime(cfg.Duration) .. " за покупку"
+			card.Line1.TextColor3 = UI.Text
+		end
+		card.Button.Text = price
+		if Coins &gt;= cfg.Price then
+			card.ButtonGrad.Color = ColorSequence.new(UI.Gold, Color3.fromRGB(214, 130, 20))
+			card.Button.TextColor3 = Color3.new(1, 1, 1)
+		else
+			card.ButtonGrad.Color = ColorSequence.new(Color3.fromRGB(120, 108, 92), Color3.fromRGB(70, 60, 56))
+			card.Button.TextColor3 = Color3.fromRGB(255, 190, 180)
+		end
+	end
+end
+
+-- ---------------------------------------------------------------------------
+-- Открытие / закрытие
+-- ---------------------------------------------------------------------------
+local function distanceToShop(): number
+	local char = player.Character
+	local root = char and char:FindFirstChild("HumanoidRootPart")
+	if not root or not root:IsA("BasePart") then
+		return math.huge
+	end
+	local c = GameConfig.GREEN_SHOP_PAD_POS
+	return Vector3.new(root.Position.X - c.X, 0, root.Position.Z - c.Z).Magnitude
+end
+
+local function closeWindow()
+	if not IsOpen then
+		return
+	end
+	IsOpen = false
+	OpenToken += 1
+	local token = OpenToken
+	ClientBus.SetWindowOpen("Boosts", false)
+	UIKit.StopTweens(ActiveTweens)
+	winScale:SetAttribute("Animating", true)
+	TweenService:Create(dim, TweenInfo.new(UI.CloseSeconds), { BackgroundTransparency = 1 }):Play()
+	TweenService:Create(winScale, TweenInfo.new(UI.CloseSeconds, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
+		Scale = ((winScale:GetAttribute("Fit") :: number?) or 1) * 0.7,
+	}):Play()
+	task.delay(UI.CloseSeconds, function()
+		if token == OpenToken then
+			gui.Enabled = false
+			winScale:SetAttribute("Animating", nil)
+		end
+	end)
+end
+
+local function openWindow()
+	if IsOpen then
+		return
+	end
+	if distanceToShop() &gt; CFG.AutoCloseDistance then
+		UIKit.PlaySfx("Error")
+		UIKit.Toast(fxLayer, "Бусты продаются в магазине — подойди к нему!", UI.Red)
+		return
+	end
+	IsOpen = true
+	OpenToken += 1
+	local token = OpenToken
+	ClientBus.SetWindowOpen("Boosts", true)
+	gui.Enabled = true
+	refresh()
+	for _, card in ipairs(Cards) do
+		UIKit.StartTwinkles(card.Twinkles, ActiveTweens)
+	end
+
+	-- плавное открытие: окно «выпрыгивает» с Back-смягчением
+	local fit = (winScale:GetAttribute("Fit") :: number?) or 1
+	winScale:SetAttribute("Animating", true)
+	winScale.Scale = fit * 0.6
+	dim.BackgroundTransparency = 1
+	TweenService:Create(dim, TweenInfo.new(UI.OpenSeconds), { BackgroundTransparency = 0.45 }):Play()
+	local tw = TweenService:Create(winScale, TweenInfo.new(UI.OpenSeconds, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Scale = fit })
+	tw:Play()
+	tw.Completed:Once(function()
+		if token == OpenToken then
+			winScale:SetAttribute("Animating", nil)
+			winScale.Scale = (winScale:GetAttribute("Fit") :: number?) or fit
+		end
+	end)
+	UIKit.PlaySfx("Open")
+
+	-- один лёгкий цикл, пока окно открыто: остаток бустов, блики, уход с площадки магазина
+	task.spawn(function()
+		local sinceShine = UI.ShineInterval - 0.5
+		while IsOpen and token == OpenToken do
+			task.wait(0.25)
+			if not IsOpen or token ~= OpenToken then
+				break
+			end
+			if distanceToShop() &gt; CFG.AutoCloseDistance then
+				closeWindow()
+				break
+			end
+			refresh()
+			sinceShine += 0.25
+			if sinceShine &gt;= UI.ShineInterval then
+				sinceShine = 0
+				for i, card in ipairs(Cards) do
+					UIKit.PlayShine(card.Shine, (i - 1) * 0.08)
+				end
+			end
+		end
+	end)
+end
+
+closeBtn.Activated:Connect(function()
+	UIKit.PlaySfx("Click")
+	closeWindow()
+end)
+dim.Activated:Connect(closeWindow)
+UserInputService.InputBegan:Connect(function(input: InputObject)
+	if input.KeyCode == Enum.KeyCode.Escape and IsOpen then
+		closeWindow()
+	end
+end)
+
+ClientBus.OpenShop.Event:Connect(openWindow)
+ClientBus.CloseShop.Event:Connect(closeWindow)
+ClientBus.CloseAll.Event:Connect(closeWindow)
+ClientBus.ToggleBag.Event:Connect(closeWindow) -- открыли рюкзак — окно бустов закрывается
+
+-- ---------------------------------------------------------------------------
+-- Данные и ответы сервера
+-- ---------------------------------------------------------------------------
+SyncPlayerData.OnClientEvent:Connect(function(data: any)
+	if type(data) ~= "table" then
+		return
+	end
+	Coins = tonumber(data.Coins) or Coins
+	if IsOpen then
+		refresh()
+	end
+end)
+
+ShopResult.OnClientEvent:Connect(function(ok: any, action: any, info: any)
+	if action ~= "BuyBoost" or type(info) ~= "table" then
+		return
+	end
+	local found: Card? = nil
+	for _, card in ipairs(Cards) do
+		if card.Id == info.Id then
+			found = card
+		end
+	end
+	local cfg = GameConfig.BOOSTS.Items[tostring(info.Id)]
+	if ok == true and cfg then
+		UIKit.PlaySfx("Success")
+		UIKit.Toast(fxLayer, string.format("%s %s ×%s — осталось %s", cfg.Icon, cfg.Name, tostring(cfg.Multiplier),
+			UIKit.FormatTime(tonumber(info.Remaining) or cfg.Duration)), UI.Green)
+		if found then
+			UIKit.Flash(found.Body, UI.Green, 16)
+			local center = found.Body.AbsolutePosition + found.Body.AbsoluteSize / 2 - fxLayer.AbsolutePosition
+			UIKit.Confetti(fxLayer, center, { UI.Gold, UI.Green, Color3.new(1, 1, 1), UI.Blue }, 18)
+		end
+	elseif info.Reason == "Far" then
+		failFeedback(nil, "Подойди ближе к магазину!")
+	else
+		failFeedback(found, "Не хватает монет!")
+	end
+end)
 </ProtectedString></Properties></Item><Item class="LocalScript"><Properties><string name="Name">NightFX</string><ProtectedString name="Source">--!strict
 -- ============================================================================
 -- 🌙 КЛИЕНТ: NightFX (StarterPlayerScripts.NightFX)
 -- v52: всё, что игрок ВИДИТ при смене дня и ночи.
---   • Плавный переход освещения: ClockTime, Bloom, оттенок цветокоррекции и «доля ночи»
+--   • Небо идёт вместе с фазой: днём солнце проходит путь от утра до вечера, ночная фаза
+--     всегда под ночным небом, рассвет наступает с открытием шахты.
+--   • Плавный переход освещения: Bloom, оттенок цветокоррекции и «доля ночи»
 --     Lighting.NightBlend (по ней ClientController смешивает яркость, Ambient и атмосферу).
 --   • Баннеры: «🌙 НОЧЬ НАСТУПИЛА — вы на базе», «☀️ ШАХТА ОТКРЫТА», предупреждение нарушителю.
 --   • Большая стена у входа в шахту: подъём и опускание за 2–3 секунды, гул, пыль у
@@ -27124,18 +25378,11 @@ else
 	blend = created
 end
 
-local GoingToNight = true
 local BlendTween: Tween? = nil
 
+-- Доля ночи 0..1 управляет Bloom и оттенком картинки (яркость, Ambient и атмосферу по ней же
+-- смешивает ClientController)
 local function applyBlend(b: number)
-	-- к ночи солнце садится (14 -&gt; 24), к утру встаёт (0 -&gt; 14)
-	local clock: number
-	if GoingToNight then
-		clock = PL.Day.ClockTime + (24 - PL.Day.ClockTime) * b
-	else
-		clock = PL.Day.ClockTime * (1 - b)
-	end
-	Lighting.ClockTime = clock % 24
 	local bloom = Lighting:FindFirstChild("NeonBloom")
 	if bloom and bloom:IsA("BloomEffect") then
 		bloom.Intensity = PL.Day.BloomIntensity + (PL.Night.BloomIntensity - PL.Day.BloomIntensity) * b
@@ -27153,7 +25400,6 @@ local function setLighting(night: boolean, instant: boolean)
 		BlendTween:Cancel()
 		BlendTween = nil
 	end
-	GoingToNight = night
 	local target = night and 1 or 0
 	if instant then
 		blend.Value = target
@@ -27163,6 +25409,77 @@ local function setLighting(night: boolean, instant: boolean)
 	local tw = TweenService:Create(blend, TweenInfo.new(P.LightingTweenSeconds, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), { Value = target })
 	BlendTween = tw
 	tw:Play()
+end
+
+-- Часы неба идут вместе с фазой: день — от утра (ClockStart) до вечера (ClockEnd), ночная фаза —
+-- всегда под ночным небом (21:00 -&gt; 04:00), рассвет приходит с открытием шахты. Движение — это
+-- несколько длинных линейных твинов Lighting.ClockTime на фазу, без покадрового кода.
+local SkyToken = 0
+local SkyTween: Tween? = nil
+
+-- Ведёт часы вперёд до toHours (значение больше 24 означает «после полуночи») за seconds секунд.
+-- Возвращает false, если за это время фаза сменилась.
+local function advanceClock(toHours: number, seconds: number, token: number): boolean
+	local function tweenTo(target: number, duration: number)
+		local tw = TweenService:Create(Lighting, TweenInfo.new(duration, Enum.EasingStyle.Linear), { ClockTime = target })
+		SkyTween = tw
+		tw:Play()
+		task.wait(duration)
+	end
+	local from = Lighting.ClockTime
+	local to = toHours % 24
+	if seconds &lt;= 0.05 then
+		Lighting.ClockTime = to
+	elseif to &gt;= from or (from - to) &lt; 1 then
+		tweenTo(to, seconds)
+	else
+		-- путь лежит через полночь: до 24:00, затем с 00:00
+		local total = (24 - from) + to
+		local first = seconds * (24 - from) / total
+		tweenTo(23.99, first)
+		if token ~= SkyToken then
+			return false
+		end
+		Lighting.ClockTime = 0
+		tweenTo(to, seconds - first)
+	end
+	return token == SkyToken
+end
+
+local function runSky(phase: string, instant: boolean)
+	SkyToken += 1
+	local token = SkyToken
+	if SkyTween then
+		SkyTween:Cancel()
+		SkyTween = nil
+	end
+	local endsAt = ReplicatedStorage:GetAttribute(P.AttrEndsAt)
+	local length = ReplicatedStorage:GetAttribute(P.AttrLength)
+	if type(endsAt) ~= "number" or type(length) ~= "number" then
+		return
+	end
+	local cfg = phase == "Night" and PL.Night or PL.Day
+	-- положение часов неба в момент серверного времени t
+	local function clockAt(t: number): number
+		local frac = math.clamp(1 - (endsAt - t) / math.max(1, length), 0, 1)
+		return cfg.ClockStart + (cfg.ClockEnd - cfg.ClockStart) * frac
+	end
+	task.spawn(function()
+		local now = Workspace:GetServerTimeNow()
+		if instant then
+			Lighting.ClockTime = clockAt(now) % 24
+		else
+			-- смена фазы: закат или рассвет «прокручивается» за время перехода освещения
+			local lead = math.clamp(endsAt - now, 0, P.LightingTweenSeconds)
+			if not advanceClock(clockAt(now + lead), lead, token) then
+				return
+			end
+		end
+		local remaining = endsAt - Workspace:GetServerTimeNow()
+		if remaining &gt; 0.1 then
+			advanceClock(cfg.ClockEnd, remaining, token)
+		end
+	end)
 end
 
 -- ---------------------------------------------------------------------------
@@ -27454,6 +25771,7 @@ local function onPhaseChanged()
 	local first = not PhaseKnown
 	PhaseKnown = true
 	setLighting(night, first)
+	runSky(phase, first)
 	if night then
 		runCountdown()
 		if first then
@@ -27865,9 +26183,9 @@ end)
 -- ============================================================================
 -- ⛏️ КЛИЕНТ: PickaxeFX (StarterPlayerScripts.PickaxeFX)
 -- v52: «живые» эффекты кирки поверх анимации взмаха ToolAnimator.
---   • Взмах: шлейф (Trail) между краями лезвия включается на долю секунды + тихий свист.
+--   • Взмах: шлейф (Trail) между краями лезвия включается на долю секунды.
 --   • Удар: залп искр цвета руды из готового излучателя (:Emit — новые объекты не
---     создаются), лёгкая тряска камеры и звук удара.
+--     создаются) и едва заметная тряска камеры. Новых звуков нет: играют прежние звуки пород.
 --   • Топовые кирки (FxEpic): пульсирующее свечение кристалла и PointLight.
 -- Покадровых циклов нет: бесконечные твины для пульсации и короткие task.delay.
 -- Настройки — GameConfig.PICKAXE_SWING_FX.
@@ -27933,9 +26251,6 @@ ToolAnimator.OnSwingStart = function(char: Model, _isCrit: boolean)
 			end
 		end)
 	end
-	if isLocal then
-		UIKit.PlaySfx("Swing")
-	end
 end
 
 -- Короткая тряска камеры локального игрока (три толчка и возврат)
@@ -27981,7 +26296,6 @@ ToolAnimator.OnImpact = function(char: Model)
 	end
 	if isLocal then
 		shakeCamera()
-		UIKit.PlaySfx("Impact")
 	end
 end
 
@@ -28045,1194 +26359,6 @@ Players.PlayerAdded:Connect(hookPlayer)
 for _, plr in ipairs(Players:GetPlayers()) do
 	hookPlayer(plr)
 end
-</ProtectedString></Properties></Item><Item class="LocalScript"><Properties><string name="Name">ShopUI</string><ProtectedString name="Source">--!strict
--- ============================================================================
--- 🛒 КЛИЕНТ: ShopUI (StarterPlayerScripts.ShopUI)
--- v52: яркий «живой» магазин торговца Гоши.
---   • Вкладки: Кирки / Рюкзаки / Бусты / Продать руду.
---   • Карточки: 3D-превью настоящей модели во ViewportFrame с медленным вращением,
---     рамка цвета редкости, блик по диагонали, мерцающие «✦», «поп» при наведении.
---   • Кнопка: «🪙 Цена» / «НАДЕТЬ» / «✓ НАДЕТО». Не хватает монет — тряска карточки,
---     красный тост и звук ошибки. Покупка — зелёная вспышка, конфетти и звук успеха.
---   • Открытие с Back-анимацией; закрытие — крестик, клик мимо окна, Esc или уход от прилавка.
--- Клиент только отправляет запросы (Remote ShopAction) — всё проверяет сервер (ShopService).
--- Анимации и вращение работают только пока окно открыто.
--- ============================================================================
-
-local CollectionService = game:GetService("CollectionService")
-local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local TweenService = game:GetService("TweenService")
-local UserInputService = game:GetService("UserInputService")
-
-local player = Players.LocalPlayer
-if not player then
-	return
-end
-
-local Modules = ReplicatedStorage:WaitForChild("Modules")
-local GameConfig = require(Modules:WaitForChild("GameConfig"))
-local UIKit = require(Modules:WaitForChild("UIKit"))
-local ClientBus = require(Modules:WaitForChild("ClientBus"))
-local EquipmentBuilder = require(Modules:WaitForChild("EquipmentBuilder"))
-local OreIconModels = require(Modules:WaitForChild("OreIconModels"))
-local InputBlocker = require(Modules:WaitForChild("InputBlocker"))
-
-local Remotes = ReplicatedStorage:WaitForChild("Remotes")
-local SyncPlayerData = Remotes:WaitForChild("SyncPlayerData") :: RemoteEvent
-local ShopAction = Remotes:WaitForChild("ShopAction") :: RemoteEvent
-local ShopResult = Remotes:WaitForChild("ShopResult") :: RemoteEvent
-
-local UI = GameConfig.UI
-local CFG = GameConfig.SHOP_UI
-local WIN = CFG.WindowSize
-local CARD = CFG.CardSize
-
--- ---------------------------------------------------------------------------
--- Состояние (приходит с сервера через SyncPlayerData)
--- ---------------------------------------------------------------------------
-local State = {
-	Coins = 0,
-	PickaxeTier = 1,
-	BackpackLevel = 1,
-	OwnedPickaxes = { [1] = true } :: { [number]: boolean },
-	OwnedBackpacks = { [1] = true } :: { [number]: boolean },
-	Inventory = {} :: { [string]: number },
-	MorningInventory = {} :: { [string]: number },
-	BagValue = 0,
-}
-
-type Card = {
-	Root: Frame,
-	Body: Frame,
-	Scale: UIScale,
-	Stroke: UIStroke,
-	Preview: Frame,
-	Title: TextLabel,
-	Line1: TextLabel,
-	Line2: TextLabel,
-	Button: TextButton,
-	ButtonGrad: UIGradient,
-	Shine: UIGradient,
-	Twinkles: { TextLabel },
-	Spin: UIKit.SpinItem?,
-	Key: string,
-}
-
-local IsOpen = false
-local OpenToken = 0
-local ActiveTab = "Pickaxes"
-local TabFrames: { [string]: Frame } = {}
-local TabCards: { [string]: { Card } } = {}
-local TabButtons: { [string]: { Button: TextButton, Stroke: UIStroke } } = {}
-local ActiveTweens: { Tween } = {}
-local SellSignature = ""
-
--- ---------------------------------------------------------------------------
--- Каркас окна
--- ---------------------------------------------------------------------------
-local playerGui = player:WaitForChild("PlayerGui")
-local gui = Instance.new("ScreenGui")
-gui.Name = "ShopV52"
-gui.ResetOnSpawn = false
-gui.IgnoreGuiInset = true
-gui.DisplayOrder = 30
-gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-gui.Enabled = false
-gui.Parent = playerGui
-
--- Затемнение: клик мимо окна закрывает магазин
-local dim = Instance.new("TextButton")
-dim.Name = "Dim"
-dim.Size = UDim2.fromScale(1, 1)
-dim.BackgroundColor3 = Color3.new(0, 0, 0)
-dim.BackgroundTransparency = 1
-dim.BorderSizePixel = 0
-dim.AutoButtonColor = false
-dim.Text = ""
-dim.Parent = gui
-
-local window = UIKit.Frame(gui, "Window", UDim2.fromOffset(WIN.X, WIN.Y), UDim2.fromScale(0.5, 0.5), Color3.new(1, 1, 1))
-window.AnchorPoint = Vector2.new(0.5, 0.5)
-window.Active = true -- окно «съедает» клики, чтобы они не закрывали магазин
-window.ZIndex = 2
-UIKit.Corner(window, 22)
-UIKit.Gradient(window, UI.BgTop, UI.BgBottom, 90)
-local windowStroke = UIKit.Stroke(window, Color3.new(1, 1, 1), 3)
-UIKit.Gradient(windowStroke, UI.Gold, UI.Purple, 35)
-local winScale = Instance.new("UIScale")
-winScale.Parent = window
-UIKit.BindScale(winScale, WIN.X, WIN.Y, 1.1)
-
--- Слой эффектов (тосты и конфетти) — отдельный всегда включённый ScreenGui поверх окна
-local fxGui = Instance.new("ScreenGui")
-fxGui.Name = "ShopV52Fx"
-fxGui.ResetOnSpawn = false
-fxGui.IgnoreGuiInset = true
-fxGui.DisplayOrder = 40
-fxGui.Parent = playerGui
-local fxLayer = UIKit.Frame(fxGui, "FxLayer", UDim2.fromScale(1, 1), UDim2.new(), nil, 1)
-fxLayer.Active = false
-
--- Шапка: название, монеты, крестик
-UIKit.Label(window, {
-	Name = "Title", Text = "🛒 РЫНОК ГОШИ", Size = UDim2.new(0, 360, 0, 40), Position = UDim2.fromOffset(24, 14),
-	Font = UI.FontTitle, TextSize = 28, XAlign = Enum.TextXAlignment.Left, Color = UI.Gold, Stroke = true, ZIndex = 3,
-})
-UIKit.Label(window, {
-	Name = "Subtitle", Text = "Кирки, рюкзаки, бусты и скупка руды", Size = UDim2.new(0, 360, 0, 16), Position = UDim2.fromOffset(26, 50),
-	TextSize = 12, XAlign = Enum.TextXAlignment.Left, Color = UI.TextDim, ZIndex = 3,
-})
-
-local coinsPill = UIKit.Frame(window, "Coins", UDim2.fromOffset(210, 40), UDim2.new(1, -278, 0, 16), UI.Panel)
-coinsPill.ZIndex = 3
-UIKit.Corner(coinsPill, 20)
-UIKit.Stroke(coinsPill, UI.Gold, 2, 0.2)
-local coinsLabel = UIKit.Label(coinsPill, {
-	Name = "Value", Text = "🪙 0", Font = UI.FontBlack, TextSize = 19, Color = UI.Gold, ZIndex = 4,
-})
-
-local closeBtn = UIKit.Button(window, "Close", "✕", UDim2.fromOffset(40, 40), UDim2.new(1, -56, 0, 16), UI.Red, UI.RedDark)
-closeBtn.TextSize = 20
-closeBtn.ZIndex = 4
-
--- Вкладки
-local tabBar = UIKit.Frame(window, "Tabs", UDim2.new(1, -40, 0, 44), UDim2.fromOffset(20, 76), nil, 1)
-tabBar.ZIndex = 3
-local tabLayout = Instance.new("UIListLayout")
-tabLayout.FillDirection = Enum.FillDirection.Horizontal
-tabLayout.Padding = UDim.new(0, 10)
-tabLayout.SortOrder = Enum.SortOrder.LayoutOrder
-tabLayout.Parent = tabBar
-
--- Прокручиваемая область карточек
-local scroll = Instance.new("ScrollingFrame")
-scroll.Name = "Content"
-scroll.Size = UDim2.new(1, -32, 1, -148)
-scroll.Position = UDim2.fromOffset(16, 132)
-scroll.BackgroundTransparency = 1
-scroll.BorderSizePixel = 0
-scroll.ScrollBarThickness = 6
-scroll.ScrollBarImageColor3 = UI.Gold
-scroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
-scroll.CanvasSize = UDim2.new()
-scroll.ScrollingDirection = Enum.ScrollingDirection.Y
-scroll.ZIndex = 3
-scroll.Parent = window
-
-local emptyLabel = UIKit.Label(window, {
-	Name = "Empty", Text = "", Size = UDim2.new(1, -80, 0, 60), Position = UDim2.new(0, 40, 0.5, 20),
-	Font = UI.FontBlack, TextSize = 22, Color = UI.TextDim, Wrapped = true, ZIndex = 4,
-})
-emptyLabel.Visible = false
-
-local spinner = UIKit.NewSpinner(UI.ViewportSpinSeconds, scroll)
-
--- ---------------------------------------------------------------------------
--- Карточка товара
--- ---------------------------------------------------------------------------
-local function makeCard(tabId: string, key: string, order: number, rarityColor: Color3, rng: Random): Card
-	local root = UIKit.Frame(TabFrames[tabId], "Card_" .. key, UDim2.fromOffset(CARD.X, CARD.Y), UDim2.new(), nil, 1)
-	root.LayoutOrder = order
-	root.ZIndex = 3
-
-	local body = UIKit.Frame(root, "Body", UDim2.fromScale(1, 1), UDim2.fromScale(0.5, 0.5), Color3.new(1, 1, 1))
-	body.AnchorPoint = Vector2.new(0.5, 0.5)
-	body.ZIndex = 3
-	UIKit.Corner(body, 16)
-	UIKit.Gradient(body, UI.PanelLight:Lerp(rarityColor, 0.12), UI.BgBottom, 90)
-	local stroke = UIKit.Stroke(body, Color3.new(1, 1, 1), 2.5, 0.15)
-	UIKit.Gradient(stroke, rarityColor:Lerp(Color3.new(1, 1, 1), 0.35), rarityColor:Lerp(Color3.new(0, 0, 0), 0.25), 60)
-	local scale = Instance.new("UIScale")
-	scale.Parent = body
-
-	-- Подложка превью с отсветом цвета редкости
-	local preview = UIKit.Frame(body, "Preview", UDim2.new(1, -20, 0, 118), UDim2.fromOffset(10, 10), Color3.new(1, 1, 1))
-	preview.ZIndex = 4
-	UIKit.Corner(preview, 12)
-	UIKit.Gradient(preview, rarityColor:Lerp(UI.BgBottom, 0.55), UI.BgBottom, 90)
-
-	local title = UIKit.Label(body, {
-		Name = "Title", Size = UDim2.new(1, -16, 0, 22), Position = UDim2.fromOffset(8, 134),
-		Font = UI.FontBlack, TextSize = 15, Color = rarityColor:Lerp(Color3.new(1, 1, 1), 0.55), ZIndex = 5,
-	})
-	title.TextTruncate = Enum.TextTruncate.AtEnd
-	local line1 = UIKit.Label(body, {
-		Name = "Line1", Size = UDim2.new(1, -16, 0, 18), Position = UDim2.fromOffset(8, 160), TextSize = 13, ZIndex = 5,
-	})
-	local line2 = UIKit.Label(body, {
-		Name = "Line2", Size = UDim2.new(1, -16, 0, 32), Position = UDim2.fromOffset(8, 180), TextSize = 12,
-		Color = UI.TextDim, Wrapped = true, YAlign = Enum.TextYAlignment.Top, ZIndex = 5,
-	})
-
-	local button, buttonGrad = UIKit.Button(body, "Action", "", UDim2.new(1, -20, 0, 40), UDim2.new(0, 10, 1, -50), UI.Gold, Color3.fromRGB(214, 130, 20))
-	button.ZIndex = 6
-
-	local twinkles = UIKit.AddTwinkles(preview, 3, rarityColor, rng, 7)
-	local shine = UIKit.AddShine(body, 16, 9)
-
-	-- Наведение: плавный «поп» и более яркая рамка
-	body.MouseEnter:Connect(function()
-		TweenService:Create(scale, TweenInfo.new(0.16, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Scale = UI.HoverScale }):Play()
-		TweenService:Create(stroke, TweenInfo.new(0.16), { Thickness = 4, Transparency = 0 }):Play()
-	end)
-	body.MouseLeave:Connect(function()
-		TweenService:Create(scale, TweenInfo.new(0.16, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Scale = 1 }):Play()
-		TweenService:Create(stroke, TweenInfo.new(0.16), { Thickness = 2.5, Transparency = 0.15 }):Play()
-	end)
-
-	local card: Card = {
-		Root = root, Body = body, Scale = scale, Stroke = stroke, Preview = preview, Title = title,
-		Line1 = line1, Line2 = line2, Button = button, ButtonGrad = buttonGrad, Shine = shine,
-		Twinkles = twinkles, Spin = nil, Key = key,
-	}
-	table.insert(TabCards[tabId], card)
-	return card
-end
-
--- Маленькая плашка в углу превью (редкость слева, уровень справа)
-local function addTag(card: Card, text: string, color: Color3, right: boolean)
-	local tag = UIKit.Frame(card.Preview, right and "LevelTag" or "RarityTag", UDim2.fromOffset(right and 54 or 96, 18),
-		right and UDim2.new(1, -60, 0, 6) or UDim2.fromOffset(6, 6), color:Lerp(Color3.new(0, 0, 0), 0.45))
-	tag.ZIndex = 8
-	UIKit.Corner(tag, 9)
-	UIKit.Label(tag, { Text = text, Font = UI.FontBlack, TextSize = 10, Color = color:Lerp(Color3.new(1, 1, 1), 0.6), ZIndex = 9 })
-end
-
--- 3D-превью: модель в ViewportFrame, камера медленно облетает её
-local function addModelPreview(card: Card, model: Model, center: Vector3, distance: number, height: number, phase: number)
-	local vp, cam, world = UIKit.Viewport(card.Preview, "Model", UDim2.fromScale(1, 1), UDim2.new())
-	vp.ZIndex = 5
-	model.Parent = world
-	local item: UIKit.SpinItem = { Viewport = vp, Camera = cam, Center = center, Distance = distance, Height = height, Phase = phase }
-	card.Spin = item
-	UIKit.OrbitCamera(item, 0)
-end
-
-local function setButton(card: Card, text: string, c0: Color3, c1: Color3, textColor: Color3?)
-	card.Button.Text = text
-	card.ButtonGrad.Color = ColorSequence.new(c0, c1)
-	card.Button.TextColor3 = textColor or Color3.new(1, 1, 1)
-end
-
-local function cardCenter(card: Card): Vector2
-	return card.Body.AbsolutePosition + card.Body.AbsoluteSize / 2 - fxLayer.AbsolutePosition
-end
-
-local function failFeedback(card: Card?, message: string)
-	UIKit.PlaySfx("Error")
-	UIKit.Toast(fxLayer, message, UI.Red)
-	if card then
-		UIKit.Shake(card.Body)
-		UIKit.Flash(card.Body, UI.Red, 16)
-	end
-end
-
-local function successFeedback(card: Card?, message: string, confetti: boolean)
-	UIKit.PlaySfx("Success")
-	UIKit.Toast(fxLayer, message, UI.Green)
-	if card then
-		UIKit.Flash(card.Body, UI.Green, 16)
-		if confetti then
-			UIKit.Confetti(fxLayer, cardCenter(card), { UI.Gold, UI.Green, Color3.new(1, 1, 1), UI.Blue }, 18)
-		end
-	end
-end
-
-local function findCard(tabId: string, key: string): Card?
-	for _, card in ipairs(TabCards[tabId] or {}) do
-		if card.Key == key then
-			return card
-		end
-	end
-	return nil
-end
-
--- ---------------------------------------------------------------------------
--- Вкладки «Кирки» и «Рюкзаки»
--- ---------------------------------------------------------------------------
-local function requestGear(tabId: string, level: number, cost: number, card: Card)
-	local isPick = tabId == "Pickaxes"
-	local owned = isPick and State.OwnedPickaxes[level] or State.OwnedBackpacks[level]
-	local equipped = (isPick and State.PickaxeTier or State.BackpackLevel) == level
-	if equipped then
-		UIKit.PlaySfx("Click")
-		return
-	end
-	if not owned and State.Coins &lt; cost then
-		failFeedback(card, string.format("Не хватает монет! Нужно ещё %s 🪙", UIKit.FormatCoins(cost - State.Coins)))
-		return
-	end
-	UIKit.PlaySfx("Click")
-	ShopAction:FireServer(isPick and "BuyPickaxe" or "BuyBackpack", level)
-end
-
-local function buildGearTab(tabId: string)
-	local isPick = tabId == "Pickaxes"
-	local rng = Random.new(isPick and 5201 or 5202)
-	local maxLevel = isPick and GameConfig.MAX_PICKAXE_LEVEL or GameConfig.MAX_BACKPACK_LEVEL
-	local preview = GameConfig.SHOP_PREVIEW
-	for level = 1, maxLevel do
-		local rarity = GameConfig.GetTierRarity(level)
-		local card = makeCard(tabId, tostring(level), level, rarity.Color, rng)
-		addTag(card, rarity.Name, rarity.Color, false)
-		addTag(card, "Ур. " .. level, rarity.Color, true)
-
-		local model = Instance.new("Model")
-		model.Name = "Preview"
-		local cost = 0
-		if isPick then
-			local cfg = GameConfig.PICKAXE_TIERS[level]
-			cost = cfg.Cost
-			card.Title.Text = GameConfig.RU_NAMES.Pickaxes[level] or cfg.Name
-			card.Line1.Text = string.format("⚔ Урон %d   ⏱ %.2f с", cfg.Damage, cfg.BaseSwingCooldown)
-			card.Line2.Text = "Мощнее удар — глубже руда"
-			-- та же сборка, что и у кирки в руке (EquipmentBuilder + PickaxeJuice)
-			local ok = pcall(EquipmentBuilder.BuildModernPickaxeParts, model, level, CFrame.Angles(0, 0, math.rad(-18)), true,
-				{ Scale = 1, LowDetail = true, ForViewport = true })
-			if ok then
-				addModelPreview(card, model, Vector3.new(0, 0.1, 0), preview.PickaxeDistance, preview.PickaxeHeight, level * 0.6)
-			end
-		else
-			local cfg = GameConfig.BACKPACK_TIERS[level]
-			cost = cfg.Cost
-			card.Title.Text = GameConfig.RU_NAMES.Backpacks[level] or cfg.Name
-			card.Line1.Text = string.format("📦 Вместимость: %d", cfg.Capacity)
-			card.Line2.Text = "Больше руды за один спуск"
-			local ok = pcall(EquipmentBuilder.BuildBackpackParts, model, level, CFrame.new(), true, 1.0)
-			if ok then
-				addModelPreview(card, model, Vector3.new(0, 0, 0), preview.BackpackDistance, preview.BackpackHeight, level * 0.6)
-			end
-		end
-		card.Button.Activated:Connect(function()
-			requestGear(tabId, level, cost, card)
-		end)
-	end
-end
-
-local function refreshGearTab(tabId: string)
-	local isPick = tabId == "Pickaxes"
-	for _, card in ipairs(TabCards[tabId] or {}) do
-		local level = tonumber(card.Key) or 1
-		local cost = isPick and GameConfig.PICKAXE_TIERS[level].Cost or GameConfig.BACKPACK_TIERS[level].Cost
-		local owned = isPick and State.OwnedPickaxes[level] or State.OwnedBackpacks[level]
-		local equipped = (isPick and State.PickaxeTier or State.BackpackLevel) == level
-		if equipped then
-			setButton(card, isPick and "✓ НАДЕТА" or "✓ НАДЕТ", UI.GreenDark, Color3.fromRGB(16, 92, 50), Color3.fromRGB(200, 255, 215))
-		elseif owned then
-			setButton(card, "НАДЕТЬ", UI.Blue, UI.BlueDark)
-		elseif State.Coins &gt;= cost then
-			setButton(card, "🪙 " .. UIKit.FormatCoins(cost), UI.Gold, Color3.fromRGB(214, 130, 20))
-		else
-			setButton(card, "🪙 " .. UIKit.FormatCoins(cost), Color3.fromRGB(120, 108, 92), Color3.fromRGB(70, 60, 56), Color3.fromRGB(255, 190, 180))
-		end
-	end
-end
-
--- ---------------------------------------------------------------------------
--- Вкладка «Бусты»
--- ---------------------------------------------------------------------------
-local function boostRemaining(id: string): number
-	local endsAt = player:GetAttribute("Boost_" .. id .. "_EndsAt")
-	if type(endsAt) ~= "number" then
-		return 0
-	end
-	return math.max(0, endsAt - workspace:GetServerTimeNow())
-end
-
-local function buildBoostTab()
-	local rng = Random.new(5203)
-	local order = 0
-	for _, id in ipairs(GameConfig.BOOSTS.Order) do
-		local cfg = GameConfig.BOOSTS.Items[id]
-		if cfg and cfg.InShop then
-			order += 1
-			local rarity = GameConfig.RARITY[cfg.Rarity] or GameConfig.RARITY[1]
-			local card = makeCard("Boosts", id, order, cfg.Color, rng)
-			addTag(card, rarity.Name, cfg.Color, false)
-			addTag(card, "×" .. tostring(cfg.Multiplier), cfg.Color, true)
-			-- крупная иконка в светящемся круге
-			local halo = UIKit.Frame(card.Preview, "Halo", UDim2.fromOffset(84, 84), UDim2.new(0.5, -42, 0.5, -36), cfg.Color, 0.55)
-			halo.ZIndex = 5
-			UIKit.Corner(halo, 42)
-			UIKit.Stroke(halo, cfg.Color:Lerp(Color3.new(1, 1, 1), 0.4), 2, 0.2)
-			UIKit.Label(halo, { Text = cfg.Icon, TextSize = 46, ZIndex = 6 })
-			card.Title.Text = cfg.Name .. " ×" .. tostring(cfg.Multiplier)
-			card.Line1.Text = "⏱ " .. UIKit.FormatTime(cfg.Duration) .. " за покупку"
-			card.Line2.Text = cfg.Desc
-			card.Button.Activated:Connect(function()
-				if State.Coins &lt; cfg.Price then
-					failFeedback(card, string.format("Не хватает монет! Нужно ещё %s 🪙", UIKit.FormatCoins(cfg.Price - State.Coins)))
-					return
-				end
-				UIKit.PlaySfx("Click")
-				ShopAction:FireServer("BuyBoost", id)
-			end)
-		end
-	end
-end
-
-local function refreshBoostTab()
-	for _, card in ipairs(TabCards.Boosts or {}) do
-		local cfg = GameConfig.BOOSTS.Items[card.Key]
-		if cfg then
-			local left = boostRemaining(cfg.Id)
-			local affordable = State.Coins &gt;= cfg.Price
-			local price = "🪙 " .. UIKit.FormatCoins(cfg.Price)
-			if left &gt; 0 then
-				card.Line1.Text = "✅ Активен: " .. UIKit.FormatTime(left)
-				card.Line1.TextColor3 = UI.Green
-				price = "ПРОДЛИТЬ · " .. price
-			else
-				card.Line1.Text = "⏱ " .. UIKit.FormatTime(cfg.Duration) .. " за покупку"
-				card.Line1.TextColor3 = UI.Text
-			end
-			if affordable then
-				setButton(card, price, UI.Gold, Color3.fromRGB(214, 130, 20))
-			else
-				setButton(card, price, Color3.fromRGB(120, 108, 92), Color3.fromRGB(70, 60, 56), Color3.fromRGB(255, 190, 180))
-			end
-		end
-	end
-end
-
--- ---------------------------------------------------------------------------
--- Вкладка «Продать руду»
--- ---------------------------------------------------------------------------
-type OreStack = { Key: string, OreId: string, Count: number, UnitPrice: number, Morning: boolean }
-
-local function collectStacks(): { OreStack }
-	local stacks: { OreStack } = {}
-	for _, info in ipairs(GameConfig.BLOCK_LIST) do
-		local reg = State.Inventory[info.Id] or 0
-		if reg &gt; 0 then
-			table.insert(stacks, { Key = "Reg_" .. info.Id, OreId = info.Id, Count = reg, UnitPrice = info.SellPrice, Morning = false })
-		end
-		local morn = State.MorningInventory[info.Id] or 0
-		if morn &gt; 0 then
-			table.insert(stacks, {
-				Key = "Morn_" .. info.Id, OreId = info.Id, Count = morn,
-				UnitPrice = info.SellPrice * GameConfig.MORNING_VEINS.SellPriceMultiplier, Morning = true,
-			})
-		end
-	end
-	table.sort(stacks, function(a, b)
-		return a.Count * a.UnitPrice &gt; b.Count * b.UnitPrice
-	end)
-	return stacks
-end
-
-local function clearTab(tabId: string)
-	for _, card in ipairs(TabCards[tabId]) do
-		local spin = card.Spin
-		if spin then
-			spinner.Remove(spin.Viewport)
-		end
-		card.Root:Destroy()
-	end
-	table.clear(TabCards[tabId])
-end
-
-local function registerSpin(tabId: string)
-	spinner.Clear()
-	for _, card in ipairs(TabCards[tabId] or {}) do
-		local spin = card.Spin
-		if spin then
-			spinner.Add(spin)
-		end
-	end
-end
-
-local function startTwinkles(tabId: string)
-	UIKit.StopTweens(ActiveTweens)
-	for _, card in ipairs(TabCards[tabId] or {}) do
-		UIKit.StartTwinkles(card.Twinkles, ActiveTweens)
-	end
-end
-
-local function rebuildSellTab()
-	local stacks = collectStacks()
-	local parts = {}
-	for _, st in ipairs(stacks) do
-		table.insert(parts, st.Key .. "=" .. st.Count)
-	end
-	local signature = table.concat(parts, ";") .. "|" .. State.BagValue
-	if signature == SellSignature then
-		return
-	end
-	SellSignature = signature
-	clearTab("Sell")
-	local rng = Random.new(5204)
-
-	if #stacks &gt; 0 then
-		-- Первая карточка — «Продать всё»
-		local all = makeCard("Sell", "All", 0, UI.Gold, rng)
-		addTag(all, "ВСЁ СРАЗУ", UI.Gold, false)
-		UIKit.Label(all.Preview, { Text = "💰", TextSize = 62, ZIndex = 6 })
-		all.Title.Text = "Продать всю руду"
-		local total = 0
-		for _, st in ipairs(stacks) do
-			total += st.Count
-		end
-		all.Line1.Text = string.format("📦 В рюкзаке: %d шт.", total)
-		all.Line2.Text = "Бусты и престиж увеличивают выручку"
-		setButton(all, "ПРОДАТЬ · 🪙 " .. UIKit.FormatCoins(State.BagValue), UI.Green, UI.GreenDark)
-		all.Button.Activated:Connect(function()
-			UIKit.PlaySfx("Click")
-			ShopAction:FireServer("SellOre", "All")
-		end)
-	end
-
-	for order, st in ipairs(stacks) do
-		local info: any = GameConfig.BLOCK_TYPES[st.OreId]
-		local rarity = GameConfig.RARITY[GameConfig.ORE_CATEGORY_RARITY[info.Category] or 1] or GameConfig.RARITY[1]
-		local color = st.Morning and UI.Gold or rarity.Color
-		local card = makeCard("Sell", st.Key, order, color, rng)
-		addTag(card, st.Morning and "УТРЕННЯЯ ×3" or rarity.Name, color, false)
-		addTag(card, "×" .. st.Count, color, true)
-		local icon = GameConfig.ORE_ICON
-		addModelPreview(card, OreIconModels.Build(st.OreId), icon.Center, icon.CameraDistance, icon.CameraHeight, order * 0.7)
-		card.Title.Text = GameConfig.GetOreNameRu(st.OreId)
-		card.Line1.Text = string.format("×%d  ·  🪙 %s/шт", st.Count, UIKit.FormatCoins(st.UnitPrice))
-		card.Line2.Text = st.Morning and "Утренняя жила: цена ×3" or "Обычная руда"
-		setButton(card, "ПРОДАТЬ · 🪙 " .. UIKit.FormatCoins(st.Count * st.UnitPrice), UI.Green, UI.GreenDark)
-		local key = st.Key
-		card.Button.Activated:Connect(function()
-			UIKit.PlaySfx("Click")
-			ShopAction:FireServer("SellOre", key)
-		end)
-	end
-
-	if IsOpen and ActiveTab == "Sell" then
-		registerSpin("Sell")
-		startTwinkles("Sell")
-		emptyLabel.Visible = #stacks == 0
-	end
-end
-
--- ---------------------------------------------------------------------------
--- Переключение вкладок и обновление
--- ---------------------------------------------------------------------------
-local function refreshActiveTab()
-	coinsLabel.Text = "🪙 " .. UIKit.FormatCoins(State.Coins)
-	if ActiveTab == "Pickaxes" or ActiveTab == "Backpacks" then
-		refreshGearTab(ActiveTab)
-	elseif ActiveTab == "Boosts" then
-		refreshBoostTab()
-	elseif ActiveTab == "Sell" then
-		rebuildSellTab()
-	end
-end
-
-local function switchTab(tabId: string)
-	if not TabFrames[tabId] then
-		return
-	end
-	ActiveTab = tabId
-	for id, frame in pairs(TabFrames) do
-		frame.Parent = if id == tabId then scroll else nil
-	end
-	for id, tab in pairs(TabButtons) do
-		local active = id == tabId
-		tab.Button.BackgroundTransparency = active and 0 or 0.45
-		tab.Stroke.Transparency = active and 0 or 0.6
-		tab.Button.TextColor3 = active and Color3.new(1, 1, 1) or UI.TextDim
-	end
-	scroll.CanvasPosition = Vector2.zero
-	emptyLabel.Text = "Рюкзак пуст — иди в шахту! ⛏️"
-	emptyLabel.Visible = false
-	refreshActiveTab()
-	if tabId == "Sell" then
-		emptyLabel.Visible = #TabCards.Sell == 0
-	end
-	if IsOpen then
-		registerSpin(tabId)
-		startTwinkles(tabId)
-	end
-end
-
-for order, tab in ipairs(CFG.Tabs) do
-	local frame = UIKit.Frame(scroll, "Tab_" .. tab.Id, UDim2.new(1, -10, 0, 0), UDim2.new(), nil, 1)
-	frame.AutomaticSize = Enum.AutomaticSize.Y
-	frame.Parent = nil
-	frame.ZIndex = 3
-	local grid = Instance.new("UIGridLayout")
-	grid.CellSize = UDim2.fromOffset(CARD.X, CARD.Y)
-	grid.CellPadding = UDim2.fromOffset(12, 14)
-	grid.SortOrder = Enum.SortOrder.LayoutOrder
-	grid.HorizontalAlignment = Enum.HorizontalAlignment.Center
-	grid.Parent = frame
-	local pad = Instance.new("UIPadding")
-	pad.PaddingTop = UDim.new(0, 10)
-	pad.PaddingBottom = UDim.new(0, 14)
-	pad.Parent = frame
-	TabFrames[tab.Id] = frame
-	TabCards[tab.Id] = {}
-
-	local btn = Instance.new("TextButton")
-	btn.Name = "Tab_" .. tab.Id
-	btn.Size = UDim2.new(1 / #CFG.Tabs, -8, 1, 0)
-	btn.LayoutOrder = order
-	btn.AutoButtonColor = false
-	btn.BackgroundColor3 = Color3.new(1, 1, 1)
-	btn.BorderSizePixel = 0
-	btn.Font = UI.FontBlack
-	btn.TextSize = 16
-	btn.Text = tab.Icon .. " " .. tab.Title
-	btn.ZIndex = 4
-	btn.Parent = tabBar
-	UIKit.Corner(btn, 12)
-	UIKit.Gradient(btn, tab.Color, tab.Color:Lerp(Color3.new(0, 0, 0), 0.5), 90)
-	local stroke = UIKit.Stroke(btn, tab.Color:Lerp(Color3.new(1, 1, 1), 0.4), 2)
-	TabButtons[tab.Id] = { Button = btn, Stroke = stroke }
-	btn.Activated:Connect(function()
-		if ActiveTab ~= tab.Id then
-			UIKit.PlaySfx("Tab")
-			switchTab(tab.Id)
-		end
-	end)
-end
-
-buildGearTab("Pickaxes")
-buildGearTab("Backpacks")
-buildBoostTab()
-
--- ---------------------------------------------------------------------------
--- Открытие / закрытие
--- ---------------------------------------------------------------------------
-local function closeShop()
-	if not IsOpen then
-		return
-	end
-	IsOpen = false
-	OpenToken += 1
-	local token = OpenToken
-	ClientBus.SetWindowOpen("Shop", false)
-	spinner.Stop()
-	UIKit.StopTweens(ActiveTweens)
-	winScale:SetAttribute("Animating", true)
-	TweenService:Create(dim, TweenInfo.new(UI.CloseSeconds), { BackgroundTransparency = 1 }):Play()
-	local tw = TweenService:Create(winScale, TweenInfo.new(UI.CloseSeconds, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
-		Scale = ((winScale:GetAttribute("Fit") :: number?) or 1) * 0.7,
-	})
-	tw:Play()
-	task.delay(UI.CloseSeconds, function()
-		if token == OpenToken then
-			gui.Enabled = false
-			winScale:SetAttribute("Animating", nil)
-		end
-	end)
-end
-
-local function distanceToTrader(): number
-	local char = player.Character
-	local root = char and char:FindFirstChild("HumanoidRootPart")
-	if not root or not root:IsA("BasePart") then
-		return math.huge
-	end
-	local c = GameConfig.GREEN_SHOP_PAD_POS
-	return Vector3.new(root.Position.X - c.X, 0, root.Position.Z - c.Z).Magnitude
-end
-
-local function openShop(tabId: string?)
-	if IsOpen then
-		if tabId and tabId ~= ActiveTab then
-			switchTab(tabId)
-		end
-		return
-	end
-	if distanceToTrader() &gt; CFG.AutoCloseDistance then
-		UIKit.PlaySfx("Error")
-		UIKit.Toast(fxLayer, "Подойди к торговцу Гоше на рынке!", UI.Red)
-		return
-	end
-	pcall(InputBlocker.CloseAllMenus) -- закрываем окна навыков / достижений, если были открыты
-	IsOpen = true
-	OpenToken += 1
-	local token = OpenToken
-	ClientBus.SetWindowOpen("Shop", true)
-	gui.Enabled = true
-	switchTab(tabId or ActiveTab)
-
-	-- Плавное открытие: окно «выпрыгивает» с Back-смягчением
-	local fit = (winScale:GetAttribute("Fit") :: number?) or 1
-	winScale:SetAttribute("Animating", true)
-	winScale.Scale = fit * 0.6
-	dim.BackgroundTransparency = 1
-	TweenService:Create(dim, TweenInfo.new(UI.OpenSeconds), { BackgroundTransparency = 0.45 }):Play()
-	local tw = TweenService:Create(winScale, TweenInfo.new(UI.OpenSeconds, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Scale = fit })
-	tw:Play()
-	tw.Completed:Once(function()
-		if token == OpenToken then
-			winScale:SetAttribute("Animating", nil)
-			winScale.Scale = (winScale:GetAttribute("Fit") :: number?) or fit
-		end
-	end)
-	UIKit.PlaySfx("Open")
-	spinner.Start()
-
-	-- Один лёгкий цикл на время, пока окно открыто: блики, таймеры бустов, уход от прилавка
-	task.spawn(function()
-		local sinceShine = UI.ShineInterval - 0.5
-		while IsOpen and token == OpenToken do
-			task.wait(0.25)
-			if not IsOpen or token ~= OpenToken then
-				break
-			end
-			if distanceToTrader() &gt; CFG.AutoCloseDistance then
-				closeShop()
-				break
-			end
-			if ActiveTab == "Boosts" then
-				refreshBoostTab()
-			end
-			sinceShine += 0.25
-			if sinceShine &gt;= UI.ShineInterval then
-				sinceShine = 0
-				for i, card in ipairs(TabCards[ActiveTab] or {}) do
-					UIKit.PlayShine(card.Shine, (i - 1) * 0.07)
-				end
-			end
-		end
-	end)
-end
-
-closeBtn.Activated:Connect(function()
-	UIKit.PlaySfx("Click")
-	closeShop()
-end)
-dim.Activated:Connect(closeShop)
-UserInputService.InputBegan:Connect(function(input: InputObject)
-	if input.KeyCode == Enum.KeyCode.Escape and IsOpen then
-		closeShop()
-	end
-end)
-
-ClientBus.OpenShop.Event:Connect(function(tabId: any)
-	openShop(type(tabId) == "string" and tabId or nil)
-end)
-ClientBus.CloseShop.Event:Connect(closeShop)
-ClientBus.CloseAll.Event:Connect(closeShop)
-ClientBus.ToggleBag.Event:Connect(closeShop) -- открыли рюкзак — магазин закрывается
-
--- ProximityPrompt торговца Гоши («E — Открыть магазин»)
-local function hookPrompt(inst: Instance)
-	if inst:IsA("ProximityPrompt") and not inst:GetAttribute("ShopHooked") then
-		inst:SetAttribute("ShopHooked", true)
-		inst.Triggered:Connect(function(who: Player)
-			if who == player then
-				openShop(nil)
-			end
-		end)
-	end
-end
-for _, inst in ipairs(CollectionService:GetTagged("TraderShopPrompt")) do
-	hookPrompt(inst)
-end
-CollectionService:GetInstanceAddedSignal("TraderShopPrompt"):Connect(hookPrompt)
-
--- ---------------------------------------------------------------------------
--- Данные и ответы сервера
--- ---------------------------------------------------------------------------
-local function toOwnedSet(list: any, fallback: any): { [number]: boolean }
-	local set: { [number]: boolean } = {}
-	if type(list) == "table" then
-		for _, lvl in ipairs(list) do
-			if type(lvl) == "number" then
-				set[lvl] = true
-			end
-		end
-	elseif type(fallback) == "table" then
-		for k, v in pairs(fallback) do
-			local lvl = tonumber(k)
-			if lvl and v == true then
-				set[lvl] = true
-			end
-		end
-	end
-	return set
-end
-
-SyncPlayerData.OnClientEvent:Connect(function(data: any)
-	if type(data) ~= "table" then
-		return
-	end
-	State.Coins = tonumber(data.Coins) or State.Coins
-	State.PickaxeTier = tonumber(data.PickaxeTier) or State.PickaxeTier
-	State.BackpackLevel = tonumber(data.BackpackLevel) or State.BackpackLevel
-	State.OwnedPickaxes = toOwnedSet(data.OwnedPickaxes, data.UnlockedPickaxes)
-	State.OwnedBackpacks = toOwnedSet(data.OwnedBackpacks, data.UnlockedBackpacks)
-	State.OwnedPickaxes[State.PickaxeTier] = true
-	State.OwnedBackpacks[State.BackpackLevel] = true
-	if type(data.Inventory) == "table" then
-		State.Inventory = data.Inventory
-	end
-	if type(data.MorningInventory) == "table" then
-		State.MorningInventory = data.MorningInventory
-	end
-	State.BagValue = tonumber(data.BagValue) or 0
-	if IsOpen then
-		refreshActiveTab()
-	end
-end)
-
-ShopResult.OnClientEvent:Connect(function(ok: any, action: any, info: any)
-	if type(action) ~= "string" or type(info) ~= "table" then
-		return
-	end
-	if info.Reason == "Far" then
-		failFeedback(nil, "Подойди ближе к торговцу Гоше!")
-		return
-	end
-	if action == "BuyPickaxe" or action == "BuyBackpack" then
-		local tabId = action == "BuyPickaxe" and "Pickaxes" or "Backpacks"
-		local card = findCard(tabId, tostring(info.Level))
-		if ok == true then
-			local names = action == "BuyPickaxe" and GameConfig.RU_NAMES.Pickaxes or GameConfig.RU_NAMES.Backpacks
-			local name = names[tonumber(info.Level) or 1] or ""
-			if info.Outcome == "Bought" then
-				successFeedback(card, "✨ Куплено: " .. name .. "!", true)
-			else
-				successFeedback(card, "Надето: " .. name, false)
-			end
-		else
-			failFeedback(card, "Не хватает монет!")
-		end
-	elseif action == "BuyBoost" then
-		local card = findCard("Boosts", tostring(info.Id))
-		local cfg = GameConfig.BOOSTS.Items[tostring(info.Id)]
-		if ok == true and cfg then
-			successFeedback(card, string.format("%s %s ×%s — осталось %s", cfg.Icon, cfg.Name, tostring(cfg.Multiplier),
-				UIKit.FormatTime(tonumber(info.Remaining) or cfg.Duration)), true)
-		else
-			failFeedback(card, "Не хватает монет!")
-		end
-	elseif action == "SellOre" then
-		if ok == true then
-			successFeedback(findCard("Sell", tostring(info.Key)), string.format("💰 Продано %d шт. за %s 🪙",
-				tonumber(info.Count) or 0, UIKit.FormatCoins(tonumber(info.Earned) or 0)), true)
-		elseif info.Reason == "Cooldown" then
-			failFeedback(nil, "Слишком быстро — подожди секунду")
-		else
-			failFeedback(nil, "Нечего продавать — рюкзак пуст!")
-		end
-	end
-end)
-</ProtectedString></Properties></Item><Item class="LocalScript"><Properties><string name="Name">TraderAnimator</string><ProtectedString name="Source">--!strict
--- ============================================================================
--- 🎭 LOCALSCRIPT: TraderAnimator (StarterPlayerScripts)
--- Оживляет торговца Гошу на каждом клиенте через Motor6D.C0 (от атрибута BaseC0):
---   а) спокойное покачивание корпуса (зацикленный твин туда-обратно);
---   б) голова следит за ближайшим игроком (пересчёт несколько раз в секунду);
---   в) дружеское махание правой рукой каждые WaveIntervalMin..Max секунд.
--- Без RenderStepped/Heartbeat: один цикл task.wait. Далеко от торговца — «спит».
--- ============================================================================
-
-local CollectionService = game:GetService("CollectionService")
-local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local TweenService = game:GetService("TweenService")
-
-local GameConfig = require(ReplicatedStorage:WaitForChild("Modules"):WaitForChild("GameConfig"))
-local CFG = GameConfig.MARKET
-
-local localPlayer = Players.LocalPlayer
-
-type Rig = {
-	Model: Model,
-	Root: BasePart,
-	Torso: BasePart,
-	Waist: Motor6D,
-	Neck: Motor6D,
-	ShoulderR: Motor6D,
-	WaistBase: CFrame,
-	NeckBase: CFrame,
-	ShoulderBase: CFrame,
-	Sway: Tween?,
-	NeckTween: Tween?,
-	LookActive: boolean,
-	LastYaw: number,
-	LastPitch: number,
-	Waving: boolean,
-	WaveId: number,
-	NextWave: number,
-}
-
-local rigs: { [Instance]: Rig } = {}
-local pending: { [Instance]: boolean } = {}
-local rand = Random.new()
-
--- Базовая поза сустава: атрибут BaseC0, а если его нет — текущее значение C0
-local function baseOf(motor: Motor6D): CFrame
-	local v = motor:GetAttribute("BaseC0")
-	if typeof(v) == "CFrame" then
-		return v
-	end
-	return motor.C0
-end
-
-local function findMotor(owner: Instance, name: string): Motor6D?
-	local m = owner:WaitForChild(name, 10)
-	if m and m:IsA("Motor6D") then
-		return m
-	end
-	return nil
-end
-
--- Собирает ссылки на детали и суставы; nil, если чего-то не хватает
-local function buildRig(model: Model): Rig?
-	local root = model:WaitForChild("Root", 15)
-	local torso = model:WaitForChild("Torso", 15)
-	if not (root and root:IsA("BasePart") and torso and torso:IsA("BasePart")) then
-		return nil
-	end
-	local waist = findMotor(root, "Waist")
-	local neck = findMotor(torso, "Neck")
-	local shoulder = findMotor(torso, "ShoulderR")
-	if not (waist and neck and shoulder) then
-		return nil
-	end
-	return {
-		Model = model,
-		Root = root,
-		Torso = torso,
-		Waist = waist,
-		Neck = neck,
-		ShoulderR = shoulder,
-		WaistBase = baseOf(waist),
-		NeckBase = baseOf(neck),
-		ShoulderBase = baseOf(shoulder),
-		Sway = nil,
-		NeckTween = nil,
-		LookActive = false,
-		LastYaw = 0,
-		LastPitch = 0,
-		Waving = false,
-		WaveId = 0,
-		NextWave = os.clock() + rand:NextNumber(CFG.WaveIntervalMin, CFG.WaveIntervalMax),
-	}
-end
-
--- Проверка, что модель и все нужные детали ещё живы
-local function isAlive(rig: Rig): boolean
-	return rig.Model.Parent ~= nil
-		and rig.Root.Parent ~= nil
-		and rig.Torso.Parent ~= nil
-		and rig.Waist.Parent ~= nil
-		and rig.Neck.Parent ~= nil
-		and rig.ShoulderR.Parent ~= nil
-end
-
-local function tweenTo(motor: Motor6D, goal: CFrame, time: number, style: Enum.EasingStyle, dir: Enum.EasingDirection): Tween
-	local tween = TweenService:Create(motor, TweenInfo.new(time, style, dir), { C0 = goal })
-	tween:Play()
-	return tween
-end
-
--- ---------------------------------------------------------------------------
--- а) Покачивание: один зацикленный твин, пока игрок рядом
--- ---------------------------------------------------------------------------
-local function startIdle(rig: Rig)
-	if rig.Sway then
-		return
-	end
-	local goal = rig.WaistBase * CFrame.Angles(math.rad(CFG.SwayPitchDeg), 0, math.rad(CFG.SwayRollDeg))
-	local info = TweenInfo.new(CFG.SwayPeriod, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true)
-	local tween = TweenService:Create(rig.Waist, info, { C0 = goal })
-	rig.Sway = tween
-	tween:Play()
-end
-
-local function stopIdle(rig: Rig)
-	local tween = rig.Sway
-	if tween then
-		tween:Cancel()
-		rig.Sway = nil
-		rig.Waist.C0 = rig.WaistBase
-	end
-end
-
--- ---------------------------------------------------------------------------
--- б) Взгляд: ближайший игрок в радиусе LookDistance
--- ---------------------------------------------------------------------------
-local function nearestTarget(rig: Rig): Vector3?
-	local origin = rig.Root.Position
-	local best: Vector3? = nil
-	local bestDist = CFG.LookDistance
-	for _, plr in ipairs(Players:GetPlayers()) do
-		local char = plr.Character
-		local part = char and (char:FindFirstChild("Head") or char:FindFirstChild("HumanoidRootPart"))
-		if part and part:IsA("BasePart") then
-			local dist = (part.Position - origin).Magnitude
-			if dist &lt; bestDist then
-				bestDist = dist
-				best = part.Position
-			end
-		end
-	end
-	return best
-end
-
-local function updateLook(rig: Rig)
-	local target = nearestTarget(rig)
-	local lookInfoTime = CFG.LookTweenTime
-	if not target then
-		if rig.LookActive then
-			rig.LookActive = false
-			rig.LastYaw = 0
-			rig.LastPitch = 0
-			if rig.NeckTween then
-				rig.NeckTween:Cancel()
-			end
-			rig.NeckTween = tweenTo(rig.Neck, rig.NeckBase, lookInfoTime, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-		end
-		return
-	end
-
-	-- Направление на цель в системе координат туловища (перёд торговца = -Z)
-	local pivot = rig.Torso.CFrame * rig.NeckBase
-	local d = rig.Torso.CFrame:VectorToObjectSpace(target - pivot.Position)
-	local yaw = math.atan2(-d.X, -d.Z)
-	local flat = math.sqrt(d.X * d.X + d.Z * d.Z)
-	local pitch = math.atan2(d.Y, flat)
-	local yawMax = math.rad(CFG.YawLimitDeg)
-	local pitchMax = math.rad(CFG.PitchLimitDeg)
-	yaw = math.clamp(yaw, -yawMax, yawMax)
-	pitch = math.clamp(pitch, -pitchMax, pitchMax)
-
-	-- Не запускаем новый твин из-за мелких изменений угла
-	if rig.LookActive and math.abs(yaw - rig.LastYaw) &lt; 0.03 and math.abs(pitch - rig.LastPitch) &lt; 0.03 then
-		return
-	end
-	rig.LookActive = true
-	rig.LastYaw = yaw
-	rig.LastPitch = pitch
-	if rig.NeckTween then
-		rig.NeckTween:Cancel()
-	end
-	local goal = rig.NeckBase * CFrame.fromEulerAnglesYXZ(pitch, yaw, 0)
-	rig.NeckTween = tweenTo(rig.Neck, goal, lookInfoTime, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-end
-
--- ---------------------------------------------------------------------------
--- в) Махание правой рукой: подъём, 2–3 взмаха, опускание (последовательные твины)
--- ---------------------------------------------------------------------------
-
--- Поза плеча: наклон вперёд, затем отведение в сторону (в системе туловища)
-local function armPose(base: CFrame, forwardDeg: number, outDeg: number): CFrame
-	return CFrame.new(base.Position) * CFrame.Angles(math.rad(forwardDeg), 0, 0) * CFrame.Angles(0, 0, math.rad(outDeg))
-end
-
-local function playWave(rig: Rig)
-	rig.Waving = true
-	rig.WaveId += 1
-	local id = rig.WaveId
-	local motor = rig.ShoulderR
-
-	-- Шаг твина; возвращает false, если волну нужно прервать
-	local function step(goal: CFrame, time: number, style: Enum.EasingStyle, dir: Enum.EasingDirection): boolean
-		if rig.WaveId ~= id or not isAlive(rig) then
-			return false
-		end
-		local tween = tweenTo(motor, goal, time, style, dir)
-		tween.Completed:Wait()
-		return rig.WaveId == id and isAlive(rig)
-	end
-
-	local fwd = CFG.WaveForwardDeg
-	local raised = CFG.WaveRaiseDeg
-	local swing = CFG.WaveSwingDeg
-	local ok = step(armPose(rig.ShoulderBase, fwd, raised), CFG.WaveRaiseTime, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-	if ok then
-		local swings = rand:NextInteger(CFG.WaveSwingsMin, CFG.WaveSwingsMax)
-		for i = 1, swings * 2 do
-			local out = if i % 2 == 1 then raised - swing else raised
-			ok = step(armPose(rig.ShoulderBase, fwd, out), CFG.WaveSwingTime, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
-			if not ok then
-				break
-			end
-		end
-	end
-	if ok then
-		step(rig.ShoulderBase, CFG.WaveLowerTime, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut)
-	end
-
-	if rig.WaveId == id then
-		rig.Waving = false
-		if rig.ShoulderR.Parent then
-			rig.ShoulderR.C0 = rig.ShoulderBase
-		end
-		rig.NextWave = os.clock() + rand:NextNumber(CFG.WaveIntervalMin, CFG.WaveIntervalMax)
-	end
-end
-
--- Сброс всех поз при засыпании (игрок далеко) — волну прерываем
-local function sleepRig(rig: Rig)
-	stopIdle(rig)
-	if rig.Waving then
-		rig.WaveId += 1
-		rig.Waving = false
-		rig.ShoulderR.C0 = rig.ShoulderBase
-	end
-end
-
--- ---------------------------------------------------------------------------
--- Регистрация торговцев (модель может реплицироваться после старта скрипта)
--- ---------------------------------------------------------------------------
-local function register(inst: Instance)
-	if not inst:IsA("Model") or rigs[inst] or pending[inst] then
-		return
-	end
-	pending[inst] = true
-	task.spawn(function()
-		local rig = buildRig(inst)
-		pending[inst] = nil
-		if rig and inst.Parent then
-			rigs[inst] = rig
-		end
-	end)
-end
-
-CollectionService:GetInstanceAddedSignal(CFG.NpcTag):Connect(register)
-for _, inst in ipairs(CollectionService:GetTagged(CFG.NpcTag)) do
-	register(inst)
-end
-
--- Расстояние от локального игрока до торговца (nil, если персонажа нет)
-local function distanceToLocal(rig: Rig): number?
-	local char = localPlayer.Character
-	local hrp = char and char:FindFirstChild("HumanoidRootPart")
-	if hrp and hrp:IsA("BasePart") then
-		return (hrp.Position - rig.Root.Position).Magnitude
-	end
-	return nil
-end
-
--- Единственный цикл: частый шаг рядом, редкий (1 с) — когда все торговцы далеко
-task.spawn(function()
-	while true do
-		local anyNear = false
-		for model, rig in pairs(rigs) do
-			if not isAlive(rig) then
-				sleepRig(rig)
-				rigs[model] = nil
-			else
-				local dist = distanceToLocal(rig)
-				if dist == nil or dist &gt; CFG.AnimateDistance then
-					sleepRig(rig)
-				else
-					anyNear = true
-					startIdle(rig)
-					updateLook(rig)
-					if not rig.Waving and os.clock() &gt;= rig.NextWave then
-						task.spawn(playWave, rig)
-					end
-				end
-			end
-		end
-		task.wait(if anyNear then CFG.LookInterval else CFG.SleepInterval)
-	end
-end)
 </ProtectedString></Properties></Item></Item>
   </Item>
 </roblox>

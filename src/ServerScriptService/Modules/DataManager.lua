@@ -548,9 +548,7 @@ function DataManager.SellResourcesServer(
 	mode: string?,
 	selectedKeys: { [string]: boolean }?,
 	syncRemote: RemoteEvent?,
-	silentOutOfZone: boolean?,
-	zoneCenter: Vector3?, -- v52: продажа у торговца Гоши — другая точка и радиус
-	zoneRadius: number?
+	silentOutOfZone: boolean?
 ): (number, number)
 	local now = os.clock()
 	if (now - (SellDebounce[player.UserId] or 0)) < 0.65 then return 0, 0 end
@@ -561,9 +559,9 @@ function DataManager.SellResourcesServer(
 	-- Проверка, что игрок находится в зоне приёма руды "$ SELL"
 	local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart") :: BasePart?
 	if not root then return 0, 0 end
-	local sellCenter = zoneCenter or GameConfig.WHITE_SELL_PAD_POS
+	local sellCenter = GameConfig.WHITE_SELL_PAD_POS
 	local horizDist = (Vector3.new(root.Position.X, 0, root.Position.Z) - Vector3.new(sellCenter.X, 0, sellCenter.Z)).Magnitude
-	if horizDist > (zoneRadius or (GameConfig.SELL_ZONE_RADIUS + 4)) or math.abs(root.Position.Y - sellCenter.Y) > 10 then
+	if horizDist > GameConfig.SELL_ZONE_RADIUS + 4 or math.abs(root.Position.Y - sellCenter.Y) > 10 then
 		if not silentOutOfZone then
 			VFXModule.SpawnFloatingText(
 				root.Position + Vector3.new(0, 2, 0),
@@ -629,20 +627,6 @@ end
 -- Автопродажа: вызывается сервером, когда игрок стоит в зоне «$ SELL». Меню и кнопки не нужны.
 function DataManager.AutoSellOnWhitePad(player: Player, syncRemote: RemoteEvent?): (number, number)
 	return DataManager.SellResourcesServer(player, "all", nil, syncRemote, true)
-end
-
--- v52: продажа у торговца Гоши (вкладка «Продать руду»). selectedKeys = nil — продать всё.
--- Расстояние до прилавка, наличие руды и защита от спама проверяются тут же, на сервере.
-function DataManager.SellAtTrader(player: Player, selectedKeys: { [string]: boolean }?, syncRemote: RemoteEvent?): (number, number)
-	return DataManager.SellResourcesServer(
-		player,
-		selectedKeys and "selected" or "all",
-		selectedKeys,
-		syncRemote,
-		true,
-		GameConfig.GREEN_SHOP_PAD_POS,
-		GameConfig.SHOP_UI.MaxDistance
-	)
 end
 
 -- ============================================================================

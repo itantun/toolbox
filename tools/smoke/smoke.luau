@@ -1,7 +1,7 @@
 --!nocheck
 -- Дымовой прогон процедурных сборщиков вне Roblox (Lune + @lune/roblox).
 -- Загружает ModuleScript-ы из src/ в поддельный DataModel и реально выполняет сборку:
--- кирки и рюкзаки 1..10, 3D-иконки руды, рынок с торговцем, ночную стену, площадь спавна.
+-- кирки и рюкзаки 1..10, 3D-иконки руды, ночную стену, площадь спавна.
 -- Lune проверяет имена свойств, типы значений и Enum-ы, поэтому опечатки и nil-ошибки
 -- ловятся здесь, а не в Output игры. Запуск: lune run tools/smoke/smoke.luau
 local roblox = require("@lune/roblox")
@@ -244,20 +244,6 @@ run("ore icons", function()
 		assert(m.PrimaryPart, "нет PrimaryPart у " .. info.Id)
 	end
 	return "ores=" .. #GameConfig.BLOCK_LIST .. " parts=" .. total
-end)
-
-run("MarketBuilder", function()
-	local refs = requireModule(ServerModules.MarketBuilder).Build(world, GameConfig.GREEN_SHOP_PAD_POS)
-	assert(refs.Prompt and refs.Prompt:IsA("ProximityPrompt") and refs.Prompt:HasTag("TraderShopPrompt"), "нет ProximityPrompt с тегом")
-	assert(refs.Trader:HasTag("TraderNPC"), "нет тега TraderNPC")
-	for _, name in ipairs({ "Root", "Torso", "Head", "ArmL", "ArmR" }) do
-		assert(refs.Trader:FindFirstChild(name, true), "у торговца нет детали " .. name)
-	end
-	for _, name in ipairs({ "Waist", "Neck", "ShoulderL", "ShoulderR" }) do
-		local motor = refs.Trader:FindFirstChild(name, true)
-		assert(motor and motor:IsA("Motor6D") and motor.Part0 and motor.Part1, "нет Motor6D " .. name)
-	end
-	return stats(refs.Model)
 end)
 
 run("NightWallBuilder", function()

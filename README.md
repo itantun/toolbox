@@ -1,4 +1,4 @@
-# Miner Simulator — v52 "juicy" update
+# Miner Simulator — v52 update
 
 This repository holds every script of the game (`src/`), the original place (`place/MinerSimulator_v51.rbxlx`)
 and the ready-to-open updated place (`place/MinerSimulator_v52.rbxlx`). Nothing is built in Studio by hand:
@@ -18,32 +18,31 @@ Paste each file's full text into a script with the same name.
 
 | Script | Status | Purpose |
 |---|---|---|
-| `GameConfig` | replace | The single config. Sections 12–20 and the blocks after them are new: UI palette, rarities, `PICKAXE_FX`, `PHASE`, `PHASE_HUD`, `BOOSTS` (prices, durations, multipliers), `SHOP_UI`, `BACKPACK_UI`, `SFX`, `NIGHT_FX`, `NIGHT_WALL`, `MARKET`, `SPAWN_PLAZA`, `BACKPACK_DETAIL`, Russian names |
-| `EquipmentBuilder` | replace | Pickaxe and backpack builders now call `PickaxeJuice` and `BackpackDetailer` |
-| `ToolAnimator` | replace | Adds swing-start and impact hooks for the effects |
+| `GameConfig` | replace | The single config. Everything after section 11 is new: UI palette, rarities, `PICKAXE_FX`, `BLOCK_HIT_SHAKE`, `PHASE`, `PHASE_LIGHTING`, `PHASE_HUD`, `BOOSTS` (prices, durations, multipliers), `SHOP_UI`, `BACKPACK_UI`, `SFX`, `ORE_ICON`, `NIGHT_FX`, `NIGHT_WALL`, `SPAWN_PLAZA`, Russian names |
+| `EquipmentBuilder` | replace | The pickaxe builder now calls `PickaxeJuice`; backpack models are the original ones |
+| `ToolAnimator` | replace | Adds swing-start and impact hooks for the pickaxe effects |
+| `VFXModule` | replace | Block shake on hit scaled down by `GameConfig.BLOCK_HIT_SHAKE` |
 | `PartKit` | new | Part, light, particle and SurfaceGui helpers |
 | `PickaxeJuice` | new | Neon strip, crystal core, PointLight, sparkles, trail, impact emitter per tier |
-| `BackpackDetailer` | new | Stitching, buckles, rope, flashlight, lamp, crystals, glass shell, star emblem per level |
 | `OreIconModels` | new | 3D ore icon (rock + crystals / nuggets) for ViewportFrames |
-| `UIKit` | new | Gradients, shine sweep, twinkles, viewport spinner, toasts, confetti, sounds |
+| `UIKit` | new | Gradients, shine sweep, twinkles, viewport spinner, toasts, confetti, UI sounds |
 | `ClientBus` | new | Shared client events between the old controller and the new windows |
 
-`HudModule`, `InputBlocker`, `LocalizationConfig`, `OreConfig`, `ProgressionConfig`, `SoundManager`, `UIManager`, `VFXModule` are unchanged.
+`HudModule`, `InputBlocker`, `LocalizationConfig`, `OreConfig`, `ProgressionConfig`, `SoundManager`, `UIManager` are unchanged.
 
 ### ServerScriptService
 
 | Script | Where | Status | Purpose |
 |---|---|---|---|
 | `ServerMain` (Script) | ServerScriptService | replace | Wires the new modules; the day/night loop moved to `NightCycleService` |
-| `DataManager` | Modules | replace | Boost multipliers, boosts saved with the profile, selling at the trader, purchase outcomes |
+| `DataManager` | Modules | replace | Boost multipliers, boosts saved with the profile |
 | `MineManager` | Modules | replace | Mining is refused at night everywhere |
-| `WorldBuilder` | Modules | replace | Builds the stone plaza and the market instead of the old pad and pavilion |
+| `WorldBuilder` | Modules | replace | Builds the stone plaza instead of the old spawn pad (the shop pavilion is the original one) |
 | `EquipmentManager` | Modules | replace | Now a 12-line facade over `EquipmentBuilder` (was a full duplicate) |
 | `BoostService` | Modules | new | Boost end times, extension on repeat purchase, save and load |
 | `NightCycleService` | Modules | new | Phase attributes, instant teleport, zone check, wall control |
 | `NightWallBuilder` | Modules | new | The big wall, perimeter fence and blockers |
-| `ShopService` | Modules | new | Validates every shop request |
-| `MarketBuilder` | Modules | new | Market stall, props and trader Gosha |
+| `ShopService` | Modules | new | Validates boost purchases |
 | `SpawnPlazaBuilder` | Modules | new | Procedural stone spawn plaza with the SpawnLocation |
 
 The other modules in `ServerScriptService/Modules` are unchanged.
@@ -52,13 +51,12 @@ The other modules in `ServerScriptService/Modules` are unchanged.
 
 | Script | Status | Purpose |
 |---|---|---|
-| `ClientController` | replace | Opens the new shop and backpack, reads the phase from attributes, blends lighting |
-| `ShopUI` | new | Shop window: Pickaxes / Backpacks / Boosts / Sell Ore |
+| `ClientController` | replace | Original shop menu plus a "⚡ Бусты" tab; opens the new backpack window; reads the phase from attributes; blends lighting |
+| `BoostShopUI` | new | Boosts window opened from the shop menu |
 | `BackpackUI` | new | Backpack window with 3D ore icons and the capacity bar |
 | `PhaseHud` | new | Day/night timer card and boost chips, bottom right |
-| `NightFX` | new | Lighting transition, banners, wall animation, countdown on the wall |
-| `PickaxeFX` | new | Swing trail, impact sparks, camera shake, glow pulse of top tiers |
-| `TraderAnimator` | new | Trader idle sway, head tracking, hand wave |
+| `NightFX` | new | Sky clock, lighting transition, banners, wall animation, countdown on the wall |
+| `PickaxeFX` | new | Swing trail, impact sparks, faint camera shake, glow pulse of top tiers |
 
 `ProgressionUI`, `LiveOreFX`, `SprintController` are unchanged.
 
@@ -75,27 +73,28 @@ The other modules in `ServerScriptService/Modules` are unchanged.
 - **Day/night**: `ReplicatedStorage` attributes `Phase`, `PhaseEndsAt`, `PhaseLength`; clients compute the
   remaining time with `workspace:GetServerTimeNow()`. At nightfall the server teleports every living player
   to the base, raises the wall, enables the blockers, and checks the mine zone every 0.5 s.
+- **Sky**: the sun moves with the phase. The day phase runs from morning (07:30) to evening (17:30) on the
+  sky clock; the night phase always runs under a night sky (21:00 → 04:00); sunrise comes when the mine opens.
+  The hours are `ClockStart` / `ClockEnd` in `GameConfig.PHASE_LIGHTING`.
 - **Wall**: the server switches collisions at once; each client plays the lift animation, dust, rumble and
   camera shake. Invisible 60-stud blockers stand behind the wall and around the whole pit, and the old
   force-field lid still covers the pit, so the mine cannot be entered from any side at night.
+- **Shop**: the original pavilion and the original carousel menu (step on the pad or press the Shop button).
+  The menu gained a third tab, "⚡ Бусты", which opens the boosts window.
 - **Boosts**: the server stores the end time and publishes `Boost_<Id>_EndsAt` / `Boost_<Id>_Total` on the
   player. A repeat purchase extends the boost. The save stores remaining seconds, so a boost pauses while
-  the player is offline. The Night Merchant potion is now a boost too and gets its own chip.
-- **Shop**: opened by the ProximityPrompt at trader Gosha (and by the old Shop button). The client only
-  sends `ShopAction`; `ShopService` checks argument types, cooldown, distance, price and inventory.
+  the player is offline. The Night Merchant potion is a boost too and gets its own chip.
 
 ## Decisions worth knowing
 
-- **Tiers**: the game keeps its 10 pickaxe and 10 backpack levels (saves and balance depend on them, and the
-  backpack reference sheet shows 10 levels). The six backpack ideas from the brief are spread over them:
-  canvas sack (1), leather (2), hiking with flashlight (3), miner's crate (6), crystal (8), star (10).
-  "Epic" pickaxe effects apply to levels 8–10.
-- **Sparkles in previews**: Roblox does not render particles or lights inside a ViewportFrame, so shop cards
-  and backpack slots use twinkling "✦" UI sparkles over the real 3D model.
+- **Pickaxes** keep their 10 levels; "epic" effects (glow pulse, heavier particles) apply to levels 8–10.
+- **Backpack models** are the original v51 models, untouched.
+- **Mining sounds**: the update adds no mining sounds. The per-rock tap sounds are the ones v51 already had.
+- **Sparkles in the backpack window**: Roblox does not render particles or lights inside a ViewportFrame,
+  so glowing ores get twinkling "✦" UI sparkles over the real 3D icon.
 - **Russian text**: everything added or touched is in Russian. Older screens that this update does not
-  touch (skills, achievements, prestige, Night Merchant, sell kiosk) keep their existing text.
-- **Sounds**: new sounds use built-in `rbxasset://sounds/...` files listed in `GameConfig.SFX`. The sounds
-  the game already had are untouched.
+  touch (shop cards, skills, achievements, prestige, Night Merchant, sell kiosk) keep their existing text.
+- **UI sounds** use built-in `rbxasset://sounds/...` files listed in `GameConfig.SFX`.
 
 ## Verification
 
@@ -104,12 +103,9 @@ Nothing here was run inside Roblox Studio — there is no Studio in the build en
 - `tools/check.sh` — luau-lsp type check with the Roblox API definitions: zero errors and zero warnings in
   all new scripts, and no new type errors in the edited ones.
 - `lune run tools/smoke/smoke.luau` — executes the real builders outside Roblox (pickaxes and backpacks
-  1–10, ore icons, market, wall, plaza) with property and enum validation: all pass.
+  1–10, ore icons, wall, plaza) with property and enum validation: all pass.
 - `lune run tools/smoke/verify_place.luau place/MinerSimulator_v52.rbxlx` — the built place loads and
-  contains all 46 scripts.
-
-Please play-test once in Studio and watch the Output: visual placement (trader pose, backpack details,
-wall sign size) is the part that could only be reasoned about, not seen.
+  contains every script.
 
 ## Tools
 

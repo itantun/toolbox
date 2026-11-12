@@ -16,8 +16,8 @@ local function event(name: string): BindableEvent
 	return e
 end
 
-ClientBus.OpenShop = event("OpenShop")     -- Fire(tabId: string?) — открыть / переключить окно магазина
-ClientBus.CloseShop = event("CloseShop")   -- Fire() — закрыть магазин
+ClientBus.OpenShop = event("OpenShop")     -- Fire() — открыть окно бустов (вкладка «Бусты» в меню магазина)
+ClientBus.CloseShop = event("CloseShop")   -- Fire() — закрыть окно бустов
 ClientBus.ToggleBag = event("ToggleBag")   -- Fire() — открыть / закрыть окно рюкзака
 ClientBus.CloseAll = event("CloseAll")     -- Fire() — закрыть все окна v52
 

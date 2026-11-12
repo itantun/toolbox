@@ -814,16 +814,14 @@ end)
 
 DataManager.StartAutoSaveLoop()
 
--- v52: бусты (сервер хранит время конца) и магазин торговца Гоши (все запросы проверяет сервер)
+-- v52: бусты (сервер хранит время конца) и их покупка в магазине (все запросы проверяет сервер)
 BoostService.SetChangedCallback(function(player: Player)
 	DataManager.SyncToClient(player, SyncPlayerData)
 end)
 BoostService.Start()
 ShopService.Init({
 	DataManager = DataManager,
-	EquipmentManager = EquipmentManager,
 	BoostService = BoostService,
-	SoundManager = SoundManager,
 	SyncRemote = SyncPlayerData,
 	ActionRemote = ShopActionRemote,
 	ResultRemote = ShopResultRemote,

@@ -1127,8 +1127,8 @@ GameConfig.RU_NAMES = {
 		"Хрустальная кирка", "Аметистовая кирка", "Кирка Бездны", "Золотая кирка", "Королевская кирка",
 	},
 	Backpacks = {
-		"Холщовый мешок", "Кожаный рюкзак", "Походный рюкзак", "Городской рюкзак", "Рюкзак «Авангард»",
-		"Шахтёрский ящик", "Рюкзак «Полярная звезда»", "Кристальный рюкзак", "Вулканический рюкзак", "Звёздный рюкзак",
+		"Холщовый ранец", "Кожаный рюкзак", "Походный рюкзак", "Городской рюкзак", "Рюкзак «Авангард»",
+		"Тактический рюкзак", "Рюкзак «Полярная звезда»", "Рюкзак «Неоновая корона»", "Вулканический рюкзак", "Квантовый рюкзак",
 	},
 }
 
@@ -1222,10 +1222,16 @@ GameConfig.PICKAXE_SWING_FX = {
 	TrailLifetime = 0.16,
 	ImpactSparks = 14,         -- искр цвета руды при ударе (Emit, без создания объектов)
 	ImpactSparksEpic = 26,
-	CameraShake = 0.10,        -- лёгкая тряска камеры при ударе (studs)
+	CameraShake = 0.04,        -- едва заметная тряска камеры при ударе (studs)
 	PulseSeconds = 0.9,        -- период пульсации свечения топовых кирок
 	PulseMin = 0.55,           -- доля яркости в нижней точке пульсации
 	FxRange = 90,              -- дальше этого расстояния чужие эффекты не проигрываются
+}
+
+-- Дрожание блока при ударе киркой (VFXModule). 1 — как в v51; меньше — спокойнее.
+GameConfig.BLOCK_HIT_SHAKE = {
+	Scale = 0.4,       -- доля прежней амплитуды сдвига и наклона блока
+	SwayScale = 0.45,  -- доля прежнего качания травинок и цветов на блоке
 }
 
 function GameConfig.GetPickaxeFx(level: number): PickaxeFxConfig
@@ -1255,7 +1261,8 @@ GameConfig.PHASE = {
 -- Освещение фаз. Яркость и Ambient берутся из GameConfig.LIGHTING (раздел 3).
 GameConfig.PHASE_LIGHTING = {
 	Day = {
-		ClockTime = 14,
+		ClockStart = 7.5,  -- часы неба в начале дня (утро)
+		ClockEnd = 17.5,   -- часы неба в конце дня (вечер, перед закатом)
 		AtmosphereColor = Color3.fromRGB(185, 210, 240),
 		AtmosphereDecay = Color3.fromRGB(95, 115, 145),
 		AtmosphereDensity = 0.24,
@@ -1264,13 +1271,14 @@ GameConfig.PHASE_LIGHTING = {
 		Tint = Color3.fromRGB(255, 255, 255),
 	},
 	Night = {
-		ClockTime = 0,
-		AtmosphereColor = Color3.fromRGB(70, 84, 150),
-		AtmosphereDecay = Color3.fromRGB(22, 26, 56),
+		ClockStart = 21,   -- ночная фаза всегда идёт под ночным небом: 21:00 ...
+		ClockEnd = 28,     -- ... 04:00 (28 = 24 + 4), рассвет наступает с открытием шахты
+		AtmosphereColor = Color3.fromRGB(34, 42, 84),
+		AtmosphereDecay = Color3.fromRGB(10, 12, 28),
 		AtmosphereDensity = 0.30,
-		BloomIntensity = 0.95,
-		BloomSize = 32,
-		Tint = Color3.fromRGB(196, 206, 255),
+		BloomIntensity = 0.80,
+		BloomSize = 30,
+		Tint = Color3.fromRGB(176, 188, 255),
 	},
 }
 
@@ -1310,7 +1318,7 @@ export type BoostConfig = {
 	Price: number,
 	Color: Color3,
 	Rarity: number,
-	InShop: boolean,       -- продаётся ли у торговца Гоши
+	InShop: boolean,       -- продаётся ли во вкладке «Бусты» магазина
 }
 
 GameConfig.BOOSTS = {
@@ -1346,17 +1354,11 @@ GameConfig.BOOSTS = {
 -- 17. МАГАЗИН И ОКНО РЮКЗАКА
 -- ============================================================================
 GameConfig.SHOP_UI = {
-	MaxDistance = 20,          -- сервер: дальше от торговца покупка и продажа отклоняются
-	AutoCloseDistance = 26,    -- клиент сам закрывает окно, если игрок ушёл
-	ActionCooldown = 0.3,      -- сервер: минимальный интервал между действиями магазина
-	WindowSize = Vector2.new(880, 580),
+	MaxDistance = 20,          -- сервер: дальше от магазина покупка буста отклоняется
+	AutoCloseDistance = 26,    -- клиент сам закрывает окно бустов, если игрок ушёл
+	ActionCooldown = 0.3,      -- сервер: минимальный интервал между покупками
+	WindowSize = Vector2.new(720, 384),
 	CardSize = Vector2.new(198, 276),
-	Tabs = {
-		{ Id = "Pickaxes", Title = "Кирки", Icon = "⛏️", Color = Color3.fromRGB(255, 176, 64) },
-		{ Id = "Backpacks", Title = "Рюкзаки", Icon = "🎒", Color = Color3.fromRGB(96, 200, 120) },
-		{ Id = "Boosts", Title = "Бусты", Icon = "⚡", Color = Color3.fromRGB(110, 170, 255) },
-		{ Id = "Sell", Title = "Продать руду", Icon = "💰", Color = Color3.fromRGB(255, 205, 70) },
-	},
 }
 
 GameConfig.BACKPACK_UI = {
@@ -1382,8 +1384,6 @@ GameConfig.SFX = {
 	Open = { Id = "rbxasset://sounds/switch.wav", Volume = 0.45, Pitch = 0.80 },
 	Success = { Id = "rbxasset://sounds/electronicpingshort.wav", Volume = 0.55, Pitch = 1.20 },
 	Error = { Id = "rbxasset://sounds/bass.wav", Volume = 0.50, Pitch = 0.90 },
-	Swing = { Id = "rbxasset://sounds/swordslash.wav", Volume = 0.14, Pitch = 1.35 },
-	Impact = { Id = "rbxasset://sounds/hit.wav", Volume = 0.16, Pitch = 1.50 },
 	WallRumble = { Id = "rbxasset://sounds/impact_explosion_03.mp3", Volume = 0.90, Pitch = 0.42 },
 	WallSlam = { Id = "rbxasset://sounds/action_jump_land.mp3", Volume = 1.00, Pitch = 0.55 },
 	PhaseBell = { Id = "rbxasset://sounds/electronicpingshort.wav", Volume = 0.45, Pitch = 0.60 },
@@ -1400,14 +1400,6 @@ GameConfig.ORE_ICON = {
 	CameraDistance = 5.6,
 	CameraHeight = 2.1,
 	Center = Vector3.new(0, 0.15, 0),
-}
-
--- Камера 3D-превью кирок и рюкзаков в карточках магазина
-GameConfig.SHOP_PREVIEW = {
-	PickaxeDistance = 9.6,
-	PickaxeHeight = 1.5,
-	BackpackDistance = 7.0,
-	BackpackHeight = 0.9,
 }
 
 -- ============================================================================
@@ -1430,7 +1422,7 @@ GameConfig.NIGHT_FX = {
 			Top = Color3.fromRGB(70, 58, 190), Bottom = Color3.fromRGB(22, 16, 70), Stroke = Color3.fromRGB(160, 150, 255),
 		},
 		NightJoin = {
-			Title = "🌙 СЕЙЧАС НОЧЬ", Sub = "Шахта откроется утром — загляни к торговцу Гоше",
+			Title = "🌙 СЕЙЧАС НОЧЬ", Sub = "Шахта откроется утром",
 			Top = Color3.fromRGB(70, 58, 190), Bottom = Color3.fromRGB(22, 16, 70), Stroke = Color3.fromRGB(160, 150, 255),
 		},
 		Day = {
@@ -1444,100 +1436,6 @@ GameConfig.NIGHT_FX = {
 	},
 }
 
-
--- ============================================================================
--- 19. ДЕТАЛИЗАЦИЯ РЮКЗАКОВ (швы, пряжки, фонарь, кристаллы, эмблемы) — модуль BackpackDetailer
--- Все цвета и размеры отделки живут здесь; в модуле нет «зашитых» значений.
--- ============================================================================
-export type BackpackDetailLevelCfg = {
-	Metal: Color3,           -- металл: пряжки, кольца, уголки
-	Accent: Color3,          -- главный акцент уровня (верёвка, латунь, золото, стекло, магма)
-	Accent2: Color3,         -- второй акцент (кожа, пластины, тёмный фиолет)
-	Glow: Color3,            -- цвет свечения (линза, кристаллы, неон)
-	Glow2: Color3,           -- запасной цвет свечения (звёздочки, искры)
-	Cloth: Color3,           -- ткань заплат, ремешков и тёмных рёбер
-	Thread: Color3,          -- нить швов
-	Count: number,           -- число кристаллов / осколков / ответвлений трещин / звёздочек
-	LightBrightness: number, -- яркость источника света (только на персонаже)
-	LightRange: number,      -- дальность источника света
-	EmitRate: number,        -- частота частиц в секунду (0 — без частиц)
-	Shine: number,           -- блеск металла и стекла (Reflectance)
-}
-
-GameConfig.BACKPACK_DETAIL_SHARED = {
-	Seed = 5200,        -- Random.new(Seed + уровень): раскладка стабильна
-	MaxParts = 45,      -- максимум дополнительных деталей на рюкзак
-	MaxLights = 2,      -- максимум источников света на рюкзак
-	MaxEmitters = 2,    -- максимум излучателей частиц на рюкзак
-	Lift = 0.015,       -- подъём детали над поверхностью (в долях масштаба)
-	StitchDash = 0.11,  -- длина одного стежка
-	StitchPerRow = 5,   -- стежков в ряду
-	ScuffCount = 3,     -- число потёртостей
-	WaistLimit = 0.44,  -- ниже CenterY − Height × значение детали не ставятся
-}
-
-GameConfig.BACKPACK_DETAIL = {
-	-- 1. Холщовый мешок: верёвка и заплата
-	[1] = {
-		Metal = Color3.fromRGB(198, 202, 210), Accent = Color3.fromRGB(196, 164, 110), Accent2 = Color3.fromRGB(150, 112, 66),
-		Glow = Color3.fromRGB(255, 214, 140), Glow2 = Color3.fromRGB(255, 236, 190), Cloth = Color3.fromRGB(122, 92, 56),
-		Thread = Color3.fromRGB(232, 212, 166), Count = 0, LightBrightness = 0, LightRange = 0, EmitRate = 0, Shine = 0.1,
-	},
-	-- 2. Кожаный рюкзак: латунные пряжки, заклёпки
-	[2] = {
-		Metal = Color3.fromRGB(214, 170, 70), Accent = Color3.fromRGB(214, 170, 70), Accent2 = Color3.fromRGB(120, 70, 36),
-		Glow = Color3.fromRGB(255, 214, 140), Glow2 = Color3.fromRGB(255, 236, 190), Cloth = Color3.fromRGB(92, 52, 30),
-		Thread = Color3.fromRGB(230, 196, 150), Count = 0, LightBrightness = 0, LightRange = 0, EmitRate = 0, Shine = 0.25,
-	},
-	-- 3. Походный рюкзак: скатка, фонарик, карабин
-	[3] = {
-		Metal = Color3.fromRGB(186, 190, 180), Accent = Color3.fromRGB(64, 72, 36), Accent2 = Color3.fromRGB(58, 60, 64),
-		Glow = Color3.fromRGB(255, 244, 200), Glow2 = Color3.fromRGB(255, 250, 225), Cloth = Color3.fromRGB(58, 66, 32),
-		Thread = Color3.fromRGB(208, 208, 160), Count = 0, LightBrightness = 1.4, LightRange = 16, EmitRate = 0, Shine = 0.25,
-	},
-	-- 4. Городской рюкзак: бегунки, светоотражающая лента, шильдик
-	[4] = {
-		Metal = Color3.fromRGB(178, 184, 194), Accent = Color3.fromRGB(150, 156, 166), Accent2 = Color3.fromRGB(88, 92, 102),
-		Glow = Color3.fromRGB(170, 182, 196), Glow2 = Color3.fromRGB(220, 230, 240), Cloth = Color3.fromRGB(30, 32, 38),
-		Thread = Color3.fromRGB(88, 92, 102), Count = 0, LightBrightness = 0, LightRange = 0, EmitRate = 0, Shine = 0.3,
-	},
-	-- 5. «Авангард»: уголки и светящиеся боковые полосы
-	[5] = {
-		Metal = Color3.fromRGB(196, 202, 212), Accent = Color3.fromRGB(230, 236, 250), Accent2 = Color3.fromRGB(22, 70, 160),
-		Glow = Color3.fromRGB(246, 249, 255), Glow2 = Color3.fromRGB(150, 200, 255), Cloth = Color3.fromRGB(16, 48, 120),
-		Thread = Color3.fromRGB(70, 140, 245), Count = 0, LightBrightness = 0.5, LightRange = 5, EmitRate = 0, Shine = 0.3,
-	},
-	-- 6. Шахтёрский ящик: клёпаные пластины, кристаллы, шахтёрская лампа
-	[6] = {
-		Metal = Color3.fromRGB(134, 138, 146), Accent = Color3.fromRGB(255, 190, 80), Accent2 = Color3.fromRGB(70, 72, 80),
-		Glow = Color3.fromRGB(80, 220, 255), Glow2 = Color3.fromRGB(140, 255, 200), Cloth = Color3.fromRGB(40, 42, 46),
-		Thread = Color3.fromRGB(88, 92, 100), Count = 3, LightBrightness = 1.6, LightRange = 12, EmitRate = 0, Shine = 0.3,
-	},
-	-- 7. «Полярная звезда»: золотой звёздный акцент
-	[7] = {
-		Metal = Color3.fromRGB(204, 210, 220), Accent = Color3.fromRGB(255, 205, 70), Accent2 = Color3.fromRGB(230, 236, 242),
-		Glow = Color3.fromRGB(40, 150, 255), Glow2 = Color3.fromRGB(120, 200, 255), Cloth = Color3.fromRGB(172, 178, 188),
-		Thread = Color3.fromRGB(172, 178, 188), Count = 2, LightBrightness = 0.6, LightRange = 6, EmitRate = 0, Shine = 0.3,
-	},
-	-- 8. Кристальный «Корона»: стеклянные пластины и внутреннее свечение
-	[8] = {
-		Metal = Color3.fromRGB(122, 112, 142), Accent = Color3.fromRGB(150, 90, 255), Accent2 = Color3.fromRGB(96, 50, 190),
-		Glow = Color3.fromRGB(190, 110, 255), Glow2 = Color3.fromRGB(230, 170, 255), Cloth = Color3.fromRGB(46, 42, 56),
-		Thread = Color3.fromRGB(72, 62, 92), Count = 4, LightBrightness = 1.0, LightRange = 7, EmitRate = 0, Shine = 0.12,
-	},
-	-- 9. Вулканический: огненные трещины и броневые рёбра
-	[9] = {
-		Metal = Color3.fromRGB(112, 106, 106), Accent = Color3.fromRGB(255, 110, 30), Accent2 = Color3.fromRGB(255, 190, 70),
-		Glow = Color3.fromRGB(255, 90, 20), Glow2 = Color3.fromRGB(255, 170, 50), Cloth = Color3.fromRGB(30, 24, 24),
-		Thread = Color3.fromRGB(72, 58, 58), Count = 2, LightBrightness = 0.8, LightRange = 7, EmitRate = 3, Shine = 0.2,
-	},
-	-- 10. Звёздный рюкзак: золотая звезда, космические пластины, блёстки
-	[10] = {
-		Metal = Color3.fromRGB(112, 126, 142), Accent = Color3.fromRGB(255, 200, 60), Accent2 = Color3.fromRGB(52, 24, 120),
-		Glow = Color3.fromRGB(120, 230, 255), Glow2 = Color3.fromRGB(255, 255, 255), Cloth = Color3.fromRGB(22, 40, 120),
-		Thread = Color3.fromRGB(52, 72, 86), Count = 8, LightBrightness = 0.8, LightRange = 7, EmitRate = 5, Shine = 0.15,
-	},
-} :: { [number]: BackpackDetailLevelCfg }
 
 -- ============================================================================
 -- v52: НОЧНАЯ СТЕНА У ВХОДА В ШАХТУ («БОЛЬШАЯ ШТУКА») И ЕЁ ЗАБОР-ПЕРИМЕТР.
@@ -1667,226 +1565,6 @@ GameConfig.NIGHT_WALL = {
 	},
 }
 
-
--- ============================================================================
--- 40. РЫНОК И ТОРГОВЕЦ ГОША (MarketBuilder + TraderAnimator)
--- Все цвета, размеры, дистанции, тайминги и тексты рынка — только здесь.
--- Координаты прилавка заданы относительно центра рынка:
--- +X вправо, +Z к покупателям (наружу), Y = 0 — верх земли.
--- ============================================================================
-GameConfig.MARKET = {
-	Seed = 4040,
-
-	-- Имена и теги (на них опираются клиентский аниматор и скрипт магазина)
-	ModelName = "MarketStall",
-	NpcModelName = "TraderGosha",
-	NpcTag = "TraderNPC",
-	PromptTag = "TraderShopPrompt",
-
-	-- Тексты
-	TraderName = "Торговец Гоша",
-	HintText = "[E] Открыть магазин",
-	ActionText = "Открыть магазин",
-	SignText = "РЫНОК",
-
-	-- Подсказка (ProximityPrompt) и табличка над головой
-	MaxActivationDistance = 12,
-	TagMaxDistance = 60,
-	PromptHeight = 3.9,
-	PromptZ = 2.3,
-
-	-- Анимация торговца (клиент)
-	LookDistance = 40,          -- дальше этого расстояния голова смотрит прямо
-	AnimateDistance = 90,       -- дальше — аниматор «спит»
-	LookInterval = 0.35,        -- пересчёт взгляда, сек
-	SleepInterval = 1,          -- проверка дистанции в режиме сна, сек
-	LookTweenTime = 0.25,
-	YawLimitDeg = 70,
-	PitchLimitDeg = 25,
-	SwayPeriod = 2.4,           -- полупериод покачивания, сек
-	SwayRollDeg = 1.6,
-	SwayPitchDeg = 1.1,
-	WaveIntervalMin = 9,
-	WaveIntervalMax = 18,
-	WaveRaiseTime = 0.4,
-	WaveSwingTime = 0.22,
-	WaveLowerTime = 0.45,
-	WaveSwingsMin = 2,
-	WaveSwingsMax = 3,
-	WaveForwardDeg = -20,       -- наклон поднятой руки вперёд
-	WaveRaiseDeg = 150,         -- подъём руки в сторону
-	WaveSwingDeg = 22,          -- размах кисти влево-вправо
-
-	-- Прилавок
-	Counter = {
-		Width = 14,
-		Depth = 3,
-		Height = 3,
-		TopThickness = 0.22,
-		PlankCount = 14,
-	},
-
-	-- Опорные столбы (X — смещение от центра, Z — перед/зад)
-	Pillars = {
-		X = 7.7,
-		FrontZ = 0.9,
-		BackZ = -6.6,
-		Size = 0.9,
-	},
-
-	-- Тент: перед выше нижним краем, к задней стене поднимается
-	Roof = {
-		FrontZ = 3.2,
-		BackZ = -7.8,
-		FrontY = 9.4,
-		BackY = 10.65,
-		HalfWidth = 9,
-		Stripes = 12,
-		Thickness = 0.25,
-		RafterX = { -8.4, -4.2, 0, 4.2, 8.4 },
-	},
-
-	-- Гирлянда лампочек (света — только 3 штуки на всю гирлянду)
-	Garland = {
-		Count = 13,
-		HalfSpan = 8.4,
-		Y = 8.7,
-		Sag = 1.0,
-		Z = 3.5,
-		SwagStep = 4,
-		LightEvery = 4,
-		LightOffset = 2,
-	},
-
-	-- Ковёр перед прилавком
-	Carpet = {
-		Width = 10,
-		Depth = 7,
-		ZCenter = 6.5,
-		Thickness = 0.12,
-	},
-
-	-- Торговец: позиция относительно центра рынка (стоит за прилавком, лицом к +Z)
-	Trader = {
-		X = 0,
-		Z = -3.4,
-	},
-
-	-- Свет (в сумме не больше 6 на рынок)
-	Lights = {
-		Lantern = { Brightness = 1.6, Range = 22 },
-		Garland = { Brightness = 0.9, Range = 14 },
-	},
-
-	Colors = {
-		-- Дерево
-		WoodLight = Color3.fromRGB(184, 130, 78),
-		WoodMid = Color3.fromRGB(146, 98, 56),
-		WoodDark = Color3.fromRGB(98, 62, 36),
-		WoodDeep = Color3.fromRGB(60, 38, 24),
-		WoodTones = {
-			Color3.fromRGB(176, 124, 74),
-			Color3.fromRGB(150, 102, 60),
-			Color3.fromRGB(128, 84, 48),
-			Color3.fromRGB(164, 114, 68),
-			Color3.fromRGB(112, 72, 42),
-			Color3.fromRGB(190, 138, 86),
-		},
-
-		-- Тент
-		AwningA = Color3.fromRGB(198, 52, 46),
-		AwningB = Color3.fromRGB(246, 228, 194),
-
-		-- Металл, камень, ткань
-		Metal = Color3.fromRGB(88, 92, 100),
-		MetalDark = Color3.fromRGB(48, 50, 56),
-		Brass = Color3.fromRGB(206, 164, 70),
-		Gold = Color3.fromRGB(255, 200, 60),
-		Rope = Color3.fromRGB(198, 166, 110),
-		Burlap = Color3.fromRGB(172, 136, 86),
-		BurlapDark = Color3.fromRGB(128, 96, 58),
-		Stone = Color3.fromRGB(104, 104, 110),
-		StoneDark = Color3.fromRGB(70, 72, 80),
-
-		-- Свет
-		WarmLight = Color3.fromRGB(255, 176, 90),
-		LanternGlass = Color3.fromRGB(255, 190, 100),
-		Bulbs = {
-			Color3.fromRGB(255, 224, 140),
-			Color3.fromRGB(255, 176, 84),
-			Color3.fromRGB(255, 236, 200),
-			Color3.fromRGB(255, 140, 90),
-		},
-
-		-- Образцы руды
-		GemGold = Color3.fromRGB(255, 200, 60),
-		GemRuby = Color3.fromRGB(230, 40, 70),
-		GemEmerald = Color3.fromRGB(50, 225, 120),
-		GemDiamond = Color3.fromRGB(160, 240, 255),
-		RockDark = Color3.fromRGB(70, 66, 74),
-
-		-- Ковёр
-		CarpetBase = Color3.fromRGB(138, 32, 44),
-		CarpetBorder = Color3.fromRGB(226, 178, 70),
-		CarpetInner = Color3.fromRGB(40, 66, 120),
-		CarpetPattern = Color3.fromRGB(244, 214, 150),
-		CarpetFringe = Color3.fromRGB(232, 214, 170),
-
-		-- Товары на полках
-		BookColors = {
-			Color3.fromRGB(170, 48, 48),
-			Color3.fromRGB(48, 96, 170),
-			Color3.fromRGB(60, 130, 80),
-			Color3.fromRGB(190, 150, 60),
-			Color3.fromRGB(110, 60, 140),
-			Color3.fromRGB(90, 70, 50),
-		},
-		ToolboxRed = Color3.fromRGB(200, 44, 40),
-		BottleGlass = Color3.fromRGB(120, 170, 130),
-		BottleBrown = Color3.fromRGB(120, 70, 40),
-		Cork = Color3.fromRGB(190, 150, 100),
-		TorchFire = Color3.fromRGB(255, 150, 50),
-		PotionBlue = Color3.fromRGB(80, 160, 255),
-		PotionPurple = Color3.fromRGB(190, 90, 255),
-		PotionGreen = Color3.fromRGB(90, 240, 140),
-		TopHat = Color3.fromRGB(28, 24, 30),
-		Steel = Color3.fromRGB(150, 160, 172),
-		Paper = Color3.fromRGB(236, 226, 196),
-
-		-- Вывеска
-		SignBoard = Color3.fromRGB(78, 48, 30),
-		SignText = Color3.fromRGB(255, 214, 110),
-		SignStroke = Color3.fromRGB(30, 18, 10),
-
-		-- Торговец
-		Skin = Color3.fromRGB(242, 196, 156),
-		SkinShade = Color3.fromRGB(232, 150, 128),
-		Shirt = Color3.fromRGB(238, 226, 200),
-		Cuff = Color3.fromRGB(214, 200, 172),
-		Apron = Color3.fromRGB(150, 98, 56),
-		ApronDark = Color3.fromRGB(104, 66, 38),
-		Trousers = Color3.fromRGB(66, 56, 74),
-		Boots = Color3.fromRGB(46, 30, 24),
-		Hat = Color3.fromRGB(32, 28, 36),
-		HatTop = Color3.fromRGB(52, 46, 58),
-		HatBand = Color3.fromRGB(186, 48, 52),
-		Moustache = Color3.fromRGB(82, 54, 34),
-		Hair = Color3.fromRGB(96, 64, 40),
-		GlassesFrame = Color3.fromRGB(224, 184, 74),
-		Lens = Color3.fromRGB(190, 225, 255),
-		EyeWhite = Color3.fromRGB(250, 250, 250),
-		Pupil = Color3.fromRGB(40, 30, 28),
-		Mouth = Color3.fromRGB(132, 46, 46),
-		Cheek = Color3.fromRGB(255, 150, 140),
-		BowTie = Color3.fromRGB(190, 40, 52),
-
-		-- Табличка над головой торговца
-		TagBg = Color3.fromRGB(24, 18, 14),
-		TagStroke = Color3.fromRGB(255, 200, 90),
-		TagName = Color3.fromRGB(255, 222, 130),
-		TagHint = Color3.fromRGB(236, 228, 210),
-	},
-}
 
 -- ============================================================================
 -- 🪨 v52: КАМЕННАЯ ПЛОЩАДЬ СПАВНА (SpawnPlazaBuilder)

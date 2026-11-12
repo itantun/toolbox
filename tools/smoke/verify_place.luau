@@ -9,8 +9,8 @@ local path = process.args[1]
 local game = roblox.deserializePlace(fs.readFile(path))
 
 local expected = {
-	{ "ReplicatedStorage", "Modules", { "GameConfig", "PartKit", "UIKit", "ClientBus", "PickaxeJuice", "BackpackDetailer", "OreIconModels", "EquipmentBuilder", "ToolAnimator" } },
-	{ "ServerScriptService", "Modules", { "BoostService", "NightCycleService", "NightWallBuilder", "ShopService", "MarketBuilder", "SpawnPlazaBuilder", "DataManager", "EquipmentManager", "WorldBuilder", "MineManager" } },
+	{ "ReplicatedStorage", "Modules", { "GameConfig", "PartKit", "UIKit", "ClientBus", "PickaxeJuice", "OreIconModels", "EquipmentBuilder", "ToolAnimator" } },
+	{ "ServerScriptService", "Modules", { "BoostService", "NightCycleService", "NightWallBuilder", "ShopService", "SpawnPlazaBuilder", "DataManager", "EquipmentManager", "WorldBuilder", "MineManager" } },
 }
 local missing = 0
 for _, group in ipairs(expected) do
@@ -25,7 +25,7 @@ for _, group in ipairs(expected) do
 end
 
 local sps = game:GetService("StarterPlayer"):FindFirstChild("StarterPlayerScripts")
-for _, name in ipairs({ "ClientController", "ProgressionUI", "LiveOreFX", "SprintController", "ShopUI", "BackpackUI", "PhaseHud", "NightFX", "PickaxeFX", "TraderAnimator" }) do
+for _, name in ipairs({ "ClientController", "ProgressionUI", "LiveOreFX", "SprintController", "BoostShopUI", "BackpackUI", "PhaseHud", "NightFX", "PickaxeFX" }) do
 	local inst = sps and sps:FindFirstChild(name)
 	if not inst or not inst:IsA("LocalScript") or #inst.Source < 50 then
 		missing += 1

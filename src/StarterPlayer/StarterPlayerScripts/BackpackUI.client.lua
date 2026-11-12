@@ -344,8 +344,8 @@ local function refresh()
 	local bagName = GameConfig.RU_NAMES.Backpacks[State.BackpackLevel] or ""
 	local penalty = math.floor(GameConfig.GetDirtPenalty(State.DirtBlocks) * 100 + 0.5)
 	subtitle.Text = bagName .. (penalty > 0 and string.format("  ·  грязь: −%d%% мест", penalty) or "  ·  чистый")
-	footer.Text = empty and "Руду можно продать торговцу Гоше на рынке или в зоне $ SELL"
-		or string.format("💰 Всё содержимое стоит %s 🪙 — продай торговцу Гоше или в зоне $ SELL", UIKit.FormatCoins(State.BagValue))
+	footer.Text = empty and "Руда продаётся в зоне $ SELL на поверхности"
+		or string.format("💰 Всё содержимое стоит %s 🪙 — продай в зоне $ SELL", UIKit.FormatCoins(State.BagValue))
 end
 
 -- ---------------------------------------------------------------------------

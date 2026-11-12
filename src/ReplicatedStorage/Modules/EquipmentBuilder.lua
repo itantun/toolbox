@@ -27,7 +27,6 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local GameConfig = require(ReplicatedStorage:WaitForChild("Modules"):WaitForChild("GameConfig"))
 local PickaxeJuice = require(script.Parent:WaitForChild("PickaxeJuice"))
-local BackpackDetailer = require(script.Parent:WaitForChild("BackpackDetailer"))
 
 local EquipmentManager = {}
 
@@ -1758,28 +1757,6 @@ function EquipmentManager.BuildBackpackParts(
 			add("StrapChest", Vector3.new(strapW * 0.92, chestLen, 0.12), CFrame.new(x, chestTop - chestLen / 2, -tZ / 2 - 0.07), strapCol, bodyMat, nil)
 			add("StrapBuckle", Vector3.new(strapW * 1.15, 0.16, 0.07), CFrame.new(x, -tH * 0.08, -tZ / 2 - 0.15), fitCol, fitMat, { Reflectance = 0.3 })
 		end
-	end
-
-	-- v52: детализация рюкзака (швы, пряжки, фонари, кристаллы, эмблемы) — модуль BackpackDetailer.
-	-- Ошибка в отделке не должна ломать экипировку, поэтому вызов защищён pcall.
-	local okDetail, errDetail = pcall(BackpackDetailer.Decorate, {
-		Model = model,
-		Level = lvl,
-		Scale = s,
-		Anchored = anchored,
-		OnCharacter = isCharTorso,
-		Origin = originCF,
-		Width = BW,
-		Height = BH,
-		Depth = BD,
-		CenterY = yb,
-		CenterZ = zc,
-		FrontZ = front,
-		Palette = PAL,
-		Add = add,
-	})
-	if not okDetail then
-		warn("[EquipmentBuilder] BackpackDetailer: " .. tostring(errDetail))
 	end
 
 	model:SetAttribute("BackpackLevel", lvl)

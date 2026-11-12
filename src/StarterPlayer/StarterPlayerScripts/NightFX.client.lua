@@ -2,7 +2,9 @@
 -- ============================================================================
 -- 🌙 КЛИЕНТ: NightFX (StarterPlayerScripts.NightFX)
 -- v52: всё, что игрок ВИДИТ при смене дня и ночи.
---   • Плавный переход освещения: ClockTime, Bloom, оттенок цветокоррекции и «доля ночи»
+--   • Небо идёт вместе с фазой: днём солнце проходит путь от утра до вечера, ночная фаза
+--     всегда под ночным небом, рассвет наступает с открытием шахты.
+--   • Плавный переход освещения: Bloom, оттенок цветокоррекции и «доля ночи»
 --     Lighting.NightBlend (по ней ClientController смешивает яркость, Ambient и атмосферу).
 --   • Баннеры: «🌙 НОЧЬ НАСТУПИЛА — вы на базе», «☀️ ШАХТА ОТКРЫТА», предупреждение нарушителю.
 --   • Большая стена у входа в шахту: подъём и опускание за 2–3 секунды, гул, пыль у
@@ -55,18 +57,11 @@ else
 	blend = created
 end
 
-local GoingToNight = true
 local BlendTween: Tween? = nil
 
+-- Доля ночи 0..1 управляет Bloom и оттенком картинки (яркость, Ambient и атмосферу по ней же
+-- смешивает ClientController)
 local function applyBlend(b: number)
-	-- к ночи солнце садится (14 -> 24), к утру встаёт (0 -> 14)
-	local clock: number
-	if GoingToNight then
-		clock = PL.Day.ClockTime + (24 - PL.Day.ClockTime) * b
-	else
-		clock = PL.Day.ClockTime * (1 - b)
-	end
-	Lighting.ClockTime = clock % 24
 	local bloom = Lighting:FindFirstChild("NeonBloom")
 	if bloom and bloom:IsA("BloomEffect") then
 		bloom.Intensity = PL.Day.BloomIntensity + (PL.Night.BloomIntensity - PL.Day.BloomIntensity) * b
@@ -84,7 +79,6 @@ local function setLighting(night: boolean, instant: boolean)
 		BlendTween:Cancel()
 		BlendTween = nil
 	end
-	GoingToNight = night
 	local target = night and 1 or 0
 	if instant then
 		blend.Value = target
@@ -94,6 +88,77 @@ local function setLighting(night: boolean, instant: boolean)
 	local tw = TweenService:Create(blend, TweenInfo.new(P.LightingTweenSeconds, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), { Value = target })
 	BlendTween = tw
 	tw:Play()
+end
+
+-- Часы неба идут вместе с фазой: день — от утра (ClockStart) до вечера (ClockEnd), ночная фаза —
+-- всегда под ночным небом (21:00 -> 04:00), рассвет приходит с открытием шахты. Движение — это
+-- несколько длинных линейных твинов Lighting.ClockTime на фазу, без покадрового кода.
+local SkyToken = 0
+local SkyTween: Tween? = nil
+
+-- Ведёт часы вперёд до toHours (значение больше 24 означает «после полуночи») за seconds секунд.
+-- Возвращает false, если за это время фаза сменилась.
+local function advanceClock(toHours: number, seconds: number, token: number): boolean
+	local function tweenTo(target: number, duration: number)
+		local tw = TweenService:Create(Lighting, TweenInfo.new(duration, Enum.EasingStyle.Linear), { ClockTime = target })
+		SkyTween = tw
+		tw:Play()
+		task.wait(duration)
+	end
+	local from = Lighting.ClockTime
+	local to = toHours % 24
+	if seconds <= 0.05 then
+		Lighting.ClockTime = to
+	elseif to >= from or (from - to) < 1 then
+		tweenTo(to, seconds)
+	else
+		-- путь лежит через полночь: до 24:00, затем с 00:00
+		local total = (24 - from) + to
+		local first = seconds * (24 - from) / total
+		tweenTo(23.99, first)
+		if token ~= SkyToken then
+			return false
+		end
+		Lighting.ClockTime = 0
+		tweenTo(to, seconds - first)
+	end
+	return token == SkyToken
+end
+
+local function runSky(phase: string, instant: boolean)
+	SkyToken += 1
+	local token = SkyToken
+	if SkyTween then
+		SkyTween:Cancel()
+		SkyTween = nil
+	end
+	local endsAt = ReplicatedStorage:GetAttribute(P.AttrEndsAt)
+	local length = ReplicatedStorage:GetAttribute(P.AttrLength)
+	if type(endsAt) ~= "number" or type(length) ~= "number" then
+		return
+	end
+	local cfg = phase == "Night" and PL.Night or PL.Day
+	-- положение часов неба в момент серверного времени t
+	local function clockAt(t: number): number
+		local frac = math.clamp(1 - (endsAt - t) / math.max(1, length), 0, 1)
+		return cfg.ClockStart + (cfg.ClockEnd - cfg.ClockStart) * frac
+	end
+	task.spawn(function()
+		local now = Workspace:GetServerTimeNow()
+		if instant then
+			Lighting.ClockTime = clockAt(now) % 24
+		else
+			-- смена фазы: закат или рассвет «прокручивается» за время перехода освещения
+			local lead = math.clamp(endsAt - now, 0, P.LightingTweenSeconds)
+			if not advanceClock(clockAt(now + lead), lead, token) then
+				return
+			end
+		end
+		local remaining = endsAt - Workspace:GetServerTimeNow()
+		if remaining > 0.1 then
+			advanceClock(cfg.ClockEnd, remaining, token)
+		end
+	end)
 end
 
 -- ---------------------------------------------------------------------------
@@ -385,6 +450,7 @@ local function onPhaseChanged()
 	local first = not PhaseKnown
 	PhaseKnown = true
 	setLighting(night, first)
+	runSky(phase, first)
 	if night then
 		runCountdown()
 		if first then

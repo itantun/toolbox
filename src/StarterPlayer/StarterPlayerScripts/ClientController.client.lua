@@ -49,7 +49,7 @@ local HudModule = require(Modules:WaitForChild("HudModule"))
 local EquipmentBuilder = require(Modules:WaitForChild("EquipmentBuilder"))
 local ToolAnimator = require(Modules:WaitForChild("ToolAnimator"))
 ToolAnimator.Start()
-local ClientBus = require(Modules:WaitForChild("ClientBus")) -- v52: шина новых окон (ShopUI / BackpackUI) и эффектов
+local ClientBus = require(Modules:WaitForChild("ClientBus")) -- v52: шина новых окон (BackpackUI, BoostShopUI) и эффектов
 
 SoundManager.EnsureSoundsFolder()
 
@@ -1012,17 +1012,22 @@ local function makeCategoryTab(name: string, icon: string, caption: string, xOff
 	b.MouseButton1Click:Connect(onClick)
 	return b
 end
-local tabPickaxesBtn = makeCategoryTab("TabPickaxes", "⛏️", "Pickaxes", 18, function()
+local tabPickaxesBtn = makeCategoryTab("TabPickaxes", "⛏️", "Кирки", 18, function()
 	ShopCategory = "Pickaxes"
 	SelectedShopLevel = math.clamp(State.PickaxeTier, 1, 10)
 	SoundManager.PlayUISound("ShopSwipe")
 	refreshShopView()
 end)
-local tabBackpacksBtn = makeCategoryTab("TabBackpacks", "🎒", "Backpacks", 102, function()
+local tabBackpacksBtn = makeCategoryTab("TabBackpacks", "🎒", "Рюкзаки", 102, function()
 	ShopCategory = "Backpacks"
 	SelectedShopLevel = math.clamp(State.BackpackLevel, 1, 10)
 	SoundManager.PlayUISound("ShopSwipe")
 	refreshShopView()
+end)
+-- v52: третья вкладка (справа, рядом с крестиком) — бусты «Удача / Скорость / Монеты» в окне BoostShopUI
+makeCategoryTab("TabBoosts", "⚡", "Бусты", 834, function()
+	SoundManager.PlayUISound("ShopSwipe")
+	ClientBus.OpenShop:Fire()
 end)
 
 -- Область карусели
@@ -1714,16 +1719,17 @@ local function isOnShopPad(): boolean
 	return dist <= 6.2 and math.abs(p.Y - padPos.Y) < 6
 end
 local function openShopMenuHere()
-	-- v52: старая карусель больше не показывается — открываем новый магазин (ShopUI)
 	bagModal.Visible = false
-	shopModal.Visible = false
-	ClientBus.OpenShop:Fire()
+	ClientBus.CloseAll:Fire() -- v52: новое окно рюкзака закрывается
+	shopModal.Visible = true
+	SoundManager.PlayUISound("ShopOpen") -- v28: shop open swoosh
+	refreshShopView()
 end
 local function goToShop()
 	bagModal.Visible = false
 	if isOnShopPad() then
-		if ClientBus.IsWindowOpen("Shop") then -- v52
-			ClientBus.CloseShop:Fire()
+		if shopModal.Visible then
+			shopModal.Visible = false
 		else
 			openShopMenuHere()
 		end
@@ -1736,7 +1742,7 @@ local function goToShop()
 	TeleportToShopRemote:FireServer()
 	-- the SHOP zone check opens the menu on arrival; this is only a fallback
 	task.delay(0.9, function()
-		if not ClientBus.IsWindowOpen("Shop") and isOnShopPad() then
+		if not shopModal.Visible and isOnShopPad() then
 			openShopMenuHere()
 		end
 	end)
@@ -1794,11 +1800,13 @@ do
 	busBag.Parent = uiBus
 	busShop.Event:Connect(function() goToShop() end) -- v27: teleport to the shop, the menu opens there
 	busBag.Event:Connect(function()
+		shopModal.Visible = false
 		ClientBus.ToggleBag:Fire() -- v52: новое окно рюкзака с 3D-иконками руды (BackpackUI)
 	end)
 end
 hud = HudModule.new(screenGui, {
 	OnBackpackClick = function()
+		shopModal.Visible = false
 		ClientBus.ToggleBag:Fire() -- v52: новое окно рюкзака с 3D-иконками руды (BackpackUI)
 	end,
 })
@@ -1959,6 +1967,7 @@ end)
 UserInputService.InputBegan:Connect(function(input: InputObject, gpe: boolean)
 	if gpe then return end
 	if input.KeyCode == Enum.KeyCode.B or input.KeyCode == Enum.KeyCode.I then
+		shopModal.Visible = false
 		ClientBus.ToggleBag:Fire() -- v52: новое окно рюкзака с 3D-иконками руды (BackpackUI)
 	elseif input.KeyCode == Enum.KeyCode.M then
 		goToShop() -- v27: same as the Shop button
@@ -2212,8 +2221,18 @@ RunService.RenderStepped:Connect(function(dt: number)
 		local distShop = (Vector3.new(pos.X, 0, pos.Z) - Vector3.new(shopPadPos.X, 0, shopPadPos.Z)).Magnitude
 		local onShopPad = (distShop <= 6.2) and (math.abs(pos.Y - shopPadPos.Y) < 6)
 
-		-- v52: магазин открывает ProximityPrompt торговца Гоши (и кнопка «Shop»), а не вход в зону
-		WasOnShopPad = onShopPad
+		if onShopPad and not WasOnShopPad then
+			WasOnShopPad = true
+			bagModal.Visible = false
+			ClientBus.CloseAll:Fire() -- v52: новое окно рюкзака закрывается
+			shopModal.Visible = true
+			SoundManager.PlayUISound("ShopOpen") -- v28: shop open swoosh
+			refreshShopView()
+		elseif not onShopPad and WasOnShopPad then
+			WasOnShopPad = false
+			shopModal.Visible = false
+			ClientBus.CloseShop:Fire() -- v52: окно бустов закрывается вместе с магазином
+		end
 
 		-- v14: окно продажи не открывается. Автопродажу выполняет сервер при входе в зону «$ SELL».
 	end

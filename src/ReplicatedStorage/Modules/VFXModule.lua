@@ -120,8 +120,10 @@ local function shakeBlockLocal(block: BasePart)
 	local my = state.Token
 
 	local soft = SOFT_BLOCKS[tostring(block:GetAttribute("BlockId"))] == true
-	local amp = soft and 0.2 or 0.09
-	local tilt = soft and 0.035 or 0.012
+	-- v52: дрожание спокойнее — амплитуда и наклон умножаются на GameConfig.BLOCK_HIT_SHAKE
+	local shakeCfg = GameConfig.BLOCK_HIT_SHAKE
+	local amp = (soft and 0.2 or 0.09) * shakeCfg.Scale
+	local tilt = (soft and 0.035 or 0.012) * shakeCfg.Scale
 	local steps = soft and 8 or 5
 	local pivot = state.Pivot
 	local pivotInv = pivot:Inverse()
@@ -139,7 +141,7 @@ local function shakeBlockLocal(block: BasePart)
 				if rec.P.Parent then
 					local cf = move * rec.CF
 					if rec.Sway then
-						cf = cf * CFrame.Angles(0, 0, side * 0.22 * k)
+						cf = cf * CFrame.Angles(0, 0, side * 0.22 * shakeCfg.SwayScale * k)
 					end
 					rec.P.CFrame = cf
 				end

@@ -126,7 +126,6 @@ function NightCycleService.Start(deps: Deps)
 		deps.WorldBuilder.SetNightMineBarrierActive(true)
 		deps.WorldBuilder.SetNightLightsActive(true)
 		deps.MineManager.ClearMorningVeinsForNight()
-		setPhase("Night", P.NightSeconds)
 		deps.NoticeRemote:FireAllClients("Night")
 		-- 3) пока шахта пуста, восстанавливаем выработанные блоки к новому утру
 		task.delay(P.BlockRespawnDelay, function()
@@ -142,7 +141,6 @@ function NightCycleService.Start(deps: Deps)
 		deps.NightWallBuilder.SetRaised(deps.WallRefs, false)
 		deps.WorldBuilder.SetNightMineBarrierActive(false)
 		deps.WorldBuilder.SetNightLightsActive(false)
-		setPhase("Day", P.DaySeconds)
 		if announce then
 			local veinCount, veinList = deps.MineManager.SpawnMorningVeins()
 			deps.NoticeRemote:FireAllClients("Day", veinCount, table.concat(veinList, ", "))
@@ -153,16 +151,34 @@ function NightCycleService.Start(deps: Deps)
 		LastZoneWarn[player.UserId] = nil
 	end)
 
-	-- Первая фаза выставляется сразу, чтобы атрибуты существовали до входа первого игрока
-	beginDay(false)
+	-- Ведёт одну фазу. Длительность отсчитывается по монотонным часам сервера, а опубликованный
+	-- момент конца подправляется, если серверное время «прыгнуло» (синхронизация часов), —
+	-- поэтому ночь не может начаться раньше срока, а таймеры клиентов остаются точными.
+	local function runPhase(name: string, length: number, interval: number, onTick: (left: number) -> ())
+		local started = os.clock()
+		local endsAt = setPhase(name, length)
+		while true do
+			local left = length - (os.clock() - started)
+			if left <= 0 then
+				break
+			end
+			local expected = serverNow() + left
+			if math.abs(expected - endsAt) > 0.75 then
+				endsAt = expected
+				ReplicatedStorage:SetAttribute(P.AttrEndsAt, endsAt)
+			end
+			onTick(left)
+			task.wait(math.clamp(left, 0.05, interval))
+		end
+	end
 
 	task.spawn(function()
+		-- Первая фаза выставляется сразу (до первого ожидания), чтобы атрибуты существовали до входа игроков
+		beginDay(false)
 		while true do
-			-- ДЕНЬ: ждём конца фазы, за N секунд до ночи — предупреждение
-			local dayEndsAt = ReplicatedStorage:GetAttribute(P.AttrEndsAt) :: number
+			-- ДЕНЬ: за N секунд до ночи — предупреждение
 			local eveningAnnounced = false
-			while serverNow() < dayEndsAt do
-				local left = dayEndsAt - serverNow()
+			runPhase("Day", P.DaySeconds, 0.25, function(left: number)
 				if not eveningAnnounced and left <= P.EveningWarningSeconds then
 					eveningAnnounced = true
 					deps.DayNightEvent:FireAllClients(
@@ -170,18 +186,15 @@ function NightCycleService.Start(deps: Deps)
 						string.format("🌆 Вечер! Шахта закроется через %d с — заканчивай копать!", math.ceil(left))
 					)
 				end
-				task.wait(math.clamp(left, 0.05, 0.25))
-			end
+			end)
 
 			-- НОЧЬ: телепорт, стена, проверка зоны раз в ZoneCheckInterval
 			beginNight()
-			local nightEndsAt = ReplicatedStorage:GetAttribute(P.AttrEndsAt) :: number
-			while serverNow() < nightEndsAt do
+			runPhase("Night", P.NightSeconds, P.ZoneCheckInterval, function(_left: number)
 				for _, player in ipairs(Players:GetPlayers()) do
 					evictFromMine(player)
 				end
-				task.wait(math.clamp(nightEndsAt - serverNow(), 0.05, P.ZoneCheckInterval))
-			end
+			end)
 
 			-- УТРО
 			beginDay(true)

@@ -26,7 +26,6 @@ local GameConfig = require(ReplicatedStorage:WaitForChild("Modules"):WaitForChil
 local SoundManager = require(ReplicatedStorage:WaitForChild("Modules"):WaitForChild("SoundManager"))
 -- v52: процедурные постройки «сочного» обновления
 local SpawnPlazaBuilder = require(script.Parent:WaitForChild("SpawnPlazaBuilder"))
-local MarketBuilder = require(script.Parent:WaitForChild("MarketBuilder"))
 local VFXModule = require(ReplicatedStorage:WaitForChild("Modules"):WaitForChild("VFXModule"))
 
 local WorldBuilder = {}
@@ -2496,8 +2495,7 @@ function WorldBuilder.BuildWorld(
 
 	-- Строим современный Пункт Приёма Руды "$ SELL" (слева) и Неоновый Павильон "🛒 SHOP" (справа)
 	local whiteSellPad = WorldBuilder.BuildModernSellMarket(worldFolder, GameConfig.WHITE_SELL_PAD_POS)
-	-- v52: деревянный рынок с торговцем Гошей вместо неонового павильона «SHOP»
-	local greenShopPad = MarketBuilder.Build(worldFolder, GameConfig.GREEN_SHOP_PAD_POS).Pad
+	local greenShopPad = WorldBuilder.BuildNeonShopPavilion(worldFolder, GameConfig.GREEN_SHOP_PAD_POS, equipmentManager)
 
 	WorldBuilder.BuildDeepMineArchitecture(worldFolder, onClaimCaveChest)
 	WorldBuilder.BuildGravelPath(worldFolder)
