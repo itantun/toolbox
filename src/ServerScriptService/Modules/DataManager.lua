@@ -19,6 +19,7 @@ local SoundManager = require(ReplicatedStorage:WaitForChild("Modules"):WaitForCh
 local VFXModule = require(ReplicatedStorage:WaitForChild("Modules"):WaitForChild("VFXModule"))
 local ProgressionConfig = require(ReplicatedStorage:WaitForChild("Modules"):WaitForChild("ProgressionConfig"))
 local ProgressionManager = require(script.Parent:WaitForChild("ProgressionManager"))
+local BoostService = require(script.Parent:WaitForChild("BoostService")) -- v52: бусты торговца
 
 local DataManager = {}
 local DefaultSyncRemote: RemoteEvent? = nil
@@ -190,7 +191,9 @@ function DataManager.GetAttackCooldown(player: Player): number
 	local baseCd = tierCfg.BaseSwingCooldown or 0.45
 	local speedSkill = ProgressionConfig.GetSkillLevel(profile.Skills, "Speed")
 	local mult = (1 + 0.02 * speedSkill) * ProgressionConfig.GetPrestigeMultiplier(profile.Prestige)
-	return math.clamp(baseCd / mult, 0.20, 0.60)
+	-- v52: буст «Скорость» ускоряет удар (и опускает нижний предел кулдауна)
+	local boost = BoostService.GetMultiplier(player, "MineSpeed")
+	return math.clamp(baseCd / (mult * boost), 0.20 / boost, 0.60)
 end
 
 function DataManager.GetBackpackSellValue(player: Player): number
@@ -347,7 +350,8 @@ function DataManager.AddResourceToBackpack(
 	ProgressionManager.GrantXP(player, profile, xpAmount)
 
 	local luckyId: string? = nil
-	if rng:NextNumber() < ProgressionConfig.GetLuckChance(profile.Skills, profile.Prestige)
+	-- v52: буст «Удача» умножает шанс бонусной руды
+	if rng:NextNumber() < ProgressionConfig.GetLuckChance(profile.Skills, profile.Prestige) * BoostService.GetMultiplier(player, "Luck")
 		and DataManager.GetBackpackUsed(player) < DataManager.GetMaxBackpack(player) then
 		local idx = 1
 		for i, b in ipairs(GameConfig.BLOCK_LIST) do
@@ -530,7 +534,9 @@ function DataManager.SellResourcesServer(
 	mode: string?,
 	selectedKeys: { [string]: boolean }?,
 	syncRemote: RemoteEvent?,
-	silentOutOfZone: boolean?
+	silentOutOfZone: boolean?,
+	zoneCenter: Vector3?, -- v52: продажа у торговца Гоши — другая точка и радиус
+	zoneRadius: number?
 ): (number, number)
 	local now = os.clock()
 	if (now - (SellDebounce[player.UserId] or 0)) < 0.65 then return 0, 0 end
@@ -541,9 +547,9 @@ function DataManager.SellResourcesServer(
 	-- Проверка, что игрок находится в зоне приёма руды "$ SELL"
 	local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart") :: BasePart?
 	if not root then return 0, 0 end
-	local sellCenter = GameConfig.WHITE_SELL_PAD_POS
+	local sellCenter = zoneCenter or GameConfig.WHITE_SELL_PAD_POS
 	local horizDist = (Vector3.new(root.Position.X, 0, root.Position.Z) - Vector3.new(sellCenter.X, 0, sellCenter.Z)).Magnitude
-	if horizDist > GameConfig.SELL_ZONE_RADIUS + 4 or math.abs(root.Position.Y - sellCenter.Y) > 10 then
+	if horizDist > (zoneRadius or (GameConfig.SELL_ZONE_RADIUS + 4)) or math.abs(root.Position.Y - sellCenter.Y) > 10 then
 		if not silentOutOfZone then
 			VFXModule.SpawnFloatingText(
 				root.Position + Vector3.new(0, 2, 0),
@@ -585,7 +591,8 @@ function DataManager.SellResourcesServer(
 	end
 
 	SellDebounce[player.UserId] = now
-	local potionMul = ((tonumber(player:GetAttribute("SellBoostUntil")) or 0) > os.time()) and 1.25 or 1
+	-- v52: буст «Монеты» и зелье Ночного торговца — через BoostService (множители перемножаются)
+	local potionMul = BoostService.GetMultiplier(player, "Coins")
 	local earnedCoins = math.floor(rawTotalCoins * ProgressionConfig.GetCoinMultiplier(profile.Prestige) * potionMul + 0.5)
 	profile.Coins += earnedCoins
 	profile.Energy = DataManager.GetMaxEnergy(player)
@@ -597,7 +604,7 @@ function DataManager.SellResourcesServer(
 	VFXModule.PlayPurchaseOrSellBurst(pos, Color3.fromRGB(85, 245, 130))
 	VFXModule.SpawnFloatingText(
 		pos + Vector3.new(0, 2.0, 0),
-		string.format("+%d coins", earnedCoins),
+		string.format("+%d монет", earnedCoins),
 		Color3.fromRGB(255, 225, 65)
 	)
 
@@ -610,25 +617,41 @@ function DataManager.AutoSellOnWhitePad(player: Player, syncRemote: RemoteEvent?
 	return DataManager.SellResourcesServer(player, "all", nil, syncRemote, true)
 end
 
+-- v52: продажа у торговца Гоши (вкладка «Продать руду»). selectedKeys = nil — продать всё.
+-- Расстояние до прилавка, наличие руды и защита от спама проверяются тут же, на сервере.
+function DataManager.SellAtTrader(player: Player, selectedKeys: { [string]: boolean }?, syncRemote: RemoteEvent?): (number, number)
+	return DataManager.SellResourcesServer(
+		player,
+		selectedKeys and "selected" or "all",
+		selectedKeys,
+		syncRemote,
+		true,
+		GameConfig.GREEN_SHOP_PAD_POS,
+		GameConfig.SHOP_UI.MaxDistance
+	)
+end
+
 -- ============================================================================
 -- ПОКУПКА И ЭКИПИРОВКА КИРОК (1–10 УР.) И РЮКЗАКОВ (1–10 УР.) В 3D-МАГАЗИНЕ
 -- ============================================================================
+-- v52: обе функции возвращают исход для окна магазина: "Bought" | "Equipped" | "NoCoins" | nil
 function DataManager.BuyOrEquip3DPickaxe(
 	player: Player,
 	level: number,
 	equipmentManager: any,
 	syncRemote: RemoteEvent?
-)
+): string?
 	local now = os.clock()
-	if (now - (ShopDebounce[player.UserId] or 0)) < 0.25 then return end
+	if (now - (ShopDebounce[player.UserId] or 0)) < 0.25 then return nil end
 	ShopDebounce[player.UserId] = now
 
 	local profile = Profiles[player.UserId]
-	if not profile then return end
+	if not profile then return nil end
 
 	local lvl = math.clamp(math.floor(level), 1, GameConfig.MAX_PICKAXE_LEVEL)
 	local tierCfg = GameConfig.PICKAXE_TIERS[lvl]
-	if not tierCfg then return end
+	if not tierCfg then return nil end
+	local nameRu = GameConfig.RU_NAMES.Pickaxes[lvl] or tierCfg.Name
 
 	local pos = (player.Character and player.Character:GetPivot().Position) or GameConfig.GREEN_SHOP_PAD_POS
 
@@ -637,18 +660,18 @@ function DataManager.BuyOrEquip3DPickaxe(
 		if player.Character then
 			equipmentManager.EquipPickaxe(player.Character, lvl)
 		end
-		VFXModule.SpawnFloatingText(pos, string.format("⛏️ Equipped %s (Lv.%d)!", tierCfg.Name, lvl), tierCfg.BladeColor)
+		VFXModule.SpawnFloatingText(pos, string.format("⛏️ Надета: %s (ур. %d)", nameRu, lvl), tierCfg.BladeColor)
 		DataManager.SyncToClient(player, syncRemote)
-		return
+		return "Equipped"
 	end
 
 	if profile.Coins < tierCfg.Cost then
 		VFXModule.SpawnFloatingText(
 			pos,
-			string.format("Not Enough Coins! You need %d 💰 for %s", tierCfg.Cost, tierCfg.Name),
+			string.format("Не хватает монет! Нужно %d 💰 — %s", tierCfg.Cost, nameRu),
 			Color3.fromRGB(255, 95, 95)
 		)
-		return
+		return "NoCoins"
 	end
 
 	profile.Coins -= tierCfg.Cost
@@ -663,11 +686,12 @@ function DataManager.BuyOrEquip3DPickaxe(
 	VFXModule.PlayPurchaseOrSellBurst(pos, tierCfg.BladeColor)
 	VFXModule.SpawnFloatingText(
 		pos + Vector3.new(0, 1.5, 0),
-		string.format("✨ Bought and equipped %s (Lv.%d)!", tierCfg.Name, lvl),
+		string.format("✨ Куплена и надета: %s (ур. %d)!", nameRu, lvl),
 		tierCfg.BladeColor
 	)
 
 	DataManager.SyncToClient(player, syncRemote)
+	return "Bought"
 end
 
 function DataManager.BuyOrEquip3DBackpack(
@@ -675,17 +699,18 @@ function DataManager.BuyOrEquip3DBackpack(
 	level: number,
 	equipmentManager: any,
 	syncRemote: RemoteEvent?
-)
+): string?
 	local now = os.clock()
-	if (now - (ShopDebounce[player.UserId] or 0)) < 0.25 then return end
+	if (now - (ShopDebounce[player.UserId] or 0)) < 0.25 then return nil end
 	ShopDebounce[player.UserId] = now
 
 	local profile = Profiles[player.UserId]
-	if not profile then return end
+	if not profile then return nil end
 
 	local lvl = math.clamp(math.floor(level), 1, GameConfig.MAX_BACKPACK_LEVEL)
 	local bagCfg = GameConfig.BACKPACK_TIERS[lvl]
-	if not bagCfg then return end
+	if not bagCfg then return nil end
+	local nameRu = GameConfig.RU_NAMES.Backpacks[lvl] or bagCfg.Name
 
 	local pos = (player.Character and player.Character:GetPivot().Position) or GameConfig.GREEN_SHOP_PAD_POS
 
@@ -694,18 +719,18 @@ function DataManager.BuyOrEquip3DBackpack(
 		if player.Character then
 			equipmentManager.EquipBackpack(player.Character, lvl)
 		end
-		VFXModule.SpawnFloatingText(pos, string.format("🎒 Equipped %s (%d slots)!", bagCfg.Name, bagCfg.Capacity), bagCfg.Fitting)
+		VFXModule.SpawnFloatingText(pos, string.format("🎒 Надет: %s (%d мест)", nameRu, bagCfg.Capacity), bagCfg.Fitting)
 		DataManager.SyncToClient(player, syncRemote)
-		return
+		return "Equipped"
 	end
 
 	if profile.Coins < bagCfg.Cost then
 		VFXModule.SpawnFloatingText(
 			pos,
-			string.format("Not Enough Coins! You need %d 💰 for %s", bagCfg.Cost, bagCfg.Name),
+			string.format("Не хватает монет! Нужно %d 💰 — %s", bagCfg.Cost, nameRu),
 			Color3.fromRGB(255, 95, 95)
 		)
-		return
+		return "NoCoins"
 	end
 
 	profile.Coins -= bagCfg.Cost
@@ -720,11 +745,12 @@ function DataManager.BuyOrEquip3DBackpack(
 	VFXModule.PlayPurchaseOrSellBurst(pos, bagCfg.Fitting)
 	VFXModule.SpawnFloatingText(
 		pos + Vector3.new(0, 1.5, 0),
-		string.format("🎒 Bought and equipped %s (%d slots)!", bagCfg.Name, bagCfg.Capacity),
-		 Color3.fromRGB(85, 245, 140)
+		string.format("🎒 Куплен и надет: %s (%d мест)!", nameRu, bagCfg.Capacity),
+		Color3.fromRGB(85, 245, 140)
 	)
 
 	DataManager.SyncToClient(player, syncRemote)
+	return "Bought"
 end
 
 function DataManager.StartEnergyRegenLoop()
@@ -793,6 +819,7 @@ function DataManager.LoadPlayerProfile(player: Player): PlayerProfile
 			local sc = type(saved.Cosmetics) == "table" and saved.Cosmetics or {}
 			;(profile :: any).Cosmetics = { TopHat = sc.TopHat == true, TopHatOn = sc.TopHatOn == true }
 			;(profile :: any).MorningCharm = saved.MorningCharm == true
+			BoostService.Load(player, saved.Boosts) -- v52: бусты сохраняются вместе с прогрессом
 			ProgressionManager.ApplySavedData(profile, saved)
 			if type(saved.UnlockedPickaxes) == "table" then
 				for k, v in pairs(saved.UnlockedPickaxes) do
@@ -895,12 +922,14 @@ function DataManager.SavePlayerProfile(player: Player)
 			Achievements = progSave.Achievements,
 			FoundOres = progSave.FoundOres,
 			PeakCoins = progSave.PeakCoins,
+			Boosts = BoostService.Serialize(player), -- v52: остаток секунд по каждому бусту
 		})
 	end)
 end
 
 function DataManager.RemovePlayerProfile(player: Player)
 	DataManager.SavePlayerProfile(player)
+	BoostService.Clear(player)
 	Profiles[player.UserId] = nil
 	SellDebounce[player.UserId] = nil
 	ShopDebounce[player.UserId] = nil
