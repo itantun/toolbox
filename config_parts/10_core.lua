@@ -298,8 +298,42 @@ GameConfig.ORE_ICON = {
 
 -- Камера 3D-превью кирок и рюкзаков в карточках магазина
 GameConfig.SHOP_PREVIEW = {
-	PickaxeDistance = 8.4,
-	PickaxeHeight = 1.2,
-	BackpackDistance = 7.2,
-	BackpackHeight = 1.0,
+	PickaxeDistance = 9.6,
+	PickaxeHeight = 1.5,
+	BackpackDistance = 7.0,
+	BackpackHeight = 0.9,
+}
+
+-- ============================================================================
+-- 20. НОЧЬ НА КЛИЕНТЕ: баннеры, анимация стены, руны, тряска камеры
+-- (геометрия и цвета самой стены — раздел NIGHT_WALL)
+-- ============================================================================
+GameConfig.NIGHT_FX = {
+	RiseEasing = Enum.EasingStyle.Quad,     -- подъём стены (Out)
+	LowerEasing = Enum.EasingStyle.Back,    -- опускание стены (In): лёгкий «замах» вверх и уход под землю
+	ShakeDistance = 95,                     -- ближе этого расстояния до стены камера слегка трясётся
+	ShakeStrength = 0.32,
+	DustBurst = 16,                         -- клубов пыли в момент старта движения
+	RuneBright = Color3.fromRGB(255, 70, 56),
+	RuneDim = Color3.fromRGB(120, 8, 14),
+	RunePulseSeconds = 0.85,
+	CountdownPrefix = "Откроется через: ",
+	Banners = {
+		Night = {
+			Title = "🌙 НОЧЬ НАСТУПИЛА — вы на базе", Sub = "Шахта запечатана до утра",
+			Top = Color3.fromRGB(70, 58, 190), Bottom = Color3.fromRGB(22, 16, 70), Stroke = Color3.fromRGB(160, 150, 255),
+		},
+		NightJoin = {
+			Title = "🌙 СЕЙЧАС НОЧЬ", Sub = "Шахта откроется утром — загляни к торговцу Гоше",
+			Top = Color3.fromRGB(70, 58, 190), Bottom = Color3.fromRGB(22, 16, 70), Stroke = Color3.fromRGB(160, 150, 255),
+		},
+		Day = {
+			Title = "☀️ ШАХТА ОТКРЫТА", Sub = "Доброе утро! Вперёд за рудой",
+			Top = Color3.fromRGB(255, 176, 48), Bottom = Color3.fromRGB(196, 84, 20), Stroke = Color3.fromRGB(255, 232, 150),
+		},
+		ZoneWarn = {
+			Title = "🌙 ШАХТА ЗАКРЫТА", Sub = "Ночью в шахту нельзя — тебя вернули на базу",
+			Top = Color3.fromRGB(200, 50, 56), Bottom = Color3.fromRGB(84, 14, 24), Stroke = Color3.fromRGB(255, 130, 120),
+		},
+	},
 }

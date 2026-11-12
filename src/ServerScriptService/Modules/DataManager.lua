@@ -248,6 +248,18 @@ function DataManager.UpdateBagAttributes(player: Player)
 	player:SetAttribute("BackpackLevel", profile.BackpackLevel)
 end
 
+-- v52: список купленных уровней массивом — разреженная таблица { [1] = true, [3] = true }
+-- при передаче через RemoteEvent обрезается на первом пропуске
+local function ownedLevels(unlocked: { [number]: boolean }, maxLevel: number): { number }
+	local list: { number } = {}
+	for lvl = 1, maxLevel do
+		if unlocked[lvl] then
+			table.insert(list, lvl)
+		end
+	end
+	return list
+end
+
 function DataManager.SyncToClient(player: Player, syncRemote: RemoteEvent?)
 	local profile = Profiles[player.UserId]
 	if not profile then return end
@@ -279,6 +291,8 @@ function DataManager.SyncToClient(player: Player, syncRemote: RemoteEvent?)
 				UnlockedPickaxes = profile.UnlockedPickaxes,
 				BackpackLevel = profile.BackpackLevel,
 				UnlockedBackpacks = profile.UnlockedBackpacks,
+				OwnedPickaxes = ownedLevels(profile.UnlockedPickaxes, GameConfig.MAX_PICKAXE_LEVEL),
+				OwnedBackpacks = ownedLevels(profile.UnlockedBackpacks, GameConfig.MAX_BACKPACK_LEVEL),
 				BagUsed = DataManager.GetBackpackUsed(player),
 				BagMax = DataManager.GetMaxBackpack(player),
 				BagValue = DataManager.GetBackpackSellValue(player),
