@@ -24,6 +24,9 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local GameConfig = require(ReplicatedStorage:WaitForChild("Modules"):WaitForChild("GameConfig"))
 local SoundManager = require(ReplicatedStorage:WaitForChild("Modules"):WaitForChild("SoundManager"))
+-- v52: процедурные постройки «сочного» обновления
+local SpawnPlazaBuilder = require(script.Parent:WaitForChild("SpawnPlazaBuilder"))
+local MarketBuilder = require(script.Parent:WaitForChild("MarketBuilder"))
 local VFXModule = require(ReplicatedStorage:WaitForChild("Modules"):WaitForChild("VFXModule"))
 
 local WorldBuilder = {}
@@ -441,7 +444,7 @@ function WorldBuilder.SetNightMineBarrierActive(isNight: boolean)
 
 	-- Вывеска над входом: днём золотая «ШАХТА», ночью красная «ЗАКРЫТО»
 	if MineSignLabel then
-		MineSignLabel.Text = isNight and "CLOSED" or GameConfig.MINE_SIGN_TEXT
+		MineSignLabel.Text = isNight and "ЗАКРЫТО" or GameConfig.MINE_SIGN_TEXT
 		MineSignLabel.TextColor3 = isNight and Color3.fromRGB(255, 96, 82) or Color3.fromRGB(255, 214, 80)
 	end
 	for _, neon in ipairs(MineSignNeon) do
@@ -1505,7 +1508,7 @@ function WorldBuilder.BuildGravelPath(parent: Instance)
 	local rng = Random.new(1407)
 
 	-- Жёлтая щебёночная тропинка от спавна (Z = 18) до входа (Z = -12). Ширина 10.
-	local zFrom, zTo = 18, -17.8
+	local zFrom, zTo = 13.4, -17.8 -- v52: тропа начинается от края каменной площади
 	local length = zFrom - zTo
 	local midZ = (zFrom + zTo) * 0.5
 	makePart("PathBase", Vector3.new(10, 0.5, length), Vector3.new(0, 0.2, midZ), Color3.fromRGB(222, 190, 112), Enum.Material.Sand, folder)
@@ -2146,6 +2149,7 @@ function WorldBuilder.BuildGroundDetail(parent: Instance)
 	-- Keep SpawnPad, GravelPath, SELL station, SHOP station, Plaza, Night Merchant & Mine Pit strictly clear!
 	local function blocked(x: number, z: number, m: number): boolean
 		if math.abs(x) < 11 + m and z > -18 - m and z < 32 + m then return true end -- spawn pad & gravel path
+		if math.abs(x) < 19 + m and z > 12 - m and z < 34.5 + m then return true end -- v52: каменная площадь спавна
 		if x > -56 - m and x < -8 + m and z > -15 - m and z < 26 + m then return true end -- SELL station & ring
 		if x > 8 - m and x < 58 + m and z > -10 - m and z < 25 + m then return true end -- SHOP pavilion & pad
 		if math.abs(x) < 46 + m and z > 1 - m and z < 15 + m then return true end -- central plaza crossway
@@ -2304,6 +2308,7 @@ function WorldBuilder.BuildPlazaGreenery(parent: Instance)
 	-- same keep-out zones as BuildGroundDetail
 	local function blocked(x: number, z: number, m: number): boolean
 		if math.abs(x) < 11 + m and z > -18 - m and z < 32 + m then return true end -- spawn pad & gravel path
+		if math.abs(x) < 19 + m and z > 12 - m and z < 34.5 + m then return true end -- v52: каменная площадь спавна
 		if x > -56 - m and x < -8 + m and z > -15 - m and z < 26 + m then return true end -- SELL station & ring
 		if x > 8 - m and x < 58 + m and z > -10 - m and z < 25 + m then return true end -- SHOP pavilion & pad
 		if math.abs(x) < 46 + m and z > 1 - m and z < 15 + m then return true end -- central plaza crossway
@@ -2486,22 +2491,13 @@ function WorldBuilder.BuildWorld(
 	local paveCol = Color3.fromRGB(165, 172, 182)
 	makePart("PavementCross", Vector3.new(84, 0.25, 10), Vector3.new(0, 0.12, 8), paveCol, Enum.Material.Pavement, worldFolder)
 
-	local spawnPad = Instance.new("SpawnLocation")
-	spawnPad.Name = "MainSpawnLocation"
-	spawnPad.Size = Vector3.new(14, 0.5, 14)
-	spawnPad.Position = Vector3.new(0, 0.25, 22)
-	spawnPad.Anchored = true
-	spawnPad.CanCollide = true
-	spawnPad.Neutral = true
-	spawnPad.Color = Color3.fromRGB(240, 245, 255)
-	spawnPad.Material = Enum.Material.Marble
-	spawnPad.TopSurface = Enum.SurfaceType.SmoothNoOutlines
-	spawnPad.BottomSurface = Enum.SurfaceType.SmoothNoOutlines
-	spawnPad.Parent = worldFolder
+	-- v52: каменная площадь спавна из настоящей геометрии (SpawnLocation встроен в камень)
+	SpawnPlazaBuilder.Build(worldFolder)
 
 	-- Строим современный Пункт Приёма Руды "$ SELL" (слева) и Неоновый Павильон "🛒 SHOP" (справа)
 	local whiteSellPad = WorldBuilder.BuildModernSellMarket(worldFolder, GameConfig.WHITE_SELL_PAD_POS)
-	local greenShopPad = WorldBuilder.BuildNeonShopPavilion(worldFolder, GameConfig.GREEN_SHOP_PAD_POS, equipmentManager)
+	-- v52: деревянный рынок с торговцем Гошей вместо неонового павильона «SHOP»
+	local greenShopPad = MarketBuilder.Build(worldFolder, GameConfig.GREEN_SHOP_PAD_POS).Pad
 
 	WorldBuilder.BuildDeepMineArchitecture(worldFolder, onClaimCaveChest)
 	WorldBuilder.BuildGravelPath(worldFolder)

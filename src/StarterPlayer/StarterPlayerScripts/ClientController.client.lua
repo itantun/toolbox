@@ -49,6 +49,7 @@ local HudModule = require(Modules:WaitForChild("HudModule"))
 local EquipmentBuilder = require(Modules:WaitForChild("EquipmentBuilder"))
 local ToolAnimator = require(Modules:WaitForChild("ToolAnimator"))
 ToolAnimator.Start()
+local ClientBus = require(Modules:WaitForChild("ClientBus")) -- v52: шина новых окон (ShopUI / BackpackUI) и эффектов
 
 SoundManager.EnsureSoundsFolder()
 
@@ -477,24 +478,29 @@ local IsNightMode = false
 local CurrentDepthBlocks = 0
 
 local function updateClockAndDepthText()
+	-- v52: время фазы показывает карточка таймера справа внизу (PhaseHud); здесь — только глубина
 	local band = GameConfig.GetDepthBand(math.max(1, CurrentDepthBlocks))
-	local zoneShort = (CurrentDepthBlocks <= 0) and "Surface" or band.ZoneName
+	local zoneShort = (CurrentDepthBlocks <= 0) and "Поверхность" or band.ZoneName
 	if IsNightMode then
-		local m = math.floor(CurrentNightSec / 60)
-		local s = CurrentNightSec % 60
-		clockLbl.Text = string.format("Night (Mine Closed: %02d:%02d) · %d/30 m", m, s, CurrentDepthBlocks)
+		clockLbl.Text = string.format("Ночь · шахта закрыта · %d/30 м", CurrentDepthBlocks)
 		clockLbl.TextColor3 = Color3.fromRGB(255, 145, 125)
-		if clockStar then clockStar.Visible = false end -- v26
+		if clockStar then clockStar.Visible = false end
 		if clockMoon then clockMoon.Visible = true end
 	else
-		local m = math.floor(CurrentDaySec / 60)
-		local s = CurrentDaySec % 60
-		clockLbl.Text = string.format("Day %02d:%02d · Depth: %d/30 m (%s)", m, s, CurrentDepthBlocks, zoneShort)
+		clockLbl.Text = string.format("День · Глубина: %d/30 м (%s)", CurrentDepthBlocks, zoneShort)
 		clockLbl.TextColor3 = Color3.fromRGB(255, 235, 115)
-		if clockStar then clockStar.Visible = true end -- v26
+		if clockStar then clockStar.Visible = true end
 		if clockMoon then clockMoon.Visible = false end
 	end
 end
+
+-- v52: фаза суток — из атрибута ReplicatedStorage.Phase (общий серверный цикл NightCycleService)
+local function syncPhaseFromServer()
+	IsNightMode = ReplicatedStorage:GetAttribute(GameConfig.PHASE.AttrPhase) == "Night"
+	updateClockAndDepthText()
+end
+ReplicatedStorage:GetAttributeChangedSignal(GameConfig.PHASE.AttrPhase):Connect(syncPhaseFromServer)
+syncPhaseFromServer()
 
 DayNightEvent.OnClientEvent:Connect(function(eventType: string, payload: any)
 	if eventType == "DayTick" then
@@ -1708,16 +1714,16 @@ local function isOnShopPad(): boolean
 	return dist <= 6.2 and math.abs(p.Y - padPos.Y) < 6
 end
 local function openShopMenuHere()
+	-- v52: старая карусель больше не показывается — открываем новый магазин (ShopUI)
 	bagModal.Visible = false
-	shopModal.Visible = true
-	SoundManager.PlayUISound("ShopOpen") -- v28: shop open swoosh
-	refreshShopView()
+	shopModal.Visible = false
+	ClientBus.OpenShop:Fire()
 end
 local function goToShop()
 	bagModal.Visible = false
 	if isOnShopPad() then
-		if shopModal.Visible then
-			shopModal.Visible = false
+		if ClientBus.IsWindowOpen("Shop") then -- v52
+			ClientBus.CloseShop:Fire()
 		else
 			openShopMenuHere()
 		end
@@ -1730,7 +1736,7 @@ local function goToShop()
 	TeleportToShopRemote:FireServer()
 	-- the SHOP zone check opens the menu on arrival; this is only a fallback
 	task.delay(0.9, function()
-		if not shopModal.Visible and isOnShopPad() then
+		if not ClientBus.IsWindowOpen("Shop") and isOnShopPad() then
 			openShopMenuHere()
 		end
 	end)
@@ -1788,16 +1794,12 @@ do
 	busBag.Parent = uiBus
 	busShop.Event:Connect(function() goToShop() end) -- v27: teleport to the shop, the menu opens there
 	busBag.Event:Connect(function()
-		shopModal.Visible = false
-		bagModal.Visible = not bagModal.Visible
-		if bagModal.Visible then rebuildInventorySlots() end
+		ClientBus.ToggleBag:Fire() -- v52: новое окно рюкзака с 3D-иконками руды (BackpackUI)
 	end)
 end
 hud = HudModule.new(screenGui, {
 	OnBackpackClick = function()
-		shopModal.Visible = false
-		bagModal.Visible = not bagModal.Visible
-		if bagModal.Visible then rebuildInventorySlots() end
+		ClientBus.ToggleBag:Fire() -- v52: новое окно рюкзака с 3D-иконками руды (BackpackUI)
 	end,
 })
 
@@ -1957,9 +1959,7 @@ end)
 UserInputService.InputBegan:Connect(function(input: InputObject, gpe: boolean)
 	if gpe then return end
 	if input.KeyCode == Enum.KeyCode.B or input.KeyCode == Enum.KeyCode.I then
-		shopModal.Visible = false
-		bagModal.Visible = not bagModal.Visible
-		if bagModal.Visible then rebuildInventorySlots() end
+		ClientBus.ToggleBag:Fire() -- v52: новое окно рюкзака с 3D-иконками руды (BackpackUI)
 	elseif input.KeyCode == Enum.KeyCode.M then
 		goToShop() -- v27: same as the Shop button
 	elseif input.KeyCode == Enum.KeyCode.G then
@@ -1973,6 +1973,7 @@ UserInputService.InputBegan:Connect(function(input: InputObject, gpe: boolean)
 	elseif input.KeyCode == Enum.KeyCode.Escape then
 		shopModal.Visible = false
 		bagModal.Visible = false
+		ClientBus.CloseAll:Fire() -- v52: Esc закрывает и новые окна
 	elseif shopModal.Visible and input.KeyCode == Enum.KeyCode.Left then
 		stepShopLevel(-1)
 	elseif shopModal.Visible and input.KeyCode == Enum.KeyCode.Right then
@@ -2074,7 +2075,7 @@ local function raycastMineBlock(): BasePart?
 end
 
 local function swingPickaxeAtBlock()
-	if bagModal.Visible or shopModal.Visible or player:GetAttribute("ProgressionUIOpen") then return end
+	if bagModal.Visible or shopModal.Visible or player:GetAttribute("ProgressionUIOpen") or player:GetAttribute("UpgradeUIOpen") then return end
 	local target = HoveredBlock or raycastMineBlock()
 	if not target then return end
 
@@ -2089,7 +2090,8 @@ local function swingPickaxeAtBlock()
 
 	local accentCol = (target:GetAttribute("AccentColor") :: Color3) or target.Color
 	VFXModule.PlayHitShakeAndParticles(target, accentCol)
-	shakeCamera(0.08)
+	-- v52: искры удара красятся в цвет руды, а тряска камеры играет в момент удара (PickaxeFX)
+	ClientBus.SetLastHit(accentCol)
 
 	MineBlockRemote:FireServer(target)
 end
@@ -2163,9 +2165,13 @@ RunService.RenderStepped:Connect(function(dt: number)
 
 			-- v50: shared GameConfig.LIGHTING values; the bottom stays readable instead of pitch black
 			local L = GameConfig.LIGHTING
-			local surfBright = IsNightMode and L.NightBrightness or L.DayBrightness
-			local surfAmbient = IsNightMode and L.NightAmbient or L.DayAmbient
-			local surfOutdoor = IsNightMode and L.NightOutdoorAmbient or L.DayOutdoorAmbient
+			-- v52: плавный переход день/ночь — доля ночи 0..1 из Lighting.NightBlend (её ведёт NightFX)
+			local blendValue = Lighting:FindFirstChild("NightBlend")
+			local nightBlend = (blendValue and blendValue:IsA("NumberValue")) and blendValue.Value or (IsNightMode and 1 or 0)
+			local PL = GameConfig.PHASE_LIGHTING
+			local surfBright = L.DayBrightness + (L.NightBrightness - L.DayBrightness) * nightBlend
+			local surfAmbient = L.DayAmbient:Lerp(L.NightAmbient, nightBlend)
+			local surfOutdoor = L.DayOutdoorAmbient:Lerp(L.NightOutdoorAmbient, nightBlend)
 
 			Lighting.Brightness = surfBright * (1 - darkFactor * L.DeepDarkness)
 			Lighting.Ambient = surfAmbient:Lerp(L.DeepAmbient, darkFactor)
@@ -2174,9 +2180,10 @@ RunService.RenderStepped:Connect(function(dt: number)
 
 			local atm = Lighting:FindFirstChild("MineAtmosphere") :: Atmosphere?
 			if atm then
-				atm.Density = 0.24 + darkFactor * L.DeepAtmosphereExtraDensity
-				atm.Color = Color3.fromRGB(185, 210, 240):Lerp(Color3.fromRGB(26, 28, 44), darkFactor)
-				atm.Decay = Color3.fromRGB(95, 115, 145):Lerp(Color3.fromRGB(16, 18, 30), darkFactor)
+				atm.Density = PL.Day.AtmosphereDensity + (PL.Night.AtmosphereDensity - PL.Day.AtmosphereDensity) * nightBlend
+					+ darkFactor * L.DeepAtmosphereExtraDensity
+				atm.Color = PL.Day.AtmosphereColor:Lerp(PL.Night.AtmosphereColor, nightBlend):Lerp(Color3.fromRGB(26, 28, 44), darkFactor)
+				atm.Decay = PL.Day.AtmosphereDecay:Lerp(PL.Night.AtmosphereDecay, nightBlend):Lerp(Color3.fromRGB(16, 18, 30), darkFactor)
 			end
 
 			-- Boost the player's Hard Hat Headlamp as it gets darker so it illuminates the shaft ahead
@@ -2205,21 +2212,13 @@ RunService.RenderStepped:Connect(function(dt: number)
 		local distShop = (Vector3.new(pos.X, 0, pos.Z) - Vector3.new(shopPadPos.X, 0, shopPadPos.Z)).Magnitude
 		local onShopPad = (distShop <= 6.2) and (math.abs(pos.Y - shopPadPos.Y) < 6)
 
-		if onShopPad and not WasOnShopPad then
-			WasOnShopPad = true
-			bagModal.Visible = false
-			shopModal.Visible = true
-			SoundManager.PlayUISound("ShopOpen") -- v28: shop open swoosh
-			refreshShopView()
-		elseif not onShopPad and WasOnShopPad then
-			WasOnShopPad = false
-			shopModal.Visible = false
-		end
+		-- v52: магазин открывает ProximityPrompt торговца Гоши (и кнопка «Shop»), а не вход в зону
+		WasOnShopPad = onShopPad
 
 		-- v14: окно продажи не открывается. Автопродажу выполняет сервер при входе в зону «$ SELL».
 	end
 
-	if bagModal.Visible or shopModal.Visible or player:GetAttribute("ProgressionUIOpen") then
+	if bagModal.Visible or shopModal.Visible or player:GetAttribute("ProgressionUIOpen") or player:GetAttribute("UpgradeUIOpen") then
 		crosshair.Visible = false
 		selectionBox.Adornee = nil
 		UserInputService.MouseIconEnabled = true

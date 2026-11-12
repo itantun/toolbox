@@ -68,6 +68,15 @@ local WorldBuilder       = require(ServerModules:WaitForChild("WorldBuilder"))
 local MineManager        = require(ServerModules:WaitForChild("MineManager"))
 local ProgressionManager = require(ServerModules:WaitForChild("ProgressionManager"))
 
+-- v52: модули и Remote-ы «сочного» обновления
+local BoostService = require(ServerModules:WaitForChild("BoostService"))
+local NightCycleService = require(ServerModules:WaitForChild("NightCycleService"))
+local NightWallBuilder = require(ServerModules:WaitForChild("NightWallBuilder"))
+local ShopService = require(ServerModules:WaitForChild("ShopService"))
+local ShopActionRemote = getOrCreateRemote("ShopAction")   -- клиент -> сервер: запрос магазина
+local ShopResultRemote = getOrCreateRemote("ShopResult")   -- сервер -> клиент: результат запроса
+local NightNoticeRemote = getOrCreateRemote("NightNotice") -- сервер -> клиент: «ночь / утро / шахта закрыта»
+
 DataManager.SetSyncRemote(SyncPlayerData)
 EquipmentManager.SetFxRemote(EquipFXRemote)
 ProgressionManager.Init({
@@ -96,6 +105,9 @@ end
 local worldRefs = WorldBuilder.BuildWorld(EquipmentManager, onBuyPickaxeFromPedestal, onClaimCaveChest)
 local blocksFolder = worldRefs.BlocksFolder
 
+-- v52: большая ночная стена у входа в шахту (состояние — сервер, анимация — клиент)
+local nightWallRefs = NightWallBuilder.Build(worldRefs.WorldFolder)
+
 local function handleBlockClick(player: Player, block: BasePart)
 	MineManager.HandleMineHit(player, block, DataManager, EquipmentManager, blocksFolder, SyncPlayerData)
 end
@@ -106,7 +118,7 @@ task.spawn(function()
 	if count > 0 then
 		DayNightEvent:FireAllClients(
 			"MorningVeinsSpawned",
-			string.format("🌅 Morning! Morning Veins in the mine (×3 💰): %d (%s)", count, table.concat(list, ", "))
+			string.format("🌅 Утро! В шахте Утренние жилы (×3 💰): %d (%s)", count, table.concat(list, ", "))
 		)
 	end
 end)
@@ -142,20 +154,10 @@ task.spawn(function()
 
 				local inMine = isPositionInMineZone(pos)
 
-				-- ПУНКТ №10: Ночью вход в шахту сверху закрыт!
-				if isNight and inMine and pos.Y > -3.5 then
-					root.AssemblyLinearVelocity = Vector3.zero
-					root.CFrame = CFrame.new(math.clamp(pos.X, -6, 6), 3.8, -4.0)
+				-- v52: ночью зону шахты проверяет NightCycleService (раз в 0.5 с, телепорт на базу);
+				-- здесь только не выдаём каску тому, кто оказался в зоне ночью
+				if isNight and inMine then
 					inMine = false
-					if (now - (NightWarnCooldown[player.UserId] or 0)) > 2.0 then
-						NightWarnCooldown[player.UserId] = now
-						VFXModule.SpawnFloatingText(
-							root.Position + Vector3.new(0, 2, 0),
-							GameConfig.NIGHT_CLOSED_MESSAGE,
-							Color3.fromRGB(255, 105, 85)
-						)
-						DayNightEvent:FireClient(player, "NightEntryBlocked", GameConfig.NIGHT_CLOSED_MESSAGE)
-					end
 				end
 
 				-- ПУНКТ №11: Автоматическое надевание/снятие Оранжевой Каски на голове!
@@ -168,96 +170,19 @@ end)
 -- ============================================================================
 -- 2. ЦИКЛ УТРО / ДЕНЬ (360 СЕК) → ВЕЧЕР → НОЧЬ (60 СЕК, ШАХТА ЗАКРЫТА!)
 -- ============================================================================
-task.spawn(function()
-	while true do
-		-- УТРО И ДЕНЬ
-		MineManager.SetNightClosed(false)
-		WorldBuilder.SetNightMineBarrierActive(false)
-		WorldBuilder.SetNightLightsActive(false)
-
-		local dayRemaining = GameConfig.DAY_DURATION_SECONDS
-		local eveningAnnounced = false
-		while dayRemaining > 0 do
-			if dayRemaining <= GameConfig.EVENING_WARNING_SECONDS and not eveningAnnounced then
-				eveningAnnounced = true
-				DayNightEvent:FireAllClients(
-					"EveningWarning",
-					string.format("🌆 Evening! The mine closes in %d s — finish mining!", dayRemaining)
-				)
-			end
-			DayNightEvent:FireAllClients("DayTick", dayRemaining)
-			task.wait(1)
-			dayRemaining -= 1
-		end
-
-		-- НАСТУПЛЕНИЕ НОЧИ: закрываем вход в шахту сверху!
-		MineManager.SetNightClosed(true)
-		WorldBuilder.SetNightMineBarrierActive(true)
-		WorldBuilder.SetNightLightsActive(true)
-		MineManager.ClearMorningVeinsForNight()
-
-		DayNightEvent:FireAllClients(
-			"NightStarted",
-			"🌙 Night! The mine is closed until morning. Miners inside have 15 s to leave!"
-		)
-
-		TweenService:Create(Lighting, TweenInfo.new(GameConfig.TRANSITION_TWEEN_TIME, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
-			ClockTime = 24.0,
-			Brightness = GameConfig.LIGHTING.NightBrightness,
-			Ambient = GameConfig.LIGHTING.NightAmbient,
-			OutdoorAmbient = GameConfig.LIGHTING.NightOutdoorAmbient,
-		}):Play()
-
-		task.wait(1.2)
-		Lighting.ClockTime = 0.0
-
-		local nightRemaining = GameConfig.NIGHT_DURATION_SECONDS
-		local evacuatedUnderground = false
-		while nightRemaining > 0 do
-			DayNightEvent:FireAllClients("NightTick", nightRemaining)
-			-- Через 15 секунд после начала ночи бережно поднимаем оставшихся в шахте игроков наверх с сохранением всей добытой руды!
-			if (GameConfig.NIGHT_DURATION_SECONDS - nightRemaining) >= GameConfig.NIGHT_GRACE_EXIT_SECONDS and not evacuatedUnderground then
-				evacuatedUnderground = true
-				for _, plr in ipairs(Players:GetPlayers()) do
-					local root = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") :: BasePart?
-					if root and isPositionInMineZone(root.Position) then
-						root.AssemblyLinearVelocity = Vector3.zero
-						root.CFrame = CFrame.new(GameConfig.SPAWN_POSITION + Vector3.new(math.random(-6, 6), 0, math.random(-4, 4)))
-						EquipmentManager.UpdateMinerHardHat(plr.Character, false)
-						VFXModule.SpawnFloatingText(root.Position + Vector3.new(0, 2, 0), "🌙 Shift over! You were moved to the surface (all ore kept).", Color3.fromRGB(130, 200, 255))
-					end
-				end
-				-- Восстанавливаем выработанные породы шахты к новому утру
-				MineManager.RespawnAllBlocksForNight(blocksFolder, handleBlockClick)
-			end
-			task.wait(1)
-			nightRemaining -= 1
-		end
-
-		-- НАСТУПЛЕНИЕ УТРА: открываем шахту и спавним 0–3 Утренних залежи (цена ×3)!
-		MineManager.SetNightClosed(false)
-		WorldBuilder.SetNightMineBarrierActive(false)
-		WorldBuilder.SetNightLightsActive(false)
-
-		TweenService:Create(Lighting, TweenInfo.new(GameConfig.TRANSITION_TWEEN_TIME, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
-			ClockTime = 14.0,
-			Brightness = GameConfig.LIGHTING.DayBrightness,
-			Ambient = GameConfig.LIGHTING.DayAmbient,
-			OutdoorAmbient = GameConfig.LIGHTING.DayOutdoorAmbient,
-		}):Play()
-
-		local veinCount, veinList = MineManager.SpawnMorningVeins()
-		if veinCount > 0 then
-			DayNightEvent:FireAllClients(
-				"DayStarted",
-				string.format("🌅 Morning! The mine is open! Morning Veins found (×3 💰): %d (%s)", veinCount, table.concat(veinList, ", "))
-			)
-		else
-			DayNightEvent:FireAllClients("DayStarted", "☀️ Morning! The mine is open again!")
-		end
-		task.wait(GameConfig.TRANSITION_TWEEN_TIME)
-	end
-end)
+-- v52: цикл вынесен в NightCycleService — атрибуты Phase / PhaseEndsAt / PhaseLength в ReplicatedStorage,
+-- мгновенный телепорт всех игроков на базу в момент наступления ночи, стена у входа, проверка зоны.
+NightCycleService.Start({
+	MineManager = MineManager,
+	WorldBuilder = WorldBuilder,
+	EquipmentManager = EquipmentManager,
+	NightWallBuilder = NightWallBuilder,
+	WallRefs = nightWallRefs,
+	BlocksFolder = blocksFolder,
+	OnBlockClicked = handleBlockClick,
+	NoticeRemote = NightNoticeRemote,
+	DayNightEvent = DayNightEvent,
+})
 
 -- ============================================================================
 -- 3. СЕРВЕРНЫЙ ТЕЛЕПОРТ ПО НИЖНЕЙ КНОПКЕ «НАВЕРХ / СПАУН» (ПУНКТ №3 ТЗ)
@@ -602,7 +527,7 @@ local MERCHANT_ITEMS: { [string]: (any) -> number } = {
 	RepairKit    = function(_p: any) return GameConfig.BACKPACK_DIRT.RepairKitPrice end, -- v32: fixed 85
 	Book         = function(p: any) return 120 + 15 * (p.Level or 1) end,
 	Food         = function(_p: any) return GameConfig.FOOD.Price end,
-	Potion       = function(_p: any) return 150 end,
+	Potion       = function(_p: any) return GameConfig.BOOSTS.Items.Potion.Price end, -- v52: цена в конфиге бустов
 	TopHat       = function(p: any) if p.Cosmetics and p.Cosmetics.TopHat then return 0 end return 800 end,
 	MorningCharm = function(p: any) if p.MorningCharm then return 0 end return 300 end,
 }
@@ -623,7 +548,7 @@ local function merchantState(player: Player, profile: any)
 		FoodMax = GameConfig.FOOD.MaxStock,
 		BagUsed = DataManager.GetBackpackUsed(player),
 		BagMax = DataManager.GetMaxBackpack(player),
-		PotionLeft = math.max(0, (tonumber(player:GetAttribute("SellBoostUntil")) or 0) - os.time()),
+		PotionLeft = math.floor(BoostService.GetRemaining(player, "Potion")), -- v52
 	}
 end
 
@@ -756,8 +681,7 @@ NightMerchantRemote.OnServerEvent:Connect(function(player: Player, action: any, 
 			profile.FoodStock = math.min(GameConfig.FOOD.MaxStock, (profile.FoodStock or 0) + 1)
 			msg = string.format("🍔 Burger added to supplies (x%d). Eat anytime: [%s]", profile.FoodStock, GameConfig.FOOD.Key)
 		elseif itemId == "Potion" then
-			local untilT = math.max(os.time(), tonumber(player:GetAttribute("SellBoostUntil")) or 0) + 180
-			player:SetAttribute("SellBoostUntil", untilT)
+			BoostService.Activate(player, "Potion") -- v52: зелье — обычный буст (продлевается, сохраняется, виден чипом)
 			msg = "🧪 Miner Potion: +25% coins at $ SELL for 3 min"
 		elseif itemId == "TopHat" then
 			profile.Cosmetics.TopHat = true
@@ -892,5 +816,20 @@ task.spawn(function()
 end)
 
 DataManager.StartAutoSaveLoop()
+
+-- v52: бусты (сервер хранит время конца) и магазин торговца Гоши (все запросы проверяет сервер)
+BoostService.SetChangedCallback(function(player: Player)
+	DataManager.SyncToClient(player, SyncPlayerData)
+end)
+BoostService.Start()
+ShopService.Init({
+	DataManager = DataManager,
+	EquipmentManager = EquipmentManager,
+	BoostService = BoostService,
+	SoundManager = SoundManager,
+	SyncRemote = SyncPlayerData,
+	ActionRemote = ShopActionRemote,
+	ResultRemote = ShopResultRemote,
+})
 
 print("✅ [ServerMain] Systems started")

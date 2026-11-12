@@ -1441,10 +1441,11 @@ function MineManager.HandleMineHit(
 	end
 
 	-- Если сейчас НОЧЬ и игрок стоит на поверхности — копать закрытую шахту сверху нельзя!
-	if IsNightClosed and root.Position.Y > -1.0 then
+	-- v52: ночью копка строго запрещена на сервере, где бы игрок ни стоял
+	if IsNightClosed then
 		VFXModule.SpawnFloatingText(
 			blockPos,
-			"🌙 The mine is closed at night. Come back in the morning.",
+			"🌙 Шахта закрыта на ночь. Возвращайся утром!",
 			Color3.fromRGB(255, 110, 90)
 		)
 		return

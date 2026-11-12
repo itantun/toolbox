@@ -42,8 +42,8 @@ GameConfig.AUTO_SELL = {
 
 -- Вход в шахту: тропинка идёт от спавна (Z=22) к арке с вывеской «ШАХТА» (Z=-12)
 GameConfig.MINE_ENTRANCE_POS = Vector3.new(0, 0, -12)
-GameConfig.MINE_SIGN_TEXT = "MINE"
-GameConfig.NIGHT_CLOSED_MESSAGE = "The mine is closed at night. Come back in the morning."
+GameConfig.MINE_SIGN_TEXT = "ШАХТА"
+GameConfig.NIGHT_CLOSED_MESSAGE = "Шахта закрыта на ночь. Возвращайся утром!"
 
 GameConfig.MAX_MINE_DISTANCE = 12.0 -- v49: strictly first 2 blocks in radius (2 * 6.0 studs)
 GameConfig.AUTOSAVE_INTERVAL = 60
@@ -1102,6 +1102,999 @@ GameConfig.FOOD = {
 	MaxStock = 20,
 	EatCooldown = 1.0,
 	Key = "H",
+}
+
+
+-- ============================================================================
+-- ============================================================================
+-- v52: «СОЧНОЕ» ОБНОВЛЕНИЕ. ВСЕ НОВЫЕ ЦЕНЫ, ДЛИТЕЛЬНОСТИ И ЦВЕТА — НИЖЕ.
+-- Цены кирок, рюкзаков и руды по-прежнему в разделах 6, 8 и 9 этого же файла.
+-- ============================================================================
+-- ============================================================================
+
+-- ============================================================================
+-- 12. РУССКИЕ НАЗВАНИЯ ДЛЯ НОВОГО ИНТЕРФЕЙСА (магазин, рюкзак, уведомления)
+-- ============================================================================
+GameConfig.RU_NAMES = {
+	Ores = {
+		Grass = "Трава", Dirt = "Земля", Clay = "Песок", Stone = "Камень", Coal = "Уголь",
+		Iron = "Железная руда", Copper = "Магма", Tin = "Ледяной камень", Silver = "Серебряная руда",
+		Gold = "Золотая руда", Amethyst = "Аметист", Ruby = "Рубин", Emerald = "Изумруд",
+		Sapphire = "Обсидиан", Diamond = "Алмаз", Mithril = "Кристалл Бездны",
+	} :: { [string]: string },
+	Pickaxes = {
+		"Деревянная кирка", "Каменная кирка", "Железная кирка", "Стальная кирка", "Сапфировая кирка",
+		"Хрустальная кирка", "Аметистовая кирка", "Кирка Бездны", "Золотая кирка", "Королевская кирка",
+	},
+	Backpacks = {
+		"Холщовый мешок", "Кожаный рюкзак", "Походный рюкзак", "Городской рюкзак", "Рюкзак «Авангард»",
+		"Шахтёрский ящик", "Рюкзак «Полярная звезда»", "Кристальный рюкзак", "Вулканический рюкзак", "Звёздный рюкзак",
+	},
+}
+
+function GameConfig.GetOreNameRu(oreId: string): string
+	local info = GameConfig.BLOCK_TYPES[oreId]
+	return GameConfig.RU_NAMES.Ores[oreId] or (info and info.Name) or oreId
+end
+
+-- ============================================================================
+-- 13. ПАЛИТРА ИНТЕРФЕЙСА И РЕДКОСТИ
+-- ============================================================================
+GameConfig.UI = {
+	BgTop = Color3.fromRGB(34, 38, 72),
+	BgBottom = Color3.fromRGB(12, 13, 26),
+	Panel = Color3.fromRGB(24, 27, 50),
+	PanelLight = Color3.fromRGB(44, 50, 88),
+	Slot = Color3.fromRGB(30, 34, 62),
+	SlotEmpty = Color3.fromRGB(14, 15, 28),
+	Text = Color3.fromRGB(242, 246, 255),
+	TextDim = Color3.fromRGB(160, 172, 204),
+	Gold = Color3.fromRGB(255, 205, 70),
+	Green = Color3.fromRGB(80, 228, 128),
+	GreenDark = Color3.fromRGB(26, 150, 78),
+	Red = Color3.fromRGB(255, 84, 84),
+	RedDark = Color3.fromRGB(170, 34, 44),
+	Blue = Color3.fromRGB(70, 160, 255),
+	BlueDark = Color3.fromRGB(34, 86, 190),
+	Purple = Color3.fromRGB(176, 92, 255),
+	Shine = Color3.fromRGB(255, 255, 255),
+	Font = Enum.Font.GothamBold,
+	FontBlack = Enum.Font.GothamBlack,
+	FontTitle = Enum.Font.FredokaOne,
+	FontMono = Enum.Font.RobotoMono,
+	Corner = 14,
+	OpenSeconds = 0.38,       -- плавное открытие окон (Back)
+	CloseSeconds = 0.18,
+	HoverScale = 1.06,        -- «поп» карточки при наведении
+	ShineInterval = 2.8,      -- раз в N секунд по карточкам пробегает диагональный блик
+	ShineSeconds = 0.75,
+	ViewportSpinSeconds = 9,  -- полный оборот 3D-превью
+	ToastSeconds = 2.6,
+}
+
+GameConfig.RARITY = {
+	{ Id = "Common", Name = "ОБЫЧНАЯ", Color = Color3.fromRGB(168, 176, 188) },
+	{ Id = "Uncommon", Name = "НЕОБЫЧНАЯ", Color = Color3.fromRGB(86, 206, 84) },
+	{ Id = "Rare", Name = "РЕДКАЯ", Color = Color3.fromRGB(58, 150, 255) },
+	{ Id = "Epic", Name = "ЭПИЧЕСКАЯ", Color = Color3.fromRGB(176, 92, 255) },
+	{ Id = "Legendary", Name = "ЛЕГЕНДАРНАЯ", Color = Color3.fromRGB(255, 192, 36) },
+}
+-- Редкость (индекс в RARITY) для уровней 1..10 кирок и рюкзаков
+GameConfig.TIER_RARITY = { 1, 1, 2, 2, 3, 3, 4, 4, 5, 5 }
+-- Редкость руды по категории
+GameConfig.ORE_CATEGORY_RARITY = { Common = 1, Rare = 3, Precious = 4, Relic = 5 } :: { [string]: number }
+
+function GameConfig.GetTierRarity(level: number)
+	local idx = GameConfig.TIER_RARITY[math.clamp(math.floor(level), 1, #GameConfig.TIER_RARITY)] or 1
+	return GameConfig.RARITY[idx]
+end
+
+-- ============================================================================
+-- 14. КИРКИ: НЕОН, КРИСТАЛЛ, СВЕТ, БЛЁСТКИ, ШЛЕЙФ (по уровням 1..10)
+-- Цвет металла лезвия — BladeColor в PICKAXE_TIERS (раздел 8).
+-- ============================================================================
+export type PickaxeFxConfig = {
+	Neon: Color3,          -- неоновая полоса на лезвии и шлейф взмаха
+	Core: Color3,          -- светящийся кристалл в центре головы
+	SparkleRate: number,   -- блёсток в секунду (ParticleEmitter, sparkles_main.dds)
+	SparkleSize: number,
+	LightRange: number,    -- PointLight малого радиуса
+	LightBrightness: number,
+	TrailWidth: number,    -- ширина шлейфа относительно длины лезвия (0..1)
+	Epic: boolean,         -- топовые уровни: пульсация свечения и тяжёлые частицы
+}
+
+GameConfig.PICKAXE_FX = {
+	[1]  = { Neon = Color3.fromRGB(255, 176, 64),  Core = Color3.fromRGB(255, 214, 120), SparkleRate = 2,  SparkleSize = 0.16, LightRange = 4,   LightBrightness = 0.35, TrailWidth = 0.55, Epic = false },
+	[2]  = { Neon = Color3.fromRGB(196, 232, 255), Core = Color3.fromRGB(220, 244, 255), SparkleRate = 3,  SparkleSize = 0.17, LightRange = 4.5, LightBrightness = 0.45, TrailWidth = 0.60, Epic = false },
+	[3]  = { Neon = Color3.fromRGB(92, 190, 255),  Core = Color3.fromRGB(150, 218, 255), SparkleRate = 4,  SparkleSize = 0.18, LightRange = 5,   LightBrightness = 0.60, TrailWidth = 0.65, Epic = false },
+	[4]  = { Neon = Color3.fromRGB(64, 236, 214),  Core = Color3.fromRGB(150, 255, 236), SparkleRate = 5,  SparkleSize = 0.19, LightRange = 5.5, LightBrightness = 0.75, TrailWidth = 0.70, Epic = false },
+	[5]  = { Neon = Color3.fromRGB(96, 186, 255),  Core = Color3.fromRGB(40, 110, 255),  SparkleRate = 7,  SparkleSize = 0.20, LightRange = 6,   LightBrightness = 0.90, TrailWidth = 0.75, Epic = false },
+	[6]  = { Neon = Color3.fromRGB(170, 250, 255), Core = Color3.fromRGB(96, 226, 255),  SparkleRate = 9,  SparkleSize = 0.21, LightRange = 6.5, LightBrightness = 1.05, TrailWidth = 0.80, Epic = false },
+	[7]  = { Neon = Color3.fromRGB(214, 140, 255), Core = Color3.fromRGB(176, 84, 255),  SparkleRate = 11, SparkleSize = 0.22, LightRange = 7,   LightBrightness = 1.20, TrailWidth = 0.85, Epic = false },
+	[8]  = { Neon = Color3.fromRGB(255, 84, 232),  Core = Color3.fromRGB(150, 60, 255),  SparkleRate = 14, SparkleSize = 0.24, LightRange = 8,   LightBrightness = 1.45, TrailWidth = 0.90, Epic = true },
+	[9]  = { Neon = Color3.fromRGB(255, 232, 120), Core = Color3.fromRGB(255, 176, 30),  SparkleRate = 18, SparkleSize = 0.26, LightRange = 9,   LightBrightness = 1.70, TrailWidth = 0.95, Epic = true },
+	[10] = { Neon = Color3.fromRGB(255, 246, 190), Core = Color3.fromRGB(255, 120, 40),  SparkleRate = 24, SparkleSize = 0.30, LightRange = 10,  LightBrightness = 2.00, TrailWidth = 1.00, Epic = true },
+} :: { [number]: PickaxeFxConfig }
+
+GameConfig.PICKAXE_SWING_FX = {
+	TrailSeconds = 0.34,       -- сколько шлейф включён после начала взмаха
+	TrailLifetime = 0.16,
+	ImpactSparks = 14,         -- искр цвета руды при ударе (Emit, без создания объектов)
+	ImpactSparksEpic = 26,
+	CameraShake = 0.10,        -- лёгкая тряска камеры при ударе (studs)
+	PulseSeconds = 0.9,        -- период пульсации свечения топовых кирок
+	PulseMin = 0.55,           -- доля яркости в нижней точке пульсации
+	FxRange = 90,              -- дальше этого расстояния чужие эффекты не проигрываются
+}
+
+function GameConfig.GetPickaxeFx(level: number): PickaxeFxConfig
+	return GameConfig.PICKAXE_FX[math.clamp(math.floor(level), 1, GameConfig.MAX_PICKAXE_LEVEL)] or GameConfig.PICKAXE_FX[1]
+end
+
+-- ============================================================================
+-- 15. ЦИКЛ ДНЯ И НОЧИ (атрибуты ReplicatedStorage + workspace:GetServerTimeNow())
+-- ============================================================================
+GameConfig.PHASE = {
+	DaySeconds = GameConfig.DAY_DURATION_SECONDS,
+	NightSeconds = GameConfig.NIGHT_DURATION_SECONDS,
+	EveningWarningSeconds = GameConfig.EVENING_WARNING_SECONDS,
+	WarningSeconds = 10,          -- последние секунды фазы: таймер пульсирует предупреждающим цветом
+	ZoneCheckInterval = 0.5,      -- как часто сервер ночью проверяет зону шахты
+	ZoneWarnCooldown = 2.5,       -- не чаще, чем раз в N секунд показываем предупреждение нарушителю
+	BlockRespawnDelay = 2.0,      -- через сколько секунд после наступления ночи восстанавливаются блоки
+	TeleportSpread = Vector3.new(7, 0, 4), -- разброс точек на базе, чтобы игроки не стояли друг в друге
+	LightingTweenSeconds = 3.0,   -- плавный переход освещения
+	BannerSeconds = 4.5,
+	-- Имена атрибутов ReplicatedStorage (читает клиент)
+	AttrPhase = "Phase",          -- "Day" | "Night"
+	AttrEndsAt = "PhaseEndsAt",   -- момент конца фазы в секундах workspace:GetServerTimeNow()
+	AttrLength = "PhaseLength",   -- длительность текущей фазы, сек
+}
+
+-- Освещение фаз. Яркость и Ambient берутся из GameConfig.LIGHTING (раздел 3).
+GameConfig.PHASE_LIGHTING = {
+	Day = {
+		ClockTime = 14,
+		AtmosphereColor = Color3.fromRGB(185, 210, 240),
+		AtmosphereDecay = Color3.fromRGB(95, 115, 145),
+		AtmosphereDensity = 0.24,
+		BloomIntensity = 0.48,
+		BloomSize = 22,
+		Tint = Color3.fromRGB(255, 255, 255),
+	},
+	Night = {
+		ClockTime = 0,
+		AtmosphereColor = Color3.fromRGB(70, 84, 150),
+		AtmosphereDecay = Color3.fromRGB(22, 26, 56),
+		AtmosphereDensity = 0.30,
+		BloomIntensity = 0.95,
+		BloomSize = 32,
+		Tint = Color3.fromRGB(196, 206, 255),
+	},
+}
+
+-- Карточка таймера и чипы бустов (правый нижний угол)
+GameConfig.PHASE_HUD = {
+	CardSize = Vector2.new(252, 96),
+	ChipSize = Vector2.new(252, 46),
+	ChipGap = 6,
+	Margin = 14,
+	TouchBottomInsetPhone = 124,   -- на телефоне карточка стоит над кнопками прыжка и бега
+	TouchBottomInsetTablet = 228,
+	Day = {
+		Title = "ДЕНЬ", Sub = "до ночи", Icon = "☀️",
+		Top = Color3.fromRGB(255, 182, 52), Bottom = Color3.fromRGB(226, 92, 24),
+		Glow = Color3.fromRGB(255, 222, 120), Bar = Color3.fromRGB(255, 236, 150),
+	},
+	Night = {
+		Title = "НОЧЬ", Sub = "до дня", Icon = "🌙",
+		Top = Color3.fromRGB(92, 78, 224), Bottom = Color3.fromRGB(34, 22, 104),
+		Glow = Color3.fromRGB(160, 150, 255), Bar = Color3.fromRGB(190, 180, 255),
+	},
+	Warning = Color3.fromRGB(255, 70, 70),
+	StyleTweenSeconds = 0.8,
+}
+
+-- ============================================================================
+-- 16. БУСТЫ ТОРГОВЦА (сервер хранит точное время конца, клиент только показывает)
+-- ============================================================================
+export type BoostConfig = {
+	Id: string,
+	Name: string,
+	Icon: string,
+	Desc: string,
+	Stat: string,          -- "Luck" | "MineSpeed" | "Coins"
+	Multiplier: number,
+	Duration: number,      -- секунд за одну покупку (повторная покупка ПРОДЛЕВАЕТ буст)
+	Price: number,
+	Color: Color3,
+	Rarity: number,
+	InShop: boolean,       -- продаётся ли у торговца Гоши
+}
+
+GameConfig.BOOSTS = {
+	Order = { "Luck", "Speed", "Coins", "Potion" },
+	MaxSeconds = 3600,        -- больше часа буст не накапливается
+	ExpireWarnSeconds = 10,   -- чип пульсирует, когда осталось меньше
+	Items = {
+		Luck = {
+			Id = "Luck", Name = "Удача", Icon = "🍀", Desc = "Шанс бонусной руды ×2",
+			Stat = "Luck", Multiplier = 2, Duration = 300, Price = 450,
+			Color = Color3.fromRGB(86, 220, 110), Rarity = 2, InShop = true,
+		},
+		Speed = {
+			Id = "Speed", Name = "Скорость", Icon = "⚡", Desc = "Кирка бьёт в 1.5 раза быстрее",
+			Stat = "MineSpeed", Multiplier = 1.5, Duration = 300, Price = 600,
+			Color = Color3.fromRGB(80, 190, 255), Rarity = 3, InShop = true,
+		},
+		Coins = {
+			Id = "Coins", Name = "Монеты", Icon = "💰", Desc = "Продажа руды приносит ×2 монет",
+			Stat = "Coins", Multiplier = 2, Duration = 300, Price = 900,
+			Color = Color3.fromRGB(255, 200, 60), Rarity = 4, InShop = true,
+		},
+		-- Зелье Ночного торговца (существовало в v51 как атрибут SellBoostUntil) — теперь тоже буст с чипом
+		Potion = {
+			Id = "Potion", Name = "Зелье шахтёра", Icon = "🧪", Desc = "+25% монет при продаже",
+			Stat = "Coins", Multiplier = 1.25, Duration = 180, Price = 150,
+			Color = Color3.fromRGB(205, 100, 235), Rarity = 2, InShop = false,
+		},
+	} :: { [string]: BoostConfig },
+}
+
+-- ============================================================================
+-- 17. МАГАЗИН И ОКНО РЮКЗАКА
+-- ============================================================================
+GameConfig.SHOP_UI = {
+	MaxDistance = 20,          -- сервер: дальше от торговца покупка и продажа отклоняются
+	AutoCloseDistance = 26,    -- клиент сам закрывает окно, если игрок ушёл
+	ActionCooldown = 0.3,      -- сервер: минимальный интервал между действиями магазина
+	WindowSize = Vector2.new(880, 580),
+	CardSize = Vector2.new(198, 276),
+	Tabs = {
+		{ Id = "Pickaxes", Title = "Кирки", Icon = "⛏️", Color = Color3.fromRGB(255, 176, 64) },
+		{ Id = "Backpacks", Title = "Рюкзаки", Icon = "🎒", Color = Color3.fromRGB(96, 200, 120) },
+		{ Id = "Boosts", Title = "Бусты", Icon = "⚡", Color = Color3.fromRGB(110, 170, 255) },
+		{ Id = "Sell", Title = "Продать руду", Icon = "💰", Color = Color3.fromRGB(255, 205, 70) },
+	},
+}
+
+GameConfig.BACKPACK_UI = {
+	WindowSize = Vector2.new(760, 540),
+	SlotSize = Vector2.new(132, 158),
+	MinSlots = 10,             -- сколько ячеек показывать минимум (пустые затемнены)
+	WarnRatio = 0.7,           -- полоса вместимости желтеет
+	FullRatio = 0.9,           -- полоса вместимости краснеет
+	BarOk = Color3.fromRGB(80, 228, 128),
+	BarWarn = Color3.fromRGB(255, 200, 60),
+	BarFull = Color3.fromRGB(255, 84, 84),
+	IconSpinSeconds = 12,      -- полный оборот 3D-иконки руды
+}
+
+-- ============================================================================
+-- 18. ЗВУКИ НОВОГО ИНТЕРФЕЙСА И ЭФФЕКТОВ (только встроенные rbxasset://sounds/...)
+-- ============================================================================
+export type SfxConfig = { Id: string, Volume: number, Pitch: number }
+
+GameConfig.SFX = {
+	Click = { Id = "rbxasset://sounds/clickfast.wav", Volume = 0.45, Pitch = 1.0 },
+	Tab = { Id = "rbxasset://sounds/switch.wav", Volume = 0.40, Pitch = 1.15 },
+	Open = { Id = "rbxasset://sounds/switch.wav", Volume = 0.45, Pitch = 0.80 },
+	Success = { Id = "rbxasset://sounds/electronicpingshort.wav", Volume = 0.55, Pitch = 1.20 },
+	Error = { Id = "rbxasset://sounds/bass.wav", Volume = 0.50, Pitch = 0.90 },
+	Swing = { Id = "rbxasset://sounds/swordslash.wav", Volume = 0.14, Pitch = 1.35 },
+	Impact = { Id = "rbxasset://sounds/hit.wav", Volume = 0.16, Pitch = 1.50 },
+	WallRumble = { Id = "rbxasset://sounds/impact_explosion_03.mp3", Volume = 0.90, Pitch = 0.42 },
+	WallSlam = { Id = "rbxasset://sounds/action_jump_land.mp3", Volume = 1.00, Pitch = 0.55 },
+	PhaseBell = { Id = "rbxasset://sounds/electronicpingshort.wav", Volume = 0.45, Pitch = 0.60 },
+} :: { [string]: SfxConfig }
+
+-- ============================================================================
+-- 19. 3D-ИКОНКИ РУДЫ В РЮКЗАКЕ И МАГАЗИНЕ (ViewportFrame)
+-- ============================================================================
+GameConfig.ORE_ICON = {
+	Seed = 52,
+	RockChunks = 5,        -- обломков вокруг базового камня
+	CrystalCount = 6,      -- кристаллов в друзе
+	NuggetCount = 8,       -- самородков на камне
+	CameraDistance = 5.6,
+	CameraHeight = 2.1,
+	Center = Vector3.new(0, 0.15, 0),
+}
+
+-- Камера 3D-превью кирок и рюкзаков в карточках магазина
+GameConfig.SHOP_PREVIEW = {
+	PickaxeDistance = 8.4,
+	PickaxeHeight = 1.2,
+	BackpackDistance = 7.2,
+	BackpackHeight = 1.0,
+}
+
+
+-- ============================================================================
+-- 19. ДЕТАЛИЗАЦИЯ РЮКЗАКОВ (швы, пряжки, фонарь, кристаллы, эмблемы) — модуль BackpackDetailer
+-- Все цвета и размеры отделки живут здесь; в модуле нет «зашитых» значений.
+-- ============================================================================
+export type BackpackDetailLevelCfg = {
+	Metal: Color3,           -- металл: пряжки, кольца, уголки
+	Accent: Color3,          -- главный акцент уровня (верёвка, латунь, золото, стекло, магма)
+	Accent2: Color3,         -- второй акцент (кожа, пластины, тёмный фиолет)
+	Glow: Color3,            -- цвет свечения (линза, кристаллы, неон)
+	Glow2: Color3,           -- запасной цвет свечения (звёздочки, искры)
+	Cloth: Color3,           -- ткань заплат, ремешков и тёмных рёбер
+	Thread: Color3,          -- нить швов
+	Count: number,           -- число кристаллов / осколков / ответвлений трещин / звёздочек
+	LightBrightness: number, -- яркость источника света (только на персонаже)
+	LightRange: number,      -- дальность источника света
+	EmitRate: number,        -- частота частиц в секунду (0 — без частиц)
+	Shine: number,           -- блеск металла и стекла (Reflectance)
+}
+
+GameConfig.BACKPACK_DETAIL_SHARED = {
+	Seed = 5200,        -- Random.new(Seed + уровень): раскладка стабильна
+	MaxParts = 45,      -- максимум дополнительных деталей на рюкзак
+	MaxLights = 2,      -- максимум источников света на рюкзак
+	MaxEmitters = 2,    -- максимум излучателей частиц на рюкзак
+	Lift = 0.015,       -- подъём детали над поверхностью (в долях масштаба)
+	StitchDash = 0.11,  -- длина одного стежка
+	StitchPerRow = 5,   -- стежков в ряду
+	ScuffCount = 3,     -- число потёртостей
+	WaistLimit = 0.44,  -- ниже CenterY − Height × значение детали не ставятся
+}
+
+GameConfig.BACKPACK_DETAIL = {
+	-- 1. Холщовый мешок: верёвка и заплата
+	[1] = {
+		Metal = Color3.fromRGB(198, 202, 210), Accent = Color3.fromRGB(196, 164, 110), Accent2 = Color3.fromRGB(150, 112, 66),
+		Glow = Color3.fromRGB(255, 214, 140), Glow2 = Color3.fromRGB(255, 236, 190), Cloth = Color3.fromRGB(122, 92, 56),
+		Thread = Color3.fromRGB(232, 212, 166), Count = 0, LightBrightness = 0, LightRange = 0, EmitRate = 0, Shine = 0.1,
+	},
+	-- 2. Кожаный рюкзак: латунные пряжки, заклёпки
+	[2] = {
+		Metal = Color3.fromRGB(214, 170, 70), Accent = Color3.fromRGB(214, 170, 70), Accent2 = Color3.fromRGB(120, 70, 36),
+		Glow = Color3.fromRGB(255, 214, 140), Glow2 = Color3.fromRGB(255, 236, 190), Cloth = Color3.fromRGB(92, 52, 30),
+		Thread = Color3.fromRGB(230, 196, 150), Count = 0, LightBrightness = 0, LightRange = 0, EmitRate = 0, Shine = 0.25,
+	},
+	-- 3. Походный рюкзак: скатка, фонарик, карабин
+	[3] = {
+		Metal = Color3.fromRGB(186, 190, 180), Accent = Color3.fromRGB(64, 72, 36), Accent2 = Color3.fromRGB(58, 60, 64),
+		Glow = Color3.fromRGB(255, 244, 200), Glow2 = Color3.fromRGB(255, 250, 225), Cloth = Color3.fromRGB(58, 66, 32),
+		Thread = Color3.fromRGB(208, 208, 160), Count = 0, LightBrightness = 1.4, LightRange = 16, EmitRate = 0, Shine = 0.25,
+	},
+	-- 4. Городской рюкзак: бегунки, светоотражающая лента, шильдик
+	[4] = {
+		Metal = Color3.fromRGB(178, 184, 194), Accent = Color3.fromRGB(150, 156, 166), Accent2 = Color3.fromRGB(88, 92, 102),
+		Glow = Color3.fromRGB(170, 182, 196), Glow2 = Color3.fromRGB(220, 230, 240), Cloth = Color3.fromRGB(30, 32, 38),
+		Thread = Color3.fromRGB(88, 92, 102), Count = 0, LightBrightness = 0, LightRange = 0, EmitRate = 0, Shine = 0.3,
+	},
+	-- 5. «Авангард»: уголки и светящиеся боковые полосы
+	[5] = {
+		Metal = Color3.fromRGB(196, 202, 212), Accent = Color3.fromRGB(230, 236, 250), Accent2 = Color3.fromRGB(22, 70, 160),
+		Glow = Color3.fromRGB(246, 249, 255), Glow2 = Color3.fromRGB(150, 200, 255), Cloth = Color3.fromRGB(16, 48, 120),
+		Thread = Color3.fromRGB(70, 140, 245), Count = 0, LightBrightness = 0.5, LightRange = 5, EmitRate = 0, Shine = 0.3,
+	},
+	-- 6. Шахтёрский ящик: клёпаные пластины, кристаллы, шахтёрская лампа
+	[6] = {
+		Metal = Color3.fromRGB(134, 138, 146), Accent = Color3.fromRGB(255, 190, 80), Accent2 = Color3.fromRGB(70, 72, 80),
+		Glow = Color3.fromRGB(80, 220, 255), Glow2 = Color3.fromRGB(140, 255, 200), Cloth = Color3.fromRGB(40, 42, 46),
+		Thread = Color3.fromRGB(88, 92, 100), Count = 3, LightBrightness = 1.6, LightRange = 12, EmitRate = 0, Shine = 0.3,
+	},
+	-- 7. «Полярная звезда»: золотой звёздный акцент
+	[7] = {
+		Metal = Color3.fromRGB(204, 210, 220), Accent = Color3.fromRGB(255, 205, 70), Accent2 = Color3.fromRGB(230, 236, 242),
+		Glow = Color3.fromRGB(40, 150, 255), Glow2 = Color3.fromRGB(120, 200, 255), Cloth = Color3.fromRGB(172, 178, 188),
+		Thread = Color3.fromRGB(172, 178, 188), Count = 2, LightBrightness = 0.6, LightRange = 6, EmitRate = 0, Shine = 0.3,
+	},
+	-- 8. Кристальный «Корона»: стеклянные пластины и внутреннее свечение
+	[8] = {
+		Metal = Color3.fromRGB(122, 112, 142), Accent = Color3.fromRGB(150, 90, 255), Accent2 = Color3.fromRGB(96, 50, 190),
+		Glow = Color3.fromRGB(190, 110, 255), Glow2 = Color3.fromRGB(230, 170, 255), Cloth = Color3.fromRGB(46, 42, 56),
+		Thread = Color3.fromRGB(72, 62, 92), Count = 4, LightBrightness = 1.0, LightRange = 7, EmitRate = 0, Shine = 0.12,
+	},
+	-- 9. Вулканический: огненные трещины и броневые рёбра
+	[9] = {
+		Metal = Color3.fromRGB(112, 106, 106), Accent = Color3.fromRGB(255, 110, 30), Accent2 = Color3.fromRGB(255, 190, 70),
+		Glow = Color3.fromRGB(255, 90, 20), Glow2 = Color3.fromRGB(255, 170, 50), Cloth = Color3.fromRGB(30, 24, 24),
+		Thread = Color3.fromRGB(72, 58, 58), Count = 2, LightBrightness = 0.8, LightRange = 7, EmitRate = 3, Shine = 0.2,
+	},
+	-- 10. Звёздный рюкзак: золотая звезда, космические пластины, блёстки
+	[10] = {
+		Metal = Color3.fromRGB(112, 126, 142), Accent = Color3.fromRGB(255, 200, 60), Accent2 = Color3.fromRGB(52, 24, 120),
+		Glow = Color3.fromRGB(120, 230, 255), Glow2 = Color3.fromRGB(255, 255, 255), Cloth = Color3.fromRGB(22, 40, 120),
+		Thread = Color3.fromRGB(52, 72, 86), Count = 8, LightBrightness = 0.8, LightRange = 7, EmitRate = 5, Shine = 0.15,
+	},
+} :: { [number]: BackpackDetailLevelCfg }
+
+-- ============================================================================
+-- v52: НОЧНАЯ СТЕНА У ВХОДА В ШАХТУ («БОЛЬШАЯ ШТУКА») И ЕЁ ЗАБОР-ПЕРИМЕТР.
+-- Все размеры (studs), цвета, свет, время подъёма и тексты — здесь.
+-- Мировые координаты: земля Y = 0, +Z — к спавну, −Z — к шахте.
+-- ============================================================================
+GameConfig.NIGHT_WALL = {
+	Name = "NightMineWall",
+	Seed = 5205,
+
+	-- Габариты подвижной стены (в поднятом положении)
+	CenterX = 0,
+	CenterZ = -15.6,
+	Width = 30,
+	Thickness = 3,
+	Height = 18,
+	SinkDepth = 23.5, -- на сколько стена уходит вниз (кончики шипов остаются ниже Y = -1.5)
+	LiftSeconds = 2.6, -- длительность подъёма/опускания (анимацию играет клиент)
+
+	-- Слои монолита
+	PlinthHeight = 2.5,
+	SkirtHeight = 1.0,
+	SkirtWidth = 30.6,
+	SkirtThickness = 3.8,
+	BodyWidth = 24,
+	BodyThickness = 2.8,
+	CapHeight = 1.2,
+	ButtressWidth = 3,
+
+	-- Шипы по верху
+	SpikeCount = 13,
+	SpikeMinHeight = 1.6,
+	SpikeMaxHeight = 3.5,
+
+	-- Табличка с текстом (на каждой стороне)
+	PanelSize = Vector2.new(21, 10.5),
+	PanelCenterY = 0.3, -- относительно центра стены
+	PanelThickness = 0.2,
+
+	Colors = {
+		Basalt = Color3.fromRGB(30, 26, 38),
+		BasaltDark = Color3.fromRGB(20, 17, 26),
+		Slate = Color3.fromRGB(42, 37, 52),
+		SlateLight = Color3.fromRGB(54, 48, 66),
+		Rock = Color3.fromRGB(26, 22, 31),
+		Spike = Color3.fromRGB(24, 20, 30),
+		Panel = Color3.fromRGB(12, 9, 16),
+		Rune = Color3.fromRGB(255, 40, 40),
+	},
+
+	-- Красные огни (не более 4)
+	Light = {
+		Color = Color3.fromRGB(255, 50, 40),
+		Brightness = 2.4,
+		Range = 26,
+	},
+
+	-- Дым по верху стены (маленький Rate — экономим частицы)
+	Smoke = {
+		Rate = 5,
+		Color1 = Color3.fromRGB(90, 30, 34),
+		Color2 = Color3.fromRGB(48, 44, 52),
+		Lifetime = NumberRange.new(2.5, 4),
+		Speed = NumberRange.new(1, 2.2),
+		SizeStart = 2.2,
+		SizeEnd = 6,
+		Transparency = 0.6,
+	},
+
+	-- Пыль у основания (клиент вызывает :Emit() при подъёме/опускании)
+	Dust = {
+		Color1 = Color3.fromRGB(150, 140, 126),
+		Color2 = Color3.fromRGB(110, 104, 98),
+		Height = 0.6,
+		Y = 0.3,
+		Lifetime = NumberRange.new(1.8, 3),
+		Speed = NumberRange.new(4, 9),
+		SizeStart = 5,
+		SizeEnd = 13,
+		Transparency = 0.45,
+	},
+
+	-- Надписи на обеих сторонах
+	Gui = {
+		PixelsPerStud = 24,
+		Brightness = 1.6,
+		BackdropColor = Color3.fromRGB(10, 6, 14),
+		BackdropTransparency = 0.2,
+		StrokeColor = Color3.fromRGB(255, 50, 50),
+		StrokeThickness = 5,
+		CornerRadius = 22,
+		TextStrokeColor = Color3.fromRGB(0, 0, 0),
+		Font = Enum.Font.GothamBlack,
+		Title = "🌙 НОЧЬ",
+		TitleColor = Color3.fromRGB(190, 170, 255),
+		Subtitle = "ШАХТА ЗАКРЫТА",
+		SubtitleColor = Color3.fromRGB(255, 70, 70),
+		Countdown = "Откроется через: 0:00",
+		CountdownColor = Color3.fromRGB(255, 214, 120),
+		Hint = "Возвращайся утром!",
+		HintColor = Color3.fromRGB(235, 235, 245),
+	},
+
+	-- Периметр карьера (невидимые блокировщики; Высота берётся из GameConfig.WALL_HEIGHT)
+	Perimeter = {
+		Thickness = 2,
+		WestX = -63.5,
+		EastX = 63.5,
+		NorthZ = -141.5,
+		GateHalfWidth = 15, -- проём, который закрывает сама стена
+	},
+
+	-- Видимый забор вдоль периметра: красные энергопанели и базальтовые столбы
+	Fence = {
+		PanelHeight = 12,
+		PanelThickness = 0.3,
+		PanelColor = Color3.fromRGB(255, 40, 50),
+		PanelMaterial = Enum.Material.ForceField,
+		FenceTransparency = 0.45, -- ночью; днём панели полностью прозрачны
+		PostSpacing = 18,
+		PostHeight = 15,
+		PostWidth = 1.6,
+		PostColor = Color3.fromRGB(28, 24, 34),
+		CapSize = Vector3.new(1.1, 0.6, 1.1),
+		CapDayColor = Color3.fromRGB(70, 22, 26),
+		CapNightColor = Color3.fromRGB(255, 45, 45),
+	},
+}
+
+
+-- ============================================================================
+-- 40. РЫНОК И ТОРГОВЕЦ ГОША (MarketBuilder + TraderAnimator)
+-- Все цвета, размеры, дистанции, тайминги и тексты рынка — только здесь.
+-- Координаты прилавка заданы относительно центра рынка:
+-- +X вправо, +Z к покупателям (наружу), Y = 0 — верх земли.
+-- ============================================================================
+GameConfig.MARKET = {
+	Seed = 4040,
+
+	-- Имена и теги (на них опираются клиентский аниматор и скрипт магазина)
+	ModelName = "MarketStall",
+	NpcModelName = "TraderGosha",
+	NpcTag = "TraderNPC",
+	PromptTag = "TraderShopPrompt",
+
+	-- Тексты
+	TraderName = "Торговец Гоша",
+	HintText = "[E] Открыть магазин",
+	ActionText = "Открыть магазин",
+	SignText = "РЫНОК",
+
+	-- Подсказка (ProximityPrompt) и табличка над головой
+	MaxActivationDistance = 12,
+	TagMaxDistance = 60,
+	PromptHeight = 3.9,
+	PromptZ = 2.3,
+
+	-- Анимация торговца (клиент)
+	LookDistance = 40,          -- дальше этого расстояния голова смотрит прямо
+	AnimateDistance = 90,       -- дальше — аниматор «спит»
+	LookInterval = 0.35,        -- пересчёт взгляда, сек
+	SleepInterval = 1,          -- проверка дистанции в режиме сна, сек
+	LookTweenTime = 0.25,
+	YawLimitDeg = 70,
+	PitchLimitDeg = 25,
+	SwayPeriod = 2.4,           -- полупериод покачивания, сек
+	SwayRollDeg = 1.6,
+	SwayPitchDeg = 1.1,
+	WaveIntervalMin = 9,
+	WaveIntervalMax = 18,
+	WaveRaiseTime = 0.4,
+	WaveSwingTime = 0.22,
+	WaveLowerTime = 0.45,
+	WaveSwingsMin = 2,
+	WaveSwingsMax = 3,
+	WaveForwardDeg = -20,       -- наклон поднятой руки вперёд
+	WaveRaiseDeg = 150,         -- подъём руки в сторону
+	WaveSwingDeg = 22,          -- размах кисти влево-вправо
+
+	-- Прилавок
+	Counter = {
+		Width = 14,
+		Depth = 3,
+		Height = 3,
+		TopThickness = 0.22,
+		PlankCount = 14,
+	},
+
+	-- Опорные столбы (X — смещение от центра, Z — перед/зад)
+	Pillars = {
+		X = 7.7,
+		FrontZ = 0.9,
+		BackZ = -6.6,
+		Size = 0.9,
+	},
+
+	-- Тент: перед выше нижним краем, к задней стене поднимается
+	Roof = {
+		FrontZ = 3.2,
+		BackZ = -7.8,
+		FrontY = 9.4,
+		BackY = 10.65,
+		HalfWidth = 9,
+		Stripes = 12,
+		Thickness = 0.25,
+		RafterX = { -8.4, -4.2, 0, 4.2, 8.4 },
+	},
+
+	-- Гирлянда лампочек (света — только 3 штуки на всю гирлянду)
+	Garland = {
+		Count = 13,
+		HalfSpan = 8.4,
+		Y = 8.7,
+		Sag = 1.0,
+		Z = 3.5,
+		SwagStep = 4,
+		LightEvery = 4,
+		LightOffset = 2,
+	},
+
+	-- Ковёр перед прилавком
+	Carpet = {
+		Width = 10,
+		Depth = 7,
+		ZCenter = 6.5,
+		Thickness = 0.12,
+	},
+
+	-- Торговец: позиция относительно центра рынка (стоит за прилавком, лицом к +Z)
+	Trader = {
+		X = 0,
+		Z = -3.4,
+	},
+
+	-- Свет (в сумме не больше 6 на рынок)
+	Lights = {
+		Lantern = { Brightness = 1.6, Range = 22 },
+		Garland = { Brightness = 0.9, Range = 14 },
+	},
+
+	Colors = {
+		-- Дерево
+		WoodLight = Color3.fromRGB(184, 130, 78),
+		WoodMid = Color3.fromRGB(146, 98, 56),
+		WoodDark = Color3.fromRGB(98, 62, 36),
+		WoodDeep = Color3.fromRGB(60, 38, 24),
+		WoodTones = {
+			Color3.fromRGB(176, 124, 74),
+			Color3.fromRGB(150, 102, 60),
+			Color3.fromRGB(128, 84, 48),
+			Color3.fromRGB(164, 114, 68),
+			Color3.fromRGB(112, 72, 42),
+			Color3.fromRGB(190, 138, 86),
+		},
+
+		-- Тент
+		AwningA = Color3.fromRGB(198, 52, 46),
+		AwningB = Color3.fromRGB(246, 228, 194),
+
+		-- Металл, камень, ткань
+		Metal = Color3.fromRGB(88, 92, 100),
+		MetalDark = Color3.fromRGB(48, 50, 56),
+		Brass = Color3.fromRGB(206, 164, 70),
+		Gold = Color3.fromRGB(255, 200, 60),
+		Rope = Color3.fromRGB(198, 166, 110),
+		Burlap = Color3.fromRGB(172, 136, 86),
+		BurlapDark = Color3.fromRGB(128, 96, 58),
+		Stone = Color3.fromRGB(104, 104, 110),
+		StoneDark = Color3.fromRGB(70, 72, 80),
+
+		-- Свет
+		WarmLight = Color3.fromRGB(255, 176, 90),
+		LanternGlass = Color3.fromRGB(255, 190, 100),
+		Bulbs = {
+			Color3.fromRGB(255, 224, 140),
+			Color3.fromRGB(255, 176, 84),
+			Color3.fromRGB(255, 236, 200),
+			Color3.fromRGB(255, 140, 90),
+		},
+
+		-- Образцы руды
+		GemGold = Color3.fromRGB(255, 200, 60),
+		GemRuby = Color3.fromRGB(230, 40, 70),
+		GemEmerald = Color3.fromRGB(50, 225, 120),
+		GemDiamond = Color3.fromRGB(160, 240, 255),
+		RockDark = Color3.fromRGB(70, 66, 74),
+
+		-- Ковёр
+		CarpetBase = Color3.fromRGB(138, 32, 44),
+		CarpetBorder = Color3.fromRGB(226, 178, 70),
+		CarpetInner = Color3.fromRGB(40, 66, 120),
+		CarpetPattern = Color3.fromRGB(244, 214, 150),
+		CarpetFringe = Color3.fromRGB(232, 214, 170),
+
+		-- Товары на полках
+		BookColors = {
+			Color3.fromRGB(170, 48, 48),
+			Color3.fromRGB(48, 96, 170),
+			Color3.fromRGB(60, 130, 80),
+			Color3.fromRGB(190, 150, 60),
+			Color3.fromRGB(110, 60, 140),
+			Color3.fromRGB(90, 70, 50),
+		},
+		ToolboxRed = Color3.fromRGB(200, 44, 40),
+		BottleGlass = Color3.fromRGB(120, 170, 130),
+		BottleBrown = Color3.fromRGB(120, 70, 40),
+		Cork = Color3.fromRGB(190, 150, 100),
+		TorchFire = Color3.fromRGB(255, 150, 50),
+		PotionBlue = Color3.fromRGB(80, 160, 255),
+		PotionPurple = Color3.fromRGB(190, 90, 255),
+		PotionGreen = Color3.fromRGB(90, 240, 140),
+		TopHat = Color3.fromRGB(28, 24, 30),
+		Steel = Color3.fromRGB(150, 160, 172),
+		Paper = Color3.fromRGB(236, 226, 196),
+
+		-- Вывеска
+		SignBoard = Color3.fromRGB(78, 48, 30),
+		SignText = Color3.fromRGB(255, 214, 110),
+		SignStroke = Color3.fromRGB(30, 18, 10),
+
+		-- Торговец
+		Skin = Color3.fromRGB(242, 196, 156),
+		SkinShade = Color3.fromRGB(232, 150, 128),
+		Shirt = Color3.fromRGB(238, 226, 200),
+		Cuff = Color3.fromRGB(214, 200, 172),
+		Apron = Color3.fromRGB(150, 98, 56),
+		ApronDark = Color3.fromRGB(104, 66, 38),
+		Trousers = Color3.fromRGB(66, 56, 74),
+		Boots = Color3.fromRGB(46, 30, 24),
+		Hat = Color3.fromRGB(32, 28, 36),
+		HatTop = Color3.fromRGB(52, 46, 58),
+		HatBand = Color3.fromRGB(186, 48, 52),
+		Moustache = Color3.fromRGB(82, 54, 34),
+		Hair = Color3.fromRGB(96, 64, 40),
+		GlassesFrame = Color3.fromRGB(224, 184, 74),
+		Lens = Color3.fromRGB(190, 225, 255),
+		EyeWhite = Color3.fromRGB(250, 250, 250),
+		Pupil = Color3.fromRGB(40, 30, 28),
+		Mouth = Color3.fromRGB(132, 46, 46),
+		Cheek = Color3.fromRGB(255, 150, 140),
+		BowTie = Color3.fromRGB(190, 40, 52),
+
+		-- Табличка над головой торговца
+		TagBg = Color3.fromRGB(24, 18, 14),
+		TagStroke = Color3.fromRGB(255, 200, 90),
+		TagName = Color3.fromRGB(255, 222, 130),
+		TagHint = Color3.fromRGB(236, 228, 210),
+	},
+}
+
+-- ============================================================================
+-- 🪨 v52: КАМЕННАЯ ПЛОЩАДЬ СПАВНА (SpawnPlazaBuilder)
+-- Все размеры, цвета, материалы и количества деталей — здесь. Единицы — studs.
+-- Земля: верх Y = 0. Площадь строго внутри Bounds; проходы остаются свободными.
+-- ============================================================================
+GameConfig.SPAWN_PLAZA = {
+	Seed = 52017, -- Random.new(Seed): раскладка всегда одинаковая
+
+	-- Границы площади и центр постамента (SpawnLocation)
+	Bounds = { MinX = -17, MaxX = 17, MinZ = 13.5, MaxZ = 33 },
+	Center = { X = 0, Z = 22 },
+
+	-- Свободные проходы (для коллизионных деталей по периметру)
+	Passages = {
+		NorthHalfWidth = 6.5, -- север: X ∈ [−6.5; 6.5] (тропа в шахту)
+		SouthHalfWidth = 8, -- юг: X ∈ [−8; 8] (к ночному торговцу)
+		SideZMin = 18.5, -- запад/восток: Z ∈ [18.5; 27.5]
+		SideZMax = 27.5,
+		FreeRadius = 7, -- свободный круг вокруг центра
+	},
+
+	-- Тёмная подложка: щели между плитами читаются как чёрные трещины
+	Plate = {
+		TopY = 0.12,
+		Thickness = 0.3,
+		Color = Color3.fromRGB(14, 12, 20),
+		Material = Enum.Material.Basalt,
+	},
+	CrevicePlateColor = Color3.fromRGB(14, 12, 20), -- цвет «срезанных» углов и трещин
+
+	-- Низкий скошенный бордюр: с земли (Y = 0) на площадь без прыжка
+	Border = {
+		Width = 1.0,
+		HeightMin = 0.22,
+		HeightMax = 0.30,
+		SegmentTarget = 2.8,
+		SegmentJitter = 0.35,
+		PathStripTop = 0.40, -- плоская вставка у тропы (тропа имеет верх Y ≈ 0.45)
+		Material = Enum.Material.Cobblestone,
+		Colors = {
+			Color3.fromRGB(104, 98, 126),
+			Color3.fromRGB(116, 109, 138),
+			Color3.fromRGB(92, 86, 112),
+		},
+	},
+
+	-- Плиты: ряды со случайной высотой ряда и независимыми колонками (кладка «вразбежку»)
+	Slab = {
+		RowTarget = 2.3,
+		ColTarget = 2.7,
+		RowJitter = 0.28,
+		ColJitter = 0.30,
+		GapMin = 0.22, -- зазор между плитами 0.2–0.4
+		GapMax = 0.38,
+		Thickness = 0.4,
+		TopMin = 0.35, -- верх любой точки плиты: 0.34–0.50
+		TopMax = 0.49,
+		MaxTiltDeg = 1.2,
+		MaxRise = 0.05, -- макс. перепад верха плиты от центра до угла
+		MaxYawDeg = 2.0,
+		ColorJitter = 0.06,
+		MinSize = 0.9,
+		Styles = {
+			{
+				Material = Enum.Material.Slate,
+				Weight = 4,
+				Colors = {
+					Color3.fromRGB(128, 120, 150),
+					Color3.fromRGB(116, 108, 138),
+					Color3.fromRGB(140, 131, 162),
+					Color3.fromRGB(104, 97, 128),
+				},
+			},
+			{
+				Material = Enum.Material.Rock,
+				Weight = 3,
+				Colors = {
+					Color3.fromRGB(122, 114, 140),
+					Color3.fromRGB(108, 102, 126),
+					Color3.fromRGB(134, 126, 150),
+				},
+			},
+			{
+				Material = Enum.Material.Cobblestone,
+				Weight = 3,
+				Colors = {
+					Color3.fromRGB(118, 110, 140),
+					Color3.fromRGB(100, 94, 122),
+					Color3.fromRGB(132, 124, 154),
+				},
+			},
+			{
+				Material = Enum.Material.Basalt,
+				Weight = 1,
+				Colors = {
+					Color3.fromRGB(78, 73, 96),
+					Color3.fromRGB(88, 82, 106),
+				},
+			},
+			{
+				Material = Enum.Material.Concrete,
+				Weight = 2,
+				Colors = {
+					Color3.fromRGB(138, 130, 158),
+					Color3.fromRGB(124, 117, 146),
+					Color3.fromRGB(112, 105, 134),
+				},
+			},
+		},
+	},
+
+	-- Мелкие детали на плитах (без коллизий)
+	Details = {
+		Lift = 0.017, -- подъём накладок над поверхностью плиты (против Z-fighting)
+		ChamferCount = 32,
+		ChamferSizeMin = 0.45,
+		ChamferSizeMax = 0.95,
+		CrackCount = 26,
+		CrackThickness = 0.025,
+		CrackWidth = 0.05,
+		CrackColor = Color3.fromRGB(26, 22, 36),
+		MossCreviceCount = 16,
+		MossCornerCount = 12,
+		MossColors = {
+			Color3.fromRGB(78, 128, 62),
+			Color3.fromRGB(96, 148, 70),
+			Color3.fromRGB(60, 104, 56),
+		},
+		PebbleCount = 34,
+		PebbleMin = 0.12,
+		PebbleMax = 0.30,
+		PebbleColors = {
+			Color3.fromRGB(96, 90, 118),
+			Color3.fromRGB(70, 66, 90),
+			Color3.fromRGB(130, 123, 152),
+		},
+		RaisedCount = 8, -- небольшие выпуклые камни как на референсе
+		RaisedBaseColor = Color3.fromRGB(100, 96, 130),
+		RaisedCapColor = Color3.fromRGB(128, 124, 160),
+	},
+
+	-- Постамент спавна: врезанный тёмный камень + кольцо подогнанных камней
+	Dais = {
+		Size = 7,
+		TopY = 0.52,
+		Thickness = 0.5,
+		Color = Color3.fromRGB(54, 50, 68),
+		Material = Enum.Material.Slate,
+		ChamferSize = 0.65,
+		RingWidth = 2.5,
+		RingTopMin = 0.44,
+		RingTopMax = 0.50,
+		RingTarget = 2.6,
+		RingStyles = {
+			{
+				Material = Enum.Material.Slate,
+				Weight = 3,
+				Colors = {
+					Color3.fromRGB(82, 77, 102),
+					Color3.fromRGB(92, 86, 112),
+					Color3.fromRGB(74, 70, 94),
+				},
+			},
+			{
+				Material = Enum.Material.Basalt,
+				Weight = 2,
+				Colors = {
+					Color3.fromRGB(66, 62, 84),
+					Color3.fromRGB(76, 71, 94),
+				},
+			},
+		},
+		GrooveColor = Color3.fromRGB(18, 16, 28),
+		InlayColor = Color3.fromRGB(96, 160, 255),
+		InlayTransparency = 0.3,
+		OuterRingRadius = 2.7,
+		OuterRingSegments = 20,
+		InnerRingRadius = 1.35,
+		InnerRingSegments = 12,
+	},
+
+	-- Каменные фонари: тёплый свет, не больше 6 источников
+	Lanterns = {
+		Positions = {
+			{ X = -15.3, Z = 15.6 },
+			{ X = 15.3, Z = 15.6 },
+			{ X = -15.3, Z = 31.4 },
+			{ X = 15.3, Z = 31.4 },
+			{ X = -7.7, Z = 15.4 },
+			{ X = 7.7, Z = 15.4 },
+		},
+		BaseY = 0.3,
+		StoneColor = Color3.fromRGB(96, 90, 116),
+		StoneDarkColor = Color3.fromRGB(70, 66, 90),
+		StoneMaterial = Enum.Material.Slate,
+		CoreColor = Color3.fromRGB(255, 190, 110),
+		LightColor = Color3.fromRGB(255, 176, 92),
+		LightBrightness = 1.1,
+		LightRange = 15,
+		Radius = 0.7, -- запас на габарит при проверке проходов
+	},
+
+	-- Валуны: кластеры из 2–4 повёрнутых блоков/клиньев/эллипсоидов (с коллизией)
+	Boulders = {
+		Clusters = 9,
+		MainSizeMin = 1.2,
+		MainSizeMax = 2.3,
+		EdgeInsetMin = 0.5,
+		EdgeInsetMax = 2.2,
+		Materials = { Enum.Material.Slate, Enum.Material.Rock, Enum.Material.Basalt, Enum.Material.Cobblestone },
+		Colors = {
+			Color3.fromRGB(84, 79, 104),
+			Color3.fromRGB(98, 92, 120),
+			Color3.fromRGB(72, 68, 90),
+			Color3.fromRGB(110, 104, 132),
+		},
+	},
+
+	-- Кристаллы: 3–6 наклонных призм на кластер; свет по умолчанию выключен (лимит 6 на постройку)
+	Crystals = {
+		Clusters = 4,
+		PerClusterMin = 3,
+		PerClusterMax = 6,
+		LengthMin = 0.9,
+		LengthMax = 2.0,
+		WidthMin = 0.22,
+		WidthMax = 0.40,
+		MaxTiltDeg = 24,
+		Radius = 1.2,
+		LightCount = 0,
+		LightBrightness = 0.6,
+		LightRange = 8,
+		BaseColor = Color3.fromRGB(46, 42, 62),
+		Palettes = {
+			Color3.fromRGB(80, 215, 255),
+			Color3.fromRGB(170, 110, 255),
+		},
+		GlassTransparency = 0.22,
+	},
+
+	EdgeMargin = 0.25, -- отступ деталей периметра от границ области
 }
 
 return GameConfig

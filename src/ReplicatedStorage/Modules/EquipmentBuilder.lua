@@ -26,6 +26,8 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local GameConfig = require(ReplicatedStorage:WaitForChild("Modules"):WaitForChild("GameConfig"))
+local PickaxeJuice = require(script.Parent:WaitForChild("PickaxeJuice"))
+local BackpackDetailer = require(script.Parent:WaitForChild("BackpackDetailer"))
 
 local EquipmentManager = {}
 
@@ -256,50 +258,23 @@ function EquipmentManager.BuildModernPickaxeParts(
 		end
 	end
 
-	-- Самоцветы на втулке — с 3-го уровня (простые деревянные кирки 1–2 в точности как референс).
-	if tierLvl >= 3 then
-		local gemScale = (0.8 + 0.55 * cfg.GemGlow) * hs
-		local gemMat = (cfg.GemGlow >= 0.25) and Enum.Material.Neon or Enum.Material.Glass
-		local sk = PICK_SHAPES.Socket
-		local gemY = headY + (sk[1] + sk[2]) / 2 * hs
-		for _, side in ipairs({ -1, 1 }) do
-			local gem = newPart(container, "GemInsert", sz(0.24 * gemScale, 0.24 * gemScale, 0.10), cfg.GemColor, gemMat, 0.2)
-			place(gem, at(0, gemY, side * (sk[4] * hs / 2 + 0.02)) * CFrame.Angles(0, 0, math.rad(45)))
-		end
-	end
-
-	if not forVp then
-		if cfg.GemGlow >= 0.25 or cfg.Glow then
-			local light = Instance.new("PointLight")
-			light.Name = "GemLight"
-			light.Color = cfg.GemColor
-			light.Range = (4 + 8 * cfg.GemGlow) * math.max(0.6, k)
-			light.Brightness = 0.4 + 1.8 * cfg.GemGlow
-			light.Shadows = false
-			light.Parent = socket
-		end
-		if cfg.Sparkles then
-			local pe = Instance.new("ParticleEmitter")
-			pe.Name = "MagicSparkles"
-			pe.Texture = "rbxasset://textures/particles/sparkles_main.dds"
-			pe.Color = ColorSequence.new(lighten(cfg.GemColor, 0.4), cfg.GemColor)
-			pe.LightEmission = 1
-			pe.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.24 * k), NumberSequenceKeypoint.new(1, 0) })
-			pe.Lifetime = NumberRange.new(0.5, 1.0)
-			pe.Rate = 10
-			pe.Speed = NumberRange.new(1.2, 2.5)
-			pe.SpreadAngle = Vector2.new(180, 180)
-			pe.Parent = socket
-		end
-		if cfg.FireAura then
-			local fire = Instance.new("Fire")
-			fire.Name = "AdamantFire"
-			fire.Color = Color3.fromRGB(255, 140, 30)
-			fire.SecondaryColor = Color3.fromRGB(255, 50, 20)
-			fire.Heat = 5
-			fire.Size = 3.0 * k
-			fire.Parent = socket
-		end
+	-- v52: «сочная» отделка кирки — неоновая полоса на лезвии, светящийся кристалл, PointLight,
+	-- блёстки и шлейф взмаха. Цвета и сила эффектов по уровням — GameConfig.PICKAXE_FX.
+	local okJuice, errJuice = pcall(PickaxeJuice.Decorate, {
+		Container = container,
+		Level = tierLvl,
+		Scale = k,
+		HeadScale = hs,
+		HeadY = headY,
+		Beads = PICK_BEADS,
+		SocketDepth = PICK_SHAPES.Socket[4],
+		Socket = socket,
+		Place = place,
+		ForViewport = forVp,
+		LowDetail = low,
+	})
+	if not okJuice then
+		warn("[EquipmentBuilder] PickaxeJuice: " .. tostring(errJuice))
 	end
 
 	if not anchored then
@@ -1783,6 +1758,28 @@ function EquipmentManager.BuildBackpackParts(
 			add("StrapChest", Vector3.new(strapW * 0.92, chestLen, 0.12), CFrame.new(x, chestTop - chestLen / 2, -tZ / 2 - 0.07), strapCol, bodyMat, nil)
 			add("StrapBuckle", Vector3.new(strapW * 1.15, 0.16, 0.07), CFrame.new(x, -tH * 0.08, -tZ / 2 - 0.15), fitCol, fitMat, { Reflectance = 0.3 })
 		end
+	end
+
+	-- v52: детализация рюкзака (швы, пряжки, фонари, кристаллы, эмблемы) — модуль BackpackDetailer.
+	-- Ошибка в отделке не должна ломать экипировку, поэтому вызов защищён pcall.
+	local okDetail, errDetail = pcall(BackpackDetailer.Decorate, {
+		Model = model,
+		Level = lvl,
+		Scale = s,
+		Anchored = anchored,
+		OnCharacter = isCharTorso,
+		Origin = originCF,
+		Width = BW,
+		Height = BH,
+		Depth = BD,
+		CenterY = yb,
+		CenterZ = zc,
+		FrontZ = front,
+		Palette = PAL,
+		Add = add,
+	})
+	if not okDetail then
+		warn("[EquipmentBuilder] BackpackDetailer: " .. tostring(errDetail))
 	end
 
 	model:SetAttribute("BackpackLevel", lvl)

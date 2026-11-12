@@ -19,6 +19,10 @@ local Debris = game:GetService("Debris")
 
 local ToolAnimator = {}
 
+-- v52: внешние обработчики эффектов кирки (ставит PickaxeFX): начало взмаха и момент удара
+ToolAnimator.OnSwingStart = nil :: ((char: Model, isCrit: boolean) -> ())?
+ToolAnimator.OnImpact = nil :: ((char: Model) -> ())?
+
 local SWING = {
 	Windup = 0.14,
 	Strike = 0.08,
@@ -264,6 +268,10 @@ local function startSwing(st: CharState, crit: boolean)
 	st.SwingT = os.clock()
 	st.CritFlash = crit
 	st.ImpactDone = false
+	local onSwing = ToolAnimator.OnSwingStart
+	if onSwing then
+		task.spawn(onSwing, st.Char, crit)
+	end
 end
 
 function ToolAnimator.PlaySwing(char: Model?, isCrit: boolean?)
@@ -344,6 +352,10 @@ local function updatePickaxe(st: CharState, dt: number, now: number, isLocal: bo
 
 		if t >= W + S and not st.ImpactDone then
 			st.ImpactDone = true
+			local onImpact = ToolAnimator.OnImpact
+			if onImpact then
+				task.spawn(onImpact, char)
+			end
 			if st.CritFlash then
 				st.CritFlash = false
 				task.spawn(critFlash, char)
