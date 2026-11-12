@@ -627,7 +627,7 @@ local function buildTag(head: BasePart)
 	name.BackgroundTransparency = 1
 	name.Position = UDim2.fromScale(0, 0.04)
 	name.Size = UDim2.fromScale(1, 0.56)
-	name.Font = Enum.Font.FredokaOne
+	name.Font = Enum.Font.GothamBlack
 	name.TextScaled = true
 	name.Text = CFG.TraderName
 	name.TextColor3 = COL.TagName

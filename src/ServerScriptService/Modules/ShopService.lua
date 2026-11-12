@@ -126,7 +126,9 @@ function ShopService.Init(deps: Deps)
 			if earned > 0 then
 				reply(player, true, action, { Earned = earned, Count = count, Key = arg })
 			else
-				reply(player, false, action, { Reason = "Empty", Key = arg })
+				-- 0 монет: либо рюкзак пуст, либо сработала серверная защита от слишком частых продаж
+				local reason = deps.DataManager.GetBackpackUsed(player) > 0 and "Cooldown" or "Empty"
+				reply(player, false, action, { Reason = reason, Key = arg })
 			end
 		end
 	end)

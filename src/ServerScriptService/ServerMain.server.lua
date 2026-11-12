@@ -13,9 +13,7 @@
 -- • Серверная продажа «Продать всё» и «Продать выбранное» в пункте приёма "$ SELL" (Пункт №13).
 -- ============================================================================
 
-local Lighting = game:GetService("Lighting")
 local Players = game:GetService("Players")
-local TweenService = game:GetService("TweenService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 local StarterGui = game:GetService("StarterGui")
@@ -137,7 +135,6 @@ end
 task.spawn(function()
 	while task.wait(0.12) do
 		local isNight = MineManager.IsNightClosed()
-		local now = os.clock()
 
 		for _, player in ipairs(Players:GetPlayers()) do
 			local char = player.Character

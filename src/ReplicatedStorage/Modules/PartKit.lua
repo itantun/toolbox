@@ -53,7 +53,7 @@ function PartKit.Block(parent: Instance, name: string, size: Vector3, cf: CFrame
 	return p
 end
 
--- Клин (скос поднимается к -Z локальной системы, как у стандартного WedgePart)
+-- Клин (как стандартный WedgePart: высокая вертикальная грань со стороны +Z, скос спускается к -Z)
 function PartKit.Wedge(parent: Instance, name: string, size: Vector3, cf: CFrame, color: Color3, material: Enum.Material, opts: Opts?): WedgePart
 	local p = Instance.new("WedgePart")
 	style(p, parent, name, size, cf, color, material, opts)
@@ -208,7 +208,7 @@ function PartKit.SurfaceLabel(part: BasePart, face: Enum.NormalId, text: string,
 	lbl.Name = "Text"
 	lbl.Size = UDim2.fromScale(1, 1)
 	lbl.BackgroundTransparency = 1
-	lbl.Font = o.Font or Enum.Font.FredokaOne
+	lbl.Font = o.Font or Enum.Font.GothamBlack -- поддерживает кириллицу
 	lbl.TextScaled = true
 	lbl.Text = text
 	lbl.TextColor3 = o.TextColor or Color3.new(1, 1, 1)

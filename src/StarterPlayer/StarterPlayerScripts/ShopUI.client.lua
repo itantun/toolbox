@@ -864,6 +864,8 @@ ShopResult.OnClientEvent:Connect(function(ok: any, action: any, info: any)
 		if ok == true then
 			successFeedback(findCard("Sell", tostring(info.Key)), string.format("💰 Продано %d шт. за %s 🪙",
 				tonumber(info.Count) or 0, UIKit.FormatCoins(tonumber(info.Earned) or 0)), true)
+		elseif info.Reason == "Cooldown" then
+			failFeedback(nil, "Слишком быстро — подожди секунду")
 		else
 			failFeedback(nil, "Нечего продавать — рюкзак пуст!")
 		end
