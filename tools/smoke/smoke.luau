@@ -246,11 +246,85 @@ run("ore icons", function()
 	return "ores=" .. #GameConfig.BLOCK_LIST .. " parts=" .. total
 end)
 
+run("merchant icons", function()
+	local Icons = requireModule(Modules.MerchantIconModels)
+	local total = 0
+	for _, id in ipairs(Icons.Ids) do
+		local m = Icons.Build(id)
+		local parts = 0
+		for _, d in ipairs(m:GetDescendants()) do
+			if d:IsA("BasePart") then
+				parts += 1
+			end
+		end
+		assert(parts >= 10, "слишком мало деталей в иконке " .. id .. ": " .. parts)
+		assert(m.PrimaryPart, "нет PrimaryPart у иконки " .. id)
+		assert(Icons.Camera(id).Distance > 0, "нет камеры для " .. id)
+		total += parts
+	end
+	local MerchantConfig = requireModule(Modules.MerchantConfig)
+	for _, id in ipairs(MerchantConfig.Order) do
+		assert(MerchantConfig.Cards[id], "нет карточки " .. id)
+		assert(table.find(Icons.Ids, id), "нет иконки " .. id)
+	end
+	return "icons=" .. #Icons.Ids .. " parts=" .. total
+end)
+
+run("treasure marker + spots", function()
+	local Service = requireModule(ServerModules.TreasureMapService)
+	local m = Service.BuildMarker("Tester")
+	local parts = 0
+	for _, d in ipairs(m:GetDescendants()) do
+		if d:IsA("BasePart") then
+			parts += 1
+		end
+	end
+	assert(parts >= 15, "слишком мало деталей в маркере клада: " .. parts)
+	assert(m:FindFirstChild("DigPrompt", true), "нет ProximityPrompt «Dig»")
+	assert(m:FindFirstChild("TreasureTag", true), "нет BillboardGui с именем")
+	local dirName, studs = Service.Describe(roblox.Vector3.new(0, 0, 46), roblox.Vector3.new(0, 0, -39))
+	assert(dirName == "north" and studs == 85, "Describe: " .. dirName .. " " .. studs)
+	local dir2 = Service.Describe(roblox.Vector3.new(0, 0, 46), roblox.Vector3.new(60, 0, -14))
+	assert(dir2 == "north-east", "Describe NE: " .. dir2)
+	-- spots lie on open ground: not in the mine pit, spawn plaza, stall radius or inside the map bounds
+	local MC = requireModule(Modules.MerchantConfig)
+	local B = GameConfig.MAP_BOUNDS
+	for _, s in ipairs(MC.TreasureMap.Spots) do
+		local x, z = s.X, s.Y
+		assert(not (x >= -66 and x <= 66 and z >= -144 and z <= -13), "клад в шахте: " .. x .. "," .. z)
+		assert(not (x >= -17 and x <= 17 and z >= 13.5 and z <= 33), "клад на площади спавна: " .. x .. "," .. z)
+		assert(math.sqrt(x * x + (z - 46) ^ 2) > 20, "клад у лавки торговца: " .. x .. "," .. z)
+		assert(math.sqrt((x + 32) ^ 2 + (z - 6) ^ 2) > 20 and math.sqrt((x - 32) ^ 2 + (z - 6) ^ 2) > 20, "клад у рынка/магазина: " .. x .. "," .. z)
+		assert(x > B.MinX + 4 and x < B.MaxX - 4 and z > B.MinZ + 4 and z < B.MaxZ - 4, "клад у края карты: " .. x .. "," .. z)
+	end
+	return "marker parts=" .. parts .. " spots=" .. #MC.TreasureMap.Spots
+end)
+
 run("NightWallBuilder", function()
 	local WallBuilder = requireModule(ServerModules.NightWallBuilder)
 	local refs = WallBuilder.Build(world)
 	local down = stats(refs.Model)
+	-- днём стена целиком под землёй и невидима, крышка прозрачна
+	assert(#refs.WallParts > 100, "мало деталей стены: " .. #refs.WallParts)
+	for _, p in ipairs(refs.WallParts) do
+		assert(p.CFrame.Position.Y + p.Size.Y / 2 < -1, "деталь стены торчит днём: " .. p.Name .. " y=" .. p.CFrame.Position.Y)
+		assert(p.Transparency == 1, "деталь стены видна днём: " .. p.Name)
+	end
+	assert(#refs.LidParts == 46, "ожидалось 46 деталей крышки, найдено " .. #refs.LidParts)
+	for _, p in ipairs(refs.LidParts) do
+		assert(p.Transparency == 1, "крышка видна днём: " .. p.Name)
+	end
 	WallBuilder.SetRaised(refs, true)
+	local shown = 0
+	local widest = 0
+	for _, p in ipairs(refs.WallParts) do
+		if p.Transparency == 0 then
+			shown += 1
+		end
+		widest = math.max(widest, math.abs(p.CFrame.Position.X) + p.Size.X / 2)
+	end
+	assert(shown > 100, "стена не показалась ночью: " .. shown)
+	assert(widest >= 64, "стена не дотягивается до углов карьера: " .. widest)
 	for _, b in ipairs(refs.Blockers) do
 		assert(b.CanCollide == true, "блокер не включился: " .. b.Name)
 	end
@@ -264,7 +338,7 @@ run("NightWallBuilder", function()
 			countdown += 1
 		end
 	end
-	assert(countdown == 2, "ожидалось 2 надписи отсчёта, найдено " .. countdown)
+	assert(countdown == 4, "ожидалось 4 надписи отсчёта, найдено " .. countdown)
 	return down .. "  blockers=" .. #refs.Blockers
 end)
 
@@ -274,10 +348,37 @@ run("SpawnPlazaBuilder", function()
 	return stats(refs.Model)
 end)
 
+run("MerchantNpcBuilder (запасной персонаж)", function()
+	local Npc = requireModule(ServerModules.MerchantNpcBuilder)
+	local stall = Instance.new("Model")
+	stall.Name = "NightMerchantStall"
+	local fallback = Npc.Build(stall, roblox.CFrame.new(0, 0.3, -2.7), { LoadAvatar = false })
+	assert(fallback.Parent == stall, "запасной персонаж не в лавке")
+	local head = fallback:FindFirstChild("Head")
+	assert(head and head:IsA("BasePart"), "нет головы")
+	assert(head:FindFirstChildOfClass("SpecialMesh") and head:FindFirstChildOfClass("Decal"), "у головы нет меша или лица")
+	local tag = stall:FindFirstChild("MerchantName", true)
+	assert(tag and tag:IsA("BillboardGui"), "нет таблички MerchantName")
+	local count = 0
+	for _, d in ipairs(fallback:GetDescendants()) do
+		if d:IsA("BasePart") then
+			count += 1
+			assert(d.Anchored and not d.CanCollide, "деталь должна быть закреплена и без коллизий: " .. d.Name)
+		end
+	end
+	assert(count > 20 and count < 70, "неожиданное число деталей: " .. count)
+	for _ = 1, 3 do
+		Npc.SetActive(stall, true)
+		Npc.SetActive(stall, false)
+	end
+	return stats(fallback)
+end)
+
 run("server modules load", function()
 	requireModule(ServerModules.BoostService)
 	requireModule(ServerModules.NightCycleService)
 	requireModule(ServerModules.ShopService)
+	requireModule(ServerModules.TreasureMapService)
 	return nil
 end)
 

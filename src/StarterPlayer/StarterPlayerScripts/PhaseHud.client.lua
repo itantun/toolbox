@@ -223,7 +223,7 @@ local function makeChip(id: string, order: number): Chip
 		Font = UI.FontBlack, TextSize = 14, XAlign = Enum.TextXAlignment.Left, ZIndex = 2,
 	})
 	UIKit.Label(root, {
-		Name = "Mult", Text = "×" .. tostring(cfg.Multiplier), Size = UDim2.fromOffset(40, 14), Position = UDim2.fromOffset(48, 26),
+		Name = "Mult", Text = if cfg.Stat == "Shield" then "" else "×" .. tostring(cfg.Multiplier), Size = UDim2.fromOffset(40, 14), Position = UDim2.fromOffset(48, 26),
 		Font = UI.FontBlack, TextSize = 13, XAlign = Enum.TextXAlignment.Left, Color = cfg.Color:Lerp(Color3.new(1, 1, 1), 0.35), ZIndex = 2,
 	})
 	local timeText = UIKit.Label(root, {

@@ -354,14 +354,14 @@ GameConfig.FALL_THRESHOLD_Y = -205 -- v49: below bottom of 30-level mine (-186)
 GameConfig.ENERGY = {
 	BaseMax = 100,                 -- Базовый максимум энергии
 	PerSkillLevelMaxBonus = 12,    -- +12 к макс. энергии за каждый уровень навыка «Энергия»
-	PerSkillLevelRegenBonus = 0.35,-- +0.35 регенерации/сек за каждый уровень навыка «Энергия»
+	PerSkillLevelRegenBonus = 0.20,-- +0.20 регенерации/сек за каждый уровень навыка «Энергия»
 	BaseSwingCost = 6.0,           -- Базовая трата энергии за удар
 	DepthExtraCostMax = 6.0,       -- На дне (30 бл.) удар тратит до 12 энергии
 	-- v50: swings cost half and energy comes back faster, so mining no longer
 	-- stalls after ~16 swings (the biggest frustration for young players)
 	SwingCostMultiplier = 0.5,
-	PassiveRegenPerSec = 3.6,      -- Базовое восстановление в секунду
-	SurfaceRestRegenPerSec = 9.0,  -- Восстановление на поверхности и каменных полках
+	PassiveRegenPerSec = 2.0,      -- Базовое восстановление в секунду (v53: было 3.6 — энергия копится медленнее)
+	SurfaceRestRegenPerSec = 5.0,  -- Восстановление на поверхности и каменных полках (v53: было 9.0)
 }
 
 -- ============================================================================
@@ -449,7 +449,7 @@ end
 -- v50: DAILY REWARD — first join of each (UTC) day; missing a day restarts the streak.
 -- Coins grow a little with the player's level so the gift stays useful later on.
 -- ============================================================================
-GameConfig.DAILY_REWARDS = { -- v51: small on day one (a first pickaxe costs 65 coins)
+GameConfig.DAILY_REWARDS = { -- v51: small on day one (a first pickaxe costs 165 coins)
 	{ Coins = 10 },
 	{ Coins = 20 },
 	{ Coins = 30 },
@@ -1029,7 +1029,7 @@ GameConfig.PICKAXE_TIERS = {
 	},
 	[2] = {
 		Level = 2, Name = "Stone Pickaxe", ShortName = "Stone",
-		Cost = 65, Damage = 11, BaseSwingCooldown = 0.46, SwingAnimSpeed = 1.04,
+		Cost = 165, Damage = 11, BaseSwingCooldown = 0.46, SwingAnimSpeed = 1.04,
 		UnlockSummary = "Stone and Coal seams",
 		VisualDesc = "Hewn slate blade with an iron collar",
 		BladeColor = Color3.fromRGB(136, 140, 150), HeadMaterial = Enum.Material.Slate, HeadReflectance = 0,
@@ -1040,7 +1040,7 @@ GameConfig.PICKAXE_TIERS = {
 	},
 	[3] = {
 		Level = 3, Name = "Iron Pickaxe", ShortName = "Iron",
-		Cost = 320, Damage = 18, BaseSwingCooldown = 0.44, SwingAnimSpeed = 1.08,
+		Cost = 800, Damage = 18, BaseSwingCooldown = 0.44, SwingAnimSpeed = 1.08,
 		UnlockSummary = "Unlocks Iron and Copper Ore",
 		VisualDesc = "Forged steel head with rivets and a quartz inlay",
 		BladeColor = Color3.fromRGB(145, 152, 166), HeadMaterial = Enum.Material.Metal, HeadReflectance = 0.14,
@@ -1051,7 +1051,7 @@ GameConfig.PICKAXE_TIERS = {
 	},
 	[4] = {
 		Level = 4, Name = "Steel Pickaxe", ShortName = "Steel",
-		Cost = 820, Damage = 24, BaseSwingCooldown = 0.42, SwingAnimSpeed = 1.12,
+		Cost = 2050, Damage = 24, BaseSwingCooldown = 0.42, SwingAnimSpeed = 1.12,
 		UnlockSummary = "Unlocks Tin Ore and mines Copper faster",
 		VisualDesc = "Heavy copper-tin alloy with a malachite crystal",
 		BladeColor = Color3.fromRGB(215, 132, 68), HeadMaterial = Enum.Material.Metal, HeadReflectance = 0.20,
@@ -1062,7 +1062,7 @@ GameConfig.PICKAXE_TIERS = {
 	},
 	[5] = {
 		Level = 5, Name = "Sapphire Pickaxe", ShortName = "Sapphire",
-		Cost = 1950, Damage = 34, BaseSwingCooldown = 0.40, SwingAnimSpeed = 1.16,
+		Cost = 4875, Damage = 34, BaseSwingCooldown = 0.40, SwingAnimSpeed = 1.16,
 		UnlockSummary = "Unlocks Silver and Gold Ore",
 		VisualDesc = "Polished steel with gold edges and a ruby core",
 		BladeColor = Color3.fromRGB(255, 198, 48), HeadMaterial = Enum.Material.Metal, HeadReflectance = 0.28,
@@ -1073,7 +1073,7 @@ GameConfig.PICKAXE_TIERS = {
 	},
 	[6] = {
 		Level = 6, Name = "Crystal Pickaxe", ShortName = "Crystal",
-		Cost = 5800, Damage = 48, BaseSwingCooldown = 0.38, SwingAnimSpeed = 1.22,
+		Cost = 14500, Damage = 48, BaseSwingCooldown = 0.38, SwingAnimSpeed = 1.22,
 		UnlockSummary = "Unlocks Amethyst geodes",
 		VisualDesc = "Quartz-amethyst blade with a soft glow",
 		BladeColor = Color3.fromRGB(185, 95, 255), HeadMaterial = Enum.Material.Glass, HeadReflectance = 0.24,
@@ -1084,7 +1084,7 @@ GameConfig.PICKAXE_TIERS = {
 	},
 	[7] = {
 		Level = 7, Name = "Amethyst Pickaxe", ShortName = "Amethyst",
-		Cost = 18500, Damage = 68, BaseSwingCooldown = 0.36, SwingAnimSpeed = 1.27,
+		Cost = 46250, Damage = 68, BaseSwingCooldown = 0.36, SwingAnimSpeed = 1.27,
 		UnlockSummary = "Unlocks Ruby and Emerald",
 		VisualDesc = "Faceted emerald blade in a gold frame",
 		BladeColor = Color3.fromRGB(35, 215, 110), HeadMaterial = Enum.Material.Glass, HeadReflectance = 0.22,
@@ -1095,7 +1095,7 @@ GameConfig.PICKAXE_TIERS = {
 	},
 	[8] = {
 		Level = 8, Name = "Void Pickaxe", ShortName = "Void",
-		Cost = 62000, Damage = 96, BaseSwingCooldown = 0.34, SwingAnimSpeed = 1.33,
+		Cost = 155000, Damage = 96, BaseSwingCooldown = 0.34, SwingAnimSpeed = 1.33,
 		UnlockSummary = "Unlocks Sapphire and Diamond",
 		VisualDesc = "Pure diamond with a blue shine",
 		BladeColor = Color3.fromRGB(80, 220, 255), HeadMaterial = Enum.Material.Glass, HeadReflectance = 0.28,
@@ -1106,7 +1106,7 @@ GameConfig.PICKAXE_TIERS = {
 	},
 	[9] = {
 		Level = 9, Name = "Golden Pickaxe", ShortName = "Golden",
-		Cost = 210000, Damage = 138, BaseSwingCooldown = 0.32, SwingAnimSpeed = 1.39,
+		Cost = 525000, Damage = 138, BaseSwingCooldown = 0.32, SwingAnimSpeed = 1.39,
 		UnlockSummary = "Unlocks relic Mithril at the bottom (30 m)",
 		VisualDesc = "Teal-silver mithril with star sparks",
 		BladeColor = Color3.fromRGB(70, 235, 225), HeadMaterial = Enum.Material.Metal, HeadReflectance = 0.35,
@@ -1117,7 +1117,7 @@ GameConfig.PICKAXE_TIERS = {
 	},
 	[10] = {
 		Level = 10, Name = "Royal Gold Pickaxe", ShortName = "Royal",
-		Cost = 750000, Damage = 195, BaseSwingCooldown = 0.29, SwingAnimSpeed = 1.45,
+		Cost = 1875000, Damage = 195, BaseSwingCooldown = 0.29, SwingAnimSpeed = 1.45,
 		UnlockSummary = "Maximum speed and damage on every block",
 		VisualDesc = "Obsidian-gold blade with a fiery plasma aura",
 		BladeColor = Color3.fromRGB(38, 32, 44), HeadMaterial = Enum.Material.Metal, HeadReflectance = 0.32,
@@ -1194,7 +1194,7 @@ GameConfig.BACKPACK_TIERS = {
 	},
 	[2] = {
 		Level = 2, Name = "Leather Bedroll Pack Lv.2", ShortName = "Leather",
-		Capacity = 25, Cost = 80,
+		Capacity = 25, Cost = 200,
 		VisualDesc = "Thick brown leather, side pockets and a bedroll on top",
 		Body = Color3.fromRGB(126, 84, 52), Trim = Color3.fromRGB(86, 54, 32), Fitting = Color3.fromRGB(185, 188, 195),
 		BodyMaterial = Enum.Material.Leather, FittingMaterial = Enum.Material.Metal,
@@ -1203,7 +1203,7 @@ GameConfig.BACKPACK_TIERS = {
 	},
 	[3] = {
 		Level = 3, Name = "Field Expedition Pack Lv.3", ShortName = "Field",
-		Capacity = 45, Cost = 240,
+		Capacity = 45, Cost = 600,
 		VisualDesc = "Olive canvas with bedroll, double straps and pouches",
 		Body = Color3.fromRGB(102, 116, 68), Trim = Color3.fromRGB(72, 84, 48), Fitting = Color3.fromRGB(178, 182, 172),
 		BodyMaterial = Enum.Material.Fabric, FittingMaterial = Enum.Material.Metal,
@@ -1212,7 +1212,7 @@ GameConfig.BACKPACK_TIERS = {
 	},
 	[4] = {
 		Level = 4, Name = "City Pack Lv.4", ShortName = "City",
-		Capacity = 75, Cost = 680,
+		Capacity = 75, Cost = 1700,
 		VisualDesc = "Matte black zip body with a steel badge",
 		Body = Color3.fromRGB(48, 52, 58), Trim = Color3.fromRGB(32, 35, 40), Fitting = Color3.fromRGB(165, 172, 184),
 		BodyMaterial = Enum.Material.SmoothPlastic, FittingMaterial = Enum.Material.Metal,
@@ -1221,7 +1221,7 @@ GameConfig.BACKPACK_TIERS = {
 	},
 	[5] = {
 		Level = 5, Name = "Vanguard Pack Lv.5", ShortName = "Vanguard",
-		Capacity = 120, Cost = 1850,
+		Capacity = 120, Cost = 4625,
 		VisualDesc = "Blue impact-proof shell with a glowing white diamond",
 		Body = Color3.fromRGB(38, 108, 215), Trim = Color3.fromRGB(24, 68, 148), Fitting = Color3.fromRGB(235, 245, 255),
 		BodyMaterial = Enum.Material.SmoothPlastic, FittingMaterial = Enum.Material.Neon,
@@ -1230,7 +1230,7 @@ GameConfig.BACKPACK_TIERS = {
 	},
 	[6] = {
 		Level = 6, Name = "Armored Tactical Pack Lv.6", ShortName = "Tactical",
-		Capacity = 180, Cost = 4900,
+		Capacity = 180, Cost = 12250,
 		VisualDesc = "Reinforced carbon pack with MOLLE straps and double locks",
 		Body = Color3.fromRGB(36, 38, 44), Trim = Color3.fromRGB(22, 24, 28), Fitting = Color3.fromRGB(128, 134, 145),
 		BodyMaterial = Enum.Material.Metal, FittingMaterial = Enum.Material.Metal,
@@ -1239,7 +1239,7 @@ GameConfig.BACKPACK_TIERS = {
 	},
 	[7] = {
 		Level = 7, Name = "North Star Cyber Pack Lv.7", ShortName = "North Star",
-		Capacity = 270, Cost = 13500,
+		Capacity = 270, Cost = 33750,
 		VisualDesc = "White titanium plates with a neon star core",
 		Body = Color3.fromRGB(218, 224, 234), Trim = Color3.fromRGB(38, 42, 52), Fitting = Color3.fromRGB(45, 195, 255),
 		BodyMaterial = Enum.Material.SmoothPlastic, FittingMaterial = Enum.Material.Neon,
@@ -1248,7 +1248,7 @@ GameConfig.BACKPACK_TIERS = {
 	},
 	[8] = {
 		Level = 8, Name = "Neon Crown Pack Lv.8", ShortName = "Crown",
-		Capacity = 400, Cost = 38000,
+		Capacity = 400, Cost = 95000,
 		VisualDesc = "Dark purple cyber case with neon edges and a crown emblem",
 		Body = Color3.fromRGB(34, 28, 48), Trim = Color3.fromRGB(22, 18, 34), Fitting = Color3.fromRGB(168, 65, 255),
 		BodyMaterial = Enum.Material.SmoothPlastic, FittingMaterial = Enum.Material.Neon,
@@ -1257,7 +1257,7 @@ GameConfig.BACKPACK_TIERS = {
 	},
 	[9] = {
 		Level = 9, Name = "Volcanic Exo Pack Lv.9", ShortName = "Volcanic",
-		Capacity = 620, Cost = 110000,
+		Capacity = 620, Cost = 275000,
 		VisualDesc = "Faceted basalt armor with glowing red energy lines",
 		Body = Color3.fromRGB(28, 26, 30), Trim = Color3.fromRGB(18, 16, 20), Fitting = Color3.fromRGB(255, 42, 32),
 		BodyMaterial = Enum.Material.Basalt, FittingMaterial = Enum.Material.Neon,
@@ -1266,7 +1266,7 @@ GameConfig.BACKPACK_TIERS = {
 	},
 	[10] = {
 		Level = 10, Name = "Quantum Cyber Pack Lv.10", ShortName = "Quantum",
-		Capacity = 1000, Cost = 340000,
+		Capacity = 1000, Cost = 850000,
 		VisualDesc = "Futuristic reactor pack with 4 crystal energy wings",
 		Body = Color3.fromRGB(24, 30, 42), Trim = Color3.fromRGB(14, 18, 28), Fitting = Color3.fromRGB(0, 225, 255),
 		BodyMaterial = Enum.Material.Metal, FittingMaterial = Enum.Material.Neon,
@@ -1322,7 +1322,7 @@ end
 -- ============================================================================
 GameConfig.BACKPACK_DIRT = {
 	CleanCooldown = 2.0,
-	RepairKitPrice = 85,
+	RepairKitPrice = 215,
 	MaxBlocks = 300,
 	Stages = {
 		{ Blocks = 20,  Penalty = 0.10, Name = "Slightly Dirty",  Color = Color3.fromRGB(190, 200, 110) },
@@ -1383,7 +1383,7 @@ end
 
 -- v32: Night Merchant food supplies (burgers are stored and eaten any time)
 GameConfig.FOOD = {
-	Price = 45,
+	Price = 115,
 	MaxStock = 20,
 	EatCooldown = 1.0,
 	Key = "H",
@@ -1597,7 +1597,7 @@ export type BoostConfig = {
 	Name: string,
 	Icon: string,
 	Desc: string,
-	Stat: string,          -- "Luck" | "MineSpeed" | "Coins"
+	Stat: string,          -- "Luck" | "MineSpeed" | "Coins" | "Shield"
 	Multiplier: number,
 	Duration: number,      -- секунд за одну покупку (повторная покупка ПРОДЛЕВАЕТ буст)
 	Price: number,
@@ -1607,30 +1607,36 @@ export type BoostConfig = {
 }
 
 GameConfig.BOOSTS = {
-	Order = { "Luck", "Speed", "Coins", "Potion" },
+	Order = { "Luck", "Speed", "Coins", "Potion", "Shield" },
 	MaxSeconds = 3600,        -- больше часа буст не накапливается
 	ExpireWarnSeconds = 10,   -- чип пульсирует, когда осталось меньше
 	Items = {
 		Luck = {
 			Id = "Luck", Name = "Удача", Icon = "🍀", Desc = "Шанс бонусной руды ×2",
-			Stat = "Luck", Multiplier = 2, Duration = 300, Price = 450,
+			Stat = "Luck", Multiplier = 2, Duration = 300, Price = 1125,
 			Color = Color3.fromRGB(86, 220, 110), Rarity = 2, InShop = true,
 		},
 		Speed = {
 			Id = "Speed", Name = "Скорость", Icon = "⚡", Desc = "Кирка бьёт в 1.5 раза быстрее",
-			Stat = "MineSpeed", Multiplier = 1.5, Duration = 300, Price = 600,
+			Stat = "MineSpeed", Multiplier = 1.5, Duration = 300, Price = 1500,
 			Color = Color3.fromRGB(80, 190, 255), Rarity = 3, InShop = true,
 		},
 		Coins = {
 			Id = "Coins", Name = "Монеты", Icon = "💰", Desc = "Продажа руды приносит ×2 монет",
-			Stat = "Coins", Multiplier = 2, Duration = 300, Price = 900,
+			Stat = "Coins", Multiplier = 2, Duration = 300, Price = 2250,
 			Color = Color3.fromRGB(255, 200, 60), Rarity = 4, InShop = true,
 		},
 		-- Зелье Ночного торговца (существовало в v51 как атрибут SellBoostUntil) — теперь тоже буст с чипом
 		Potion = {
 			Id = "Potion", Name = "Зелье шахтёра", Icon = "🧪", Desc = "+25% монет при продаже",
-			Stat = "Coins", Multiplier = 1.25, Duration = 180, Price = 150,
+			Stat = "Coins", Multiplier = 1.25, Duration = 180, Price = 375,
 			Color = Color3.fromRGB(205, 100, 235), Rarity = 2, InShop = false,
+		},
+		-- v53: Зелье щита Ночного торговца — пока действует, рюкзак не пачкается
+		Shield = {
+			Id = "Shield", Name = "Щит", Icon = "🛡️", Desc = "Рюкзак не пачкается",
+			Stat = "Shield", Multiplier = 1, Duration = 300, Price = 400,
+			Color = Color3.fromRGB(70, 150, 255), Rarity = 3, InShop = false,
 		},
 	} :: { [string]: BoostConfig },
 }
@@ -1700,6 +1706,7 @@ GameConfig.NIGHT_FX = {
 	RuneBright = Color3.fromRGB(255, 70, 56),
 	RuneDim = Color3.fromRGB(120, 8, 14),
 	RunePulseSeconds = 0.85,
+	LidFadeSeconds = 1.1,                   -- проявление/исчезновение одной плиты крышки
 	CountdownPrefix = "Откроется через: ",
 	Banners = {
 		Night = {
@@ -1822,6 +1829,39 @@ GameConfig.NIGHT_WALL = {
 		CountdownColor = Color3.fromRGB(255, 214, 120),
 		Hint = "Возвращайся утром!",
 		HintColor = Color3.fromRGB(235, 235, 245),
+	},
+
+	-- v53: крылья — стена продолжается от монолита до углов карьера (весь фасад шахты)
+	Wings = {
+		OuterX = 64.5, -- внешний край крыла (угол периметра ±63.5 + половина толщины блокера)
+		Height = 13,
+		Thickness = 2.4,
+		PlinthHeight = 1.8,
+		CapHeight = 0.9,
+		PillarSpacing = 16, -- примерный шаг пилонов; секции делятся поровну
+		PillarWidth = 2.6,
+		SpikeSpacing = 4,
+		SpikeMinHeight = 1.1,
+		SpikeMaxHeight = 2.2,
+		SignSize = Vector2.new(12, 6), -- табличка в средней секции каждого крыла
+	},
+
+	-- v53: крышка над всем карьером — базальтовые плиты с красными швами (только ночью)
+	Lid = {
+		MinX = -62.9,
+		MaxX = 62.9,
+		NorthZ = -140.9,
+		SouthZ = -17.2, -- вплотную к стене
+		Y = 0.95, -- центр по высоте: чуть выше бортика карьера (его верх 0.68)
+		Thickness = 0.5,
+		Columns = 6,
+		Rows = 6,
+		Gap = 0.55, -- шов между плитами, в нём видна светящаяся подложка
+		RuneSize = 3.2,
+		RowDelay = 0.14, -- плиты проявляются волной от входа к дальнему краю
+		PlateColorA = Color3.fromRGB(30, 26, 38),
+		PlateColorB = Color3.fromRGB(38, 33, 48),
+		SeamColor = Color3.fromRGB(255, 40, 40),
 	},
 
 	-- Периметр карьера (невидимые блокировщики; Высота берётся из GameConfig.WALL_HEIGHT)
@@ -2345,7 +2385,7 @@ LocalizationConfig.ENTRIES = {
 	{ En = "Sell All Ore (70% Value)", Ru = "Продать всю руду (70% цены)", Context = "Night Merchant Window Button" },
 	{ En = "Repair Kit", Ru = "Ремонтный набор", Context = "Night Merchant Item (Cleans Backpack &amp; Buffs Pickaxe)" },
 	{ En = "Book", Ru = "Книга шахтёра", Context = "Night Merchant Item (+XP &amp; +Strength XP)" },
-	{ En = "Food", Ru = "Еда (Бургер и содовая)", Context = "Night Merchant Item (Full Energy + Max Energy Buff)" },
+	{ En = "Food", Ru = "Еда", Context = "Night Merchant Item (Full Energy + Max Energy Buff)" },
 	{ En = "Consumable", Ru = "Зелье шахтёра", Context = "Night Merchant Item (Speed &amp; Luck Potion)" },
 	{ En = "Cosmetic", Ru = "Косметика (Цилиндр и неоновые очки)", Context = "Night Merchant Item" },
 	{ En = "Morning Bonus", Ru = "Утренний бонус (Талисман жил)", Context = "Night Merchant Item (Guarantees 3 Morning Veins)" },
@@ -2367,7 +2407,7 @@ LocalizationConfig.ENTRIES = {
 	{ En = "EQUIP", Ru = "НАДЕТЬ", Context = "Merchant cosmetic button" },
 	{ En = "UNEQUIP", Ru = "СНЯТЬ", Context = "Merchant cosmetic button" },
 	{ En = "ACTIVE", Ru = "АКТИВНО", Context = "Merchant Morning Bonus button" },
-	{ En = "CLEAN", Ru = "ЧИСТО", Context = "Merchant Repair Kit button" },
+	{ En = "CLEAN", Ru = "ОЧИСТИТЬ", Context = "Merchant Repair Kit button" },
 	{ En = "Top Hat", Ru = "Цилиндр", Context = "Cosmetic" },
 	{ En = "Miner Potion", Ru = "Зелье шахтёра", Context = "Consumable" },
 	{ En = "Cleans all dirt from your backpack", Ru = "Полностью очищает рюкзак от грязи", Context = "Repair Kit desc" },
@@ -2379,6 +2419,28 @@ LocalizationConfig.ENTRIES = {
 	{ En = "Your backpack is empty!", Ru = "Ваш рюкзак пуст!", Context = "Merchant error" },
 	{ En = "The Night Merchant only trades at night!", Ru = "Ночной торговец торгует только ночью!", Context = "Merchant error" },
 	{ En = "Come closer to the Night Merchant!", Ru = "Подойдите ближе к Ночному торговцу!", Context = "Merchant error" },
+	-- v53: Night Merchant redesign (Repair Kit, Treasure Map, Food, Miner Potion, Shield Potion)
+	{ En = "Open only at night • Ore buyback 70%", Ru = "Работает только ночью • Скупка руды 70%", Context = "Night Merchant subtitle" },
+	{ En = "Cleans all dirt from your backpack. Night only!", Ru = "Полностью очищает рюкзак от грязи. Только ночью!", Context = "Repair Kit card" },
+	{ En = "Treasure Map", Ru = "Карта сокровищ", Context = "Treasure Map card" },
+	{ En = "Discover hidden loot on the island!", Ru = "Найди спрятанную добычу на острове!", Context = "Treasure Map card" },
+	{ En = "Burger &amp; soda to restore energy!", Ru = "Бургер и газировка восстановят энергию!", Context = "Food card" },
+	{ En = "+25% coins at $ SELL for 3 minutes!", Ru = "+25% монет на $ SELL на 3 минуты!", Context = "Miner Potion card" },
+	{ En = "Shield Potion", Ru = "Зелье щита", Context = "Shield Potion card" },
+	{ En = "Gain a temporary shield!", Ru = "Получи временный щит!", Context = "Shield Potion card" },
+	{ En = "Backpack is empty", Ru = "Рюкзак пуст", Context = "Merchant bottom bar" },
+	{ En = "Sell ore: +%s coins (70%%)", Ru = "Продать руду: +%s монет (70%%)", Context = "Merchant bottom bar (format)" },
+	{ En = "Stock: %d/%d", Ru = "Запас: %d/%d", Context = "Food card stock (format)" },
+	{ En = "Active: %s", Ru = "Действует: %s", Context = "Potion card timer (format)" },
+	{ En = "Treasure is hidden!", Ru = "Сокровище спрятано!", Context = "Treasure Map card (already active)" },
+	{ En = "Dig", Ru = "Копать", Context = "Treasure prompt" },
+	{ En = "Treasure", Ru = "Сокровище", Context = "Treasure prompt" },
+	{ En = "💰 Not Enough Coins", Ru = "💰 Недостаточно монет", Context = "Merchant error" },
+	{ En = "✨ Your backpack is already clean!", Ru = "✨ Рюкзак уже чистый!", Context = "Merchant error" },
+	{ En = "🗺️ You already have a hidden treasure. Dig it up first!", Ru = "🗺️ У тебя уже есть спрятанный клад. Сначала откопай его!", Context = "Merchant error" },
+	{ En = "🧰 Repair Kit used: backpack is clean, all slots are back!", Ru = "🧰 Ремонтный набор использован: рюкзак чист, все слоты вернулись!", Context = "Merchant result" },
+	{ En = "🧪 Miner Potion: +25% coins at $ SELL for 3 min", Ru = "🧪 Зелье шахтёра: +25% монет на $ SELL на 3 мин", Context = "Merchant result" },
+	{ En = "🛡️ Shield Potion: your backpack stays clean for 5 min", Ru = "🛡️ Зелье щита: рюкзак не пачкается 5 мин", Context = "Merchant result" },
 } :: { TranslationEntry }
 
 LocalizationConfig.EN_TO_RU = {} :: { [string]: string }
@@ -4235,7 +4297,10 @@ ProgressionConfig.SOUNDS = {
 	-- v47: мягкое арпеджио из «колокольчика» вместо резкого звука
 	LevelUpChime = { Id = "rbxassetid://9113728756", Volume = 0.22 },
 	-- Свой звук: загрузи LevelUp_Chime.ogg и вставь ID, например "rbxassetid://123"
-	LevelUpCustom = { Id = "rbxassetid://135458320667545", Volume = 0.5 }, -- v48: звук игрока
+	LevelUpCustom = { Id = "", Volume = 0.5 }, -- пусто = играет LevelUpSoft (прежний свой звук: rbxassetid://135458320667545)
+	-- v53: мягкий перелив колокольчиков из лицензированной библиотеки Roblox (ProSoundEffects,
+	-- «Magic Glows Soft Clusters Of Chiming Hits 1», 2.1 с). Работает в любой игре без загрузки.
+	LevelUpSoft = { Id = "rbxassetid://9116394545", Volume = 0.55 },
 	Click       = { Id = "rbxassetid://12221976",   Volume = 0.10 },
 	Achievement = { Id = "rbxassetid://1839901345", Volume = 0.07 }, -- тихий мягкий сигнал (было 0.40)
 	Prestige    = { Id = "rbxassetid://1845411858", Volume = 0.50 },
@@ -7304,6 +7369,330 @@ function ClientBus.IsWindowOpen(id: string): boolean
 end
 
 return ClientBus
+</ProtectedString></Properties></Item><Item class="ModuleScript"><Properties><string name="Name">MerchantConfig</string><ProtectedString name="Source">--!strict
+-- ============================================================================
+-- 🌙 MODULE: MerchantConfig (ReplicatedStorage.Modules.MerchantConfig)
+-- Night Merchant: window texts, card order and colours, Treasure Map settings.
+-- Prices of other items stay in GameConfig (RepairKitPrice, FOOD.Price, BOOSTS.Items.*);
+-- the server sends the final prices to the client, the UI only displays them.
+-- ============================================================================
+
+export type CardStyle = {
+	Id: string,
+	Name: string,
+	Desc: string,
+	Button: string,
+	Accent: Color3, -- outline / glow
+	Bg0: Color3, -- card gradient: top-left
+	Bg1: Color3, -- card gradient: bottom-right
+	BtnTop: Color3,
+	BtnBottom: Color3,
+	BtnEdge: Color3, -- darker bottom edge of the "3D" button
+}
+
+local MerchantConfig = {}
+
+MerchantConfig.Title = "NIGHT MERCHANT"
+MerchantConfig.Subtitle = "Open only at night • Ore buyback 70%"
+MerchantConfig.EmptyBag = "Backpack is empty"
+MerchantConfig.SellFormat = "Sell ore: +%s coins (70%%)"
+MerchantConfig.StockFormat = "Stock: %d/%d"
+MerchantConfig.ActiveFormat = "Active: %s"
+
+-- Card order: top row 3 cards, bottom row 2 cards (centred)
+MerchantConfig.Order = { "RepairKit", "TreasureMap", "Food", "Potion", "Shield" }
+MerchantConfig.TopRow = 3
+
+MerchantConfig.Cards = {
+	RepairKit = {
+		Id = "RepairKit", Name = "Repair Kit", Desc = "Cleans all dirt from your backpack. Night only!", Button = "CLEAN",
+		Accent = Color3.fromRGB(255, 70, 80), Bg0 = Color3.fromRGB(104, 24, 50), Bg1 = Color3.fromRGB(38, 12, 30),
+		BtnTop = Color3.fromRGB(255, 96, 96), BtnBottom = Color3.fromRGB(214, 36, 48), BtnEdge = Color3.fromRGB(122, 14, 30),
+	},
+	TreasureMap = {
+		Id = "TreasureMap", Name = "Treasure Map", Desc = "Discover hidden loot on the island!", Button = "BUY",
+		Accent = Color3.fromRGB(255, 200, 50), Bg0 = Color3.fromRGB(104, 66, 16), Bg1 = Color3.fromRGB(40, 24, 18),
+		BtnTop = Color3.fromRGB(255, 220, 70), BtnBottom = Color3.fromRGB(240, 170, 20), BtnEdge = Color3.fromRGB(140, 86, 8),
+	},
+	Food = {
+		Id = "Food", Name = "Food", Desc = "Burger &amp; soda to restore energy!", Button = "BUY",
+		Accent = Color3.fromRGB(255, 142, 36), Bg0 = Color3.fromRGB(112, 50, 14), Bg1 = Color3.fromRGB(42, 20, 22),
+		BtnTop = Color3.fromRGB(255, 168, 60), BtnBottom = Color3.fromRGB(240, 118, 20), BtnEdge = Color3.fromRGB(136, 62, 8),
+	},
+	Potion = {
+		Id = "Potion", Name = "Miner Potion", Desc = "+25% coins at $ SELL for 3 minutes!", Button = "BUY",
+		Accent = Color3.fromRGB(70, 226, 84), Bg0 = Color3.fromRGB(18, 88, 36), Bg1 = Color3.fromRGB(10, 34, 26),
+		BtnTop = Color3.fromRGB(104, 236, 70), BtnBottom = Color3.fromRGB(40, 178, 50), BtnEdge = Color3.fromRGB(16, 94, 28),
+	},
+	Shield = {
+		Id = "Shield", Name = "Shield Potion", Desc = "Gain a temporary shield!", Button = "BUY",
+		Accent = Color3.fromRGB(60, 140, 255), Bg0 = Color3.fromRGB(18, 60, 138), Bg1 = Color3.fromRGB(12, 24, 66),
+		BtnTop = Color3.fromRGB(80, 176, 255), BtnBottom = Color3.fromRGB(36, 100, 236), BtnEdge = Color3.fromRGB(14, 52, 150),
+	},
+} :: { [string]: CardStyle }
+
+-- Window palette
+MerchantConfig.Palette = {
+	PanelTop = Color3.fromRGB(44, 26, 98),
+	PanelBottom = Color3.fromRGB(14, 12, 46),
+	PanelStroke = Color3.fromRGB(150, 96, 255),
+	Gold = Color3.fromRGB(255, 205, 80),
+	GoldLight = Color3.fromRGB(255, 240, 150),
+	GoldDark = Color3.fromRGB(255, 160, 30),
+	Muted = Color3.fromRGB(176, 166, 224),
+	Desc = Color3.fromRGB(230, 224, 246),
+	Ok = Color3.fromRGB(130, 240, 150),
+	Fail = Color3.fromRGB(255, 130, 110),
+}
+
+-- Treasure Map: the price is x2.5 of the original 250 like all other prices
+MerchantConfig.TreasureMap = {
+	Price = 625,
+	LootMin = 1.3, -- coins = Price * random(LootMin..LootMax)
+	LootMax = 2.4,
+	XpBase = 40, -- + XpPerLevel * player level
+	XpPerLevel = 10,
+	HoldSeconds = 0.8,
+	-- Axis mapping for the direction hint: -Z is north (where the mine is), +X is east.
+	-- Open ground on the island: outside the mine pit X[-66,66] Z[-144,-13], the spawn plaza,
+	-- the merchant stall (0,46 r20), the SELL market (-32,6) and the SHOP pavilion (32,6).
+	Spots = {
+		Vector2.new(-58, 24), Vector2.new(-46, 40), Vector2.new(-60, 54), Vector2.new(-36, 56),
+		Vector2.new(-62, 14), Vector2.new(28, 58), Vector2.new(36, 40), Vector2.new(50, 56),
+		Vector2.new(60, 30), Vector2.new(72, 12),
+	},
+}
+
+return MerchantConfig
+</ProtectedString></Properties></Item><Item class="ModuleScript"><Properties><string name="Name">MerchantIconModels</string><ProtectedString name="Source">--!strict
+-- ============================================================================
+-- 🧰 MODULE: MerchantIconModels (ReplicatedStorage.Modules.MerchantIconModels)
+-- 3D icons for the Night Merchant cards (ViewportFrame, same idea as OreIconModels):
+-- toolbox with a wrench, treasure map, burger with a soda cup, round green potion
+-- and a blue shield-shaped potion. Everything is built from Parts, no assets.
+-- Models face +Z; the UI sways the camera around the front side.
+-- ============================================================================
+
+local PartKit = require(script.Parent:WaitForChild("PartKit"))
+
+local MerchantIconModels = {}
+
+export type CameraInfo = { Center: Vector3, Distance: number, Height: number }
+
+local CAMERAS: { [string]: CameraInfo } = {
+	RepairKit = { Center = Vector3.new(0, 0.2, 0), Distance = 9.2, Height = 1.6 },
+	TreasureMap = { Center = Vector3.new(0, 0, 0), Distance = 8.4, Height = 0.8 },
+	Food = { Center = Vector3.new(0.2, 0.4, 0), Distance = 10.2, Height = 2.4 },
+	Potion = { Center = Vector3.new(0, 0.3, 0), Distance = 9.2, Height = 0.9 },
+	Shield = { Center = Vector3.new(0, 0.3, 0), Distance = 9.2, Height = 0.9 },
+}
+
+local function rgb(r: number, g: number, b: number): Color3
+	return Color3.fromRGB(r, g, b)
+end
+
+-- Cylinder whose axis points along X / Y / Z of the model
+local function cylX(parent: Instance, name: string, d: number, len: number, pos: Vector3, color: Color3, mat: Enum.Material, tr: number?): Part
+	return PartKit.Cylinder(parent, name, d, len, CFrame.new(pos) * CFrame.Angles(0, 0, math.rad(90)), color, mat, { Transparency = tr })
+end
+local function cylY(parent: Instance, name: string, d: number, len: number, pos: Vector3, color: Color3, mat: Enum.Material, tr: number?): Part
+	return PartKit.Cylinder(parent, name, d, len, CFrame.new(pos), color, mat, { Transparency = tr })
+end
+local function cylZ(parent: Instance, name: string, d: number, len: number, pos: Vector3, color: Color3, mat: Enum.Material, tr: number?): Part
+	return PartKit.Cylinder(parent, name, d, len, CFrame.new(pos) * CFrame.Angles(math.rad(90), 0, 0), color, mat, { Transparency = tr })
+end
+
+local function newModel(name: string): (Model, Part)
+	local model = Instance.new("Model")
+	model.Name = "MerchantIcon_" .. name
+	local root = PartKit.Block(model, "Root", Vector3.new(0.2, 0.2, 0.2), CFrame.new(), rgb(255, 255, 255), Enum.Material.SmoothPlastic, { Transparency = 1 })
+	model.PrimaryPart = root
+	return model, root
+end
+
+-- ---------------------------------------------------------------------------
+local function buildRepairKit(): Model
+	local m = newModel("RepairKit")
+	local red, redDark, redLight = rgb(226, 44, 48), rgb(150, 24, 36), rgb(255, 104, 96)
+	local steel, steelDark = rgb(196, 206, 232), rgb(92, 100, 128)
+	local purple = rgb(112, 90, 196)
+	local P = Enum.Material.SmoothPlastic
+
+	PartKit.Block(m, "Body", Vector3.new(3.0, 1.5, 1.7), CFrame.new(0, -0.35, 0), red, P)
+	PartKit.Block(m, "BodyTrim", Vector3.new(3.04, 0.3, 1.74), CFrame.new(0, -0.95, 0), redDark, P)
+	PartKit.Block(m, "Lid", Vector3.new(3.1, 0.56, 1.78), CFrame.new(0, 0.68, 0), redLight, P)
+	PartKit.Block(m, "Seam", Vector3.new(3.12, 0.06, 1.8), CFrame.new(0, 0.4, 0), rgb(46, 20, 30), P)
+	for _, sx in ipairs({ -1, 1 }) do
+		PartKit.Block(m, "SidePlate", Vector3.new(0.1, 1.9, 0.62), CFrame.new(sx * 1.53, -0.1, 0), steel, Enum.Material.Metal)
+		cylY(m, "HandlePost", 0.2, 0.5, Vector3.new(sx * 0.72, 1.2, 0), purple, P)
+	end
+	cylX(m, "HandleBar", 0.24, 1.7, Vector3.new(0, 1.48, 0), purple, P)
+	PartKit.Block(m, "Latch", Vector3.new(0.52, 0.5, 0.1), CFrame.new(0, 0.38, 0.9), steel, Enum.Material.Metal)
+	PartKit.Ball(m, "LatchHole", 0.14, CFrame.new(0, 0.38, 0.97), steelDark, P)
+
+	-- wrench on the front face
+	local ang = math.rad(40)
+	local dir = Vector3.new(math.cos(ang), math.sin(ang), 0)
+	local c = Vector3.new(0, -0.4, 0.93)
+	PartKit.Block(m, "WrenchHandle", Vector3.new(1.75, 0.26, 0.1), CFrame.new(c) * CFrame.Angles(0, 0, ang), steel, Enum.Material.Metal)
+	local head = c + dir * 0.95
+	cylZ(m, "WrenchHead", 0.78, 0.12, head, steel, Enum.Material.Metal)
+	PartKit.Block(m, "WrenchJaw", Vector3.new(0.34, 0.42, 0.14), CFrame.new(head + dir * 0.3) * CFrame.Angles(0, 0, ang), rgb(120, 22, 36), P)
+	local tail = c - dir * 0.95
+	cylZ(m, "WrenchRing", 0.6, 0.12, tail, steel, Enum.Material.Metal)
+	cylZ(m, "WrenchHole", 0.26, 0.14, tail, redDark, P)
+	return m
+end
+
+-- ---------------------------------------------------------------------------
+local function buildTreasureMap(): Model
+	local m = newModel("TreasureMap")
+	local tilt = CFrame.Angles(0, 0, math.rad(-8))
+	local parch, parchDark = rgb(240, 216, 160), rgb(186, 142, 86)
+	local roll, rollEnd = rgb(218, 180, 122), rgb(140, 92, 50)
+	local F = Enum.Material.Fabric
+
+	PartKit.Block(m, "Edge", Vector3.new(2.8, 2.0, 0.05), tilt * CFrame.new(0, 0, -0.03), parchDark, F)
+	PartKit.Block(m, "Sheet", Vector3.new(2.7, 1.9, 0.1), tilt, parch, F)
+	for _, y in ipairs({ 1.0, -1.0 }) do
+		local z = 0.1
+		PartKit.Cylinder(m, "Roll", 0.46, 2.9, tilt * CFrame.new(0, y, z) * CFrame.Angles(0, 0, math.rad(90)), roll, F)
+		for _, sx in ipairs({ -1, 1 }) do
+			PartKit.Cylinder(m, "RollCap", 0.5, 0.08, tilt * CFrame.new(sx * 1.46, y, z) * CFrame.Angles(0, 0, math.rad(90)), rollEnd, F)
+			PartKit.Cylinder(m, "RollCore", 0.22, 0.1, tilt * CFrame.new(sx * 1.47, y, z) * CFrame.Angles(0, 0, math.rad(90)), rgb(100, 64, 32), F)
+		end
+	end
+	-- land patches and a dotted trail to the X
+	local patches = {
+		{ -0.7, 0.25, 0.9, 0.6 }, { 0.2, -0.35, 1.0, 0.55 }, { 0.75, 0.45, 0.6, 0.4 },
+	}
+	for _, p in ipairs(patches) do
+		PartKit.Ellipsoid(m, "Land", Vector3.new(p[3], p[4], 0.03), tilt * CFrame.new(p[1], p[2], 0.06), rgb(206, 170, 108), F)
+	end
+	local trail = { { -0.9, -0.55 }, { -0.62, -0.38 }, { -0.35, -0.5 }, { -0.1, -0.3 }, { 0.12, -0.05 }, { 0.3, 0.12 }, { 0.46, 0.22 } }
+	for _, t in ipairs(trail) do
+		PartKit.Ball(m, "Dot", 0.1, tilt * CFrame.new(t[1], t[2], 0.09), rgb(122, 72, 40), F)
+	end
+	for _, s in ipairs({ -45, 45 }) do
+		PartKit.Block(m, "MarkX", Vector3.new(0.82, 0.17, 0.05), tilt * CFrame.new(0.68, 0.32, 0.1) * CFrame.Angles(0, 0, math.rad(s)), rgb(224, 36, 42), Enum.Material.SmoothPlastic)
+	end
+	return m
+end
+
+-- ---------------------------------------------------------------------------
+local function buildFood(): Model
+	local m = newModel("Food")
+	local P = Enum.Material.SmoothPlastic
+	local cx = -0.55
+	local bun, bunDark = rgb(228, 154, 66), rgb(190, 116, 44)
+
+	cylY(m, "BunBottom", 2.3, 0.45, Vector3.new(cx, -0.9, 0), bun, P)
+	cylY(m, "BunBase", 2.34, 0.14, Vector3.new(cx, -1.08, 0), bunDark, P)
+	cylY(m, "Patty", 2.4, 0.4, Vector3.new(cx, -0.46, 0), rgb(92, 50, 30), Enum.Material.Slate)
+	PartKit.Block(m, "Cheese", Vector3.new(2.5, 0.08, 2.5), CFrame.new(cx, -0.2, 0) * CFrame.Angles(0, math.rad(45), 0), rgb(255, 206, 50), P)
+	for i = 0, 3 do
+		local a = math.rad(45 + 90 * i)
+		PartKit.Block(m, "CheeseDrip", Vector3.new(0.5, 0.34, 0.07), CFrame.new(cx + math.cos(a) * 1.16, -0.34, math.sin(a) * 1.16) * CFrame.Angles(0, -a + math.rad(90), 0), rgb(255, 196, 40), P)
+	end
+	cylY(m, "Tomato", 2.15, 0.14, Vector3.new(cx, -0.06, 0), rgb(218, 52, 40), P)
+	cylY(m, "Lettuce", 2.5, 0.12, Vector3.new(cx, 0.08, 0), rgb(92, 188, 58), P)
+	for i = 1, 9 do
+		local a = (i / 9) * math.pi * 2
+		PartKit.Ellipsoid(m, "LettuceRuffle", Vector3.new(0.66, 0.24, 0.5), CFrame.new(cx + math.cos(a) * 1.2, 0.08, math.sin(a) * 1.2) * CFrame.Angles(0, -a, 0), i % 2 == 0 and rgb(118, 206, 70) or rgb(78, 168, 52), P)
+	end
+	PartKit.Ellipsoid(m, "BunTop", Vector3.new(2.4, 1.34, 2.4), CFrame.new(cx, 0.68, 0), rgb(232, 156, 58), P)
+	local seeds = { { 20, 10 }, { 28, 80 }, { 36, 150 }, { 24, 220 }, { 42, 280 }, { 48, 330 }, { 52, 40 }, { 56, 120 }, { 14, 300 }, { 58, 200 } }
+	for _, s in ipairs(seeds) do
+		local phi, theta = math.rad(s[1]), math.rad(s[2])
+		local pos = Vector3.new(cx + 1.2 * math.sin(phi) * math.cos(theta), 0.68 + 0.67 * math.cos(phi), 1.2 * math.sin(phi) * math.sin(theta))
+		PartKit.Ellipsoid(m, "Seed", Vector3.new(0.2, 0.09, 0.12), CFrame.new(pos) * CFrame.Angles(0, -theta, math.rad(s[1] * 0.6)), rgb(255, 238, 196), P)
+	end
+
+	-- striped soda cup behind the burger
+	local cupX, cupZ = 1.5, -0.55
+	local stripeRed, stripeWhite = rgb(214, 40, 48), rgb(248, 248, 252)
+	local diameters = { 0.9, 0.97, 1.04, 1.11 }
+	for i, d in ipairs(diameters) do
+		cylY(m, "CupBand", d, 0.45, Vector3.new(cupX, -0.62 + (i - 1) * 0.45, cupZ), i % 2 == 1 and stripeRed or stripeWhite, P)
+	end
+	cylY(m, "CupLid", 1.22, 0.12, Vector3.new(cupX, 1.2, cupZ), rgb(190, 30, 40), P)
+	PartKit.Ellipsoid(m, "CupDome", Vector3.new(1.0, 0.3, 1.0), CFrame.new(cupX, 1.3, cupZ), rgb(206, 38, 46), P)
+	PartKit.Block(m, "Straw", Vector3.new(0.12, 1.3, 0.12), CFrame.new(cupX + 0.18, 1.85, cupZ) * CFrame.Angles(0, 0, math.rad(-18)), rgb(250, 250, 252), P)
+	PartKit.Block(m, "StrawBand", Vector3.new(0.13, 0.22, 0.13), CFrame.new(cupX + 0.22, 1.95, cupZ) * CFrame.Angles(0, 0, math.rad(-18)), rgb(214, 40, 48), P)
+	return m
+end
+
+-- ---------------------------------------------------------------------------
+local function addCork(m: Model, y: number)
+	cylY(m, "Cork", 0.76, 0.6, Vector3.new(0, y, 0), rgb(168, 116, 66), Enum.Material.Wood)
+	cylY(m, "CorkTop", 0.82, 0.1, Vector3.new(0, y + 0.32, 0), rgb(132, 86, 48), Enum.Material.Wood)
+end
+
+local function buildPotion(): Model
+	local m = newModel("Potion")
+	local glass = rgb(110, 228, 120)
+	PartKit.Ball(m, "Glass", 2.3, CFrame.new(0, -0.35, 0), glass, Enum.Material.Glass, { Transparency = 0.4, Reflectance = 0.1 })
+	PartKit.Ellipsoid(m, "Liquid", Vector3.new(2.0, 1.6, 2.0), CFrame.new(0, -0.58, 0), rgb(70, 255, 60), Enum.Material.Neon, { Transparency = 0.1 })
+	cylY(m, "LiquidTop", 1.72, 0.04, Vector3.new(0, 0.1, 0), rgb(176, 255, 120), Enum.Material.Neon)
+	cylY(m, "Neck", 0.86, 0.8, Vector3.new(0, 1.05, 0), glass, Enum.Material.Glass, 0.35)
+	cylY(m, "Rim", 1.08, 0.16, Vector3.new(0, 1.5, 0), rgb(150, 238, 156), Enum.Material.Glass, 0.15)
+	addCork(m, 1.75)
+	PartKit.Ellipsoid(m, "Shine", Vector3.new(0.34, 0.7, 0.1), CFrame.new(-0.72, 0.15, 0.98) * CFrame.Angles(0, math.rad(-25), math.rad(18)), rgb(255, 255, 255), Enum.Material.Neon, { Transparency = 0.35 })
+	local sparks = { { -1.6, 0.9, 0.2 }, { 1.55, 0.2, 0.3 }, { 1.3, 1.5, 0.0 }, { -1.4, -0.9, 0.4 } }
+	for _, s in ipairs(sparks) do
+		PartKit.Ball(m, "Spark", 0.14, CFrame.new(s[1], s[2], s[3]), rgb(200, 255, 190), Enum.Material.Neon)
+	end
+	return m
+end
+
+local function buildShield(): Model
+	local m = newModel("Shield")
+	local blue, bright = rgb(58, 138, 255), rgb(96, 196, 255)
+	local G = Enum.Material.Glass
+	-- shield silhouette: rectangle + diamond point
+	PartKit.Block(m, "ShieldTop", Vector3.new(2.0, 1.3, 0.9), CFrame.new(0, 0.35, 0), blue, G, { Transparency = 0.25 })
+	PartKit.Block(m, "ShieldPoint", Vector3.new(1.414, 1.414, 0.9), CFrame.new(0, -0.3, 0) * CFrame.Angles(0, 0, math.rad(45)), blue, G, { Transparency = 0.25 })
+	for _, sx in ipairs({ -1, 1 }) do
+		cylZ(m, "ShieldShoulder", 0.5, 0.9, Vector3.new(sx * 0.88, 0.85, 0), blue, G, 0.25)
+	end
+	-- glowing emblem on the front
+	PartKit.Block(m, "EmblemTop", Vector3.new(1.2, 0.8, 0.1), CFrame.new(0, 0.42, 0.46), bright, Enum.Material.Neon, { Transparency = 0.1 })
+	PartKit.Block(m, "EmblemPoint", Vector3.new(0.85, 0.85, 0.1), CFrame.new(0, 0.0, 0.46) * CFrame.Angles(0, 0, math.rad(45)), bright, Enum.Material.Neon, { Transparency = 0.1 })
+	PartKit.Block(m, "EmblemBar", Vector3.new(0.14, 1.2, 0.12), CFrame.new(0, 0.28, 0.5), rgb(220, 244, 255), Enum.Material.Neon)
+	cylY(m, "Neck", 0.78, 0.7, Vector3.new(0, 1.4, 0), blue, G, 0.3)
+	cylY(m, "Rim", 1.0, 0.16, Vector3.new(0, 1.78, 0), rgb(130, 206, 255), G, 0.15)
+	addCork(m, 2.02)
+	local sparks = { { -1.5, 1.0, 0.2 }, { 1.5, 0.3, 0.3 }, { 1.2, 1.7, 0.0 }, { -1.3, -0.6, 0.4 } }
+	for _, s in ipairs(sparks) do
+		PartKit.Ball(m, "Spark", 0.14, CFrame.new(s[1], s[2], s[3]), rgb(190, 230, 255), Enum.Material.Neon)
+	end
+	return m
+end
+
+local BUILDERS: { [string]: () -&gt; Model } = {
+	RepairKit = buildRepairKit,
+	TreasureMap = buildTreasureMap,
+	Food = buildFood,
+	Potion = buildPotion,
+	Shield = buildShield,
+}
+
+MerchantIconModels.Ids = { "RepairKit", "TreasureMap", "Food", "Potion", "Shield" }
+
+-- Model centred near the origin, PrimaryPart = invisible Root
+function MerchantIconModels.Build(id: string): Model
+	local builder = BUILDERS[id]
+	if not builder then
+		error("MerchantIconModels: unknown icon " .. tostring(id))
+	end
+	return builder()
+end
+
+function MerchantIconModels.Camera(id: string): CameraInfo
+	return CAMERAS[id] or CAMERAS.RepairKit
+end
+
+return MerchantIconModels
 </ProtectedString></Properties></Item><Item class="ModuleScript"><Properties><string name="Name">OreIconModels</string><ProtectedString name="Source">--!strict
 -- ============================================================================
 -- 💎 МОДУЛЬ: OreIconModels (ReplicatedStorage.Modules.OreIconModels)
@@ -8799,7 +9188,8 @@ function DataManager.AddResourceToBackpack(
 		profile.Inventory[blockId] = (profile.Inventory[blockId] or 0) + 1
 	end
 	profile.TotalMined += 1
-	do -- v32: every mined block makes the backpack dirtier (stages at 20/50/100/300 blocks)
+	-- v32: every mined block makes the backpack dirtier (stages at 20/50/100/300 blocks); Shield Potion keeps it clean
+	if not BoostService.IsActive(player, "Shield") then
 		local beforeStage = GameConfig.GetDirtStage(profile.DirtBlocks or 0)
 		profile.DirtBlocks = math.min(99999, (profile.DirtBlocks or 0) + 1)
 		profile.BackpackDirt = GameConfig.GetDirtPercent(profile.DirtBlocks)
@@ -9470,6 +9860,7 @@ local GameConfig = require(ReplicatedStorage:WaitForChild("Modules"):WaitForChil
 local SoundManager = require(ReplicatedStorage:WaitForChild("Modules"):WaitForChild("SoundManager"))
 -- v52: процедурные постройки «сочного» обновления
 local SpawnPlazaBuilder = require(script.Parent:WaitForChild("SpawnPlazaBuilder"))
+local MerchantNpcBuilder = require(script.Parent:WaitForChild("MerchantNpcBuilder"))
 local VFXModule = require(ReplicatedStorage:WaitForChild("Modules"):WaitForChild("VFXModule"))
 
 local WorldBuilder = {}
@@ -9617,8 +10008,6 @@ function WorldBuilder.BuildNightMerchant(parent: Instance, basePos: Vector3): Mo
 	local crystalBlue = Color3.fromRGB(65, 155, 255)
 	local potionPink = Color3.fromRGB(205, 75, 230)
 	local potionGreen = Color3.fromRGB(70, 220, 120)
-	local suit = Color3.fromRGB(38, 34, 52)
-	local skin = Color3.fromRGB(234, 190, 150)
 	local purple = Color3.fromRGB(110, 60, 170)
 	local ironCol = Color3.fromRGB(42, 48, 58)
 
@@ -9743,42 +10132,8 @@ function WorldBuilder.BuildNightMerchant(parent: Instance, basePos: Vector3): Mo
 		candle(-4 + i * 4, shelfYs[3] + 0.12, -0.85)
 	end
 
-	-- STANDING merchant (behind the counter, no seat)
-	local nz = -2.7
-	for _, sx in ipairs({ -1, 1 }) do
-		P("MerchantLeg", Vector3.new(0.8, 2.6, 0.8), sx * 0.5, 1.3, nz, Color3.fromRGB(28, 26, 34), Enum.Material.Fabric)
-		P("MerchantArm", Vector3.new(0.7, 2.2, 0.7), sx * 1.45, 3.75, nz - 0.2, suit, Enum.Material.Fabric, nil, false, nil, CFrame.Angles(math.rad(25), 0, 0))
-		P("MerchantHand", Vector3.new(0.6, 0.6, 0.6), sx * 1.45, 2.85, nz - 0.75, skin, Enum.Material.SmoothPlastic, Enum.PartType.Ball)
-	end
-	P("MerchantTorso", Vector3.new(2.2, 2.3, 1.1), 0, 3.75, nz, suit, Enum.Material.Fabric)
-	P("MerchantShirt", Vector3.new(0.6, 1.7, 0.05), 0, 3.95, nz - 0.57, Color3.fromRGB(235, 232, 225), Enum.Material.SmoothPlastic)
-	P("MerchantBowtie", Vector3.new(0.7, 0.3, 0.1), 0, 4.7, nz - 0.62, purple, Enum.Material.SmoothPlastic)
-	local head = P("MerchantHead", Vector3.new(1.3, 1.3, 1.3), 0, 5.55, nz, skin, Enum.Material.SmoothPlastic)
-	local face = Instance.new("Decal")
-	face.Texture = "rbxasset://textures/face.png"
-	face.Face = Enum.NormalId.Front
-	face.Parent = head
-	P("MerchantMustache", Vector3.new(0.8, 0.14, 0.08), 0, 5.3, nz - 0.68, Color3.fromRGB(60, 40, 28), Enum.Material.SmoothPlastic)
-	cyl("MerchantHatBrim", 0.12, 2.0, 0, 6.26, nz, Color3.fromRGB(24, 22, 28), Enum.Material.Fabric)
-	cyl("MerchantHatCrown", 1.3, 1.3, 0, 6.95, nz, Color3.fromRGB(24, 22, 28), Enum.Material.Fabric)
-	cyl("MerchantHatBand", 0.24, 1.34, 0, 6.45, nz, purple, Enum.Material.Fabric)
-	local nameGui = Instance.new("BillboardGui")
-	nameGui.Name = "MerchantName"
-	nameGui.Size = UDim2.fromOffset(200, 40)
-	nameGui.StudsOffset = Vector3.new(0, 2.4, 0)
-	nameGui.MaxDistance = 60
-	nameGui.Parent = head
-	local nameLbl = Instance.new("TextLabel")
-	nameLbl.Size = UDim2.fromScale(1, 1)
-	nameLbl.BackgroundTransparency = 1
-	nameLbl.Text = "🌙 Night Merchant"
-	nameLbl.TextColor3 = Color3.fromRGB(255, 225, 165)
-	nameLbl.TextScaled = true
-	nameLbl.Font = Enum.Font.FredokaOne
-	nameLbl.Parent = nameGui
-	local nameStroke = Instance.new("UIStroke")
-	nameStroke.Thickness = 2
-	nameStroke.Parent = nameLbl
+	-- Merchant NPC: procedural fallback now, real avatar loaded asynchronously
+	MerchantNpcBuilder.Build(m, o * CFrame.new(0, 0.3, -2.7))
 
 	-- Sign board
 	local sign = P("NightMerchantSign", Vector3.new(9, 1.6, 0.3), 0, 7.95, -6.45, darkWood, Enum.Material.WoodPlanks)
@@ -9855,6 +10210,7 @@ function WorldBuilder.SetNightMerchantActive(isNight: boolean)
 	else
 		m.Parent = nil
 	end
+	MerchantNpcBuilder.SetActive(m, isNight)
 end
 
 function WorldBuilder.SetNightLightsActive(isNight: boolean)
@@ -14411,6 +14767,453 @@ function BoostService.Start()
 end
 
 return BoostService
+</ProtectedString></Properties></Item><Item class="ModuleScript"><Properties><string name="Name">MerchantNpcBuilder</string><ProtectedString name="Source">--!strict
+-- ============================================================================
+-- 🎩 МОДУЛЬ: MerchantNpcBuilder (ServerScriptService.Modules.MerchantNpcBuilder)
+-- Ночной торговец за прилавком. Сначала мгновенно строится процедурный персонаж
+-- (скруглённая голова, пиджак, фетровая шляпа), затем в фоне подгружается настоящий
+-- R15-аватар из каталога Roblox (HumanoidDescription) и заменяет его. Если аватар
+-- не загрузился — остаётся процедурный вариант. Анимации (idle + редкое приветствие)
+-- запускаются при каждом появлении лавки: SetActive(stall, true).
+-- Все ID, цвета и тайминги — в таблице CONFIG ниже.
+-- ============================================================================
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local PartKit = require(ReplicatedStorage:WaitForChild("Modules"):WaitForChild("PartKit"))
+
+local MerchantNpcBuilder = {}
+
+local SKIN = Color3.fromRGB(234, 190, 150)
+
+local CONFIG = {
+	Avatar = {
+		HatAccessory = "1029025", -- The Classic ROBLOX Fedora
+		HairAccessory = "63690008", -- Pal Hair (brown)
+		Shirt = 382538295, -- Guitar Tee with Black Jacket
+		Pants = 382537569, -- Black Jeans
+		SkinColor = SKIN,
+		HeightScale = 1,
+		WidthScale = 1,
+		DepthScale = 1,
+		HeadScale = 1,
+	},
+	Animations = {
+		Idle = "rbxassetid://507766388",
+		Wave = "rbxassetid://507770239",
+		WaveMinDelay = 10,
+		WaveMaxDelay = 14,
+		WaveHold = 2.8,
+	},
+	Load = {
+		Attempts = 3,
+		RetryDelay = 6,
+	},
+	NameTag = {
+		Text = "🌙 Night Merchant",
+		Height = 7.0, -- above the feet
+	},
+	Colors = {
+		Skin = SKIN,
+		Jacket = Color3.fromRGB(38, 34, 52),
+		Lapel = Color3.fromRGB(58, 52, 78),
+		Shirt = Color3.fromRGB(235, 232, 225),
+		Pants = Color3.fromRGB(28, 26, 34),
+		Shoes = Color3.fromRGB(20, 18, 22),
+		Hair = Color3.fromRGB(84, 52, 32),
+		Hat = Color3.fromRGB(24, 22, 28),
+		Accent = Color3.fromRGB(110, 60, 170),
+		Belt = Color3.fromRGB(70, 44, 28),
+		Gold = Color3.fromRGB(255, 183, 75),
+	},
+}
+
+export type NpcOptions = {
+	LoadAvatar: boolean?,
+}
+
+type NpcState = {
+	Stall: Model,
+	Origin: CFrame,
+	Fallback: Model?,
+	Avatar: Model?,
+	Active: boolean,
+	Destroyed: boolean,
+	Gen: number,
+	Loop: thread?,
+	Tracks: { AnimationTrack },
+}
+
+local States: { [Model]: NpcState } = setmetatable({}, { __mode = "k" }) :: any
+local rng = Random.new()
+
+-- ---------------------------------------------------------------------------
+-- Процедурный персонаж (запасной вариант). origin — центр стоп на полу лавки,
+-- лицом к покупателям (-Z).
+-- ---------------------------------------------------------------------------
+function MerchantNpcBuilder.BuildFallback(parent: Instance, origin: CFrame): Model
+	local C = CONFIG.Colors
+	local model = Instance.new("Model")
+	model.Name = "MerchantFallback"
+
+	local plastic = Enum.Material.SmoothPlastic
+	local fabric = Enum.Material.Fabric
+
+	local function at(x: number, y: number, z: number): CFrame
+		return origin * CFrame.new(x, y, z)
+	end
+	local function ball(name: string, d: number, p: Vector3, color: Color3, mat: Enum.Material): Part
+		return PartKit.Ball(model, name, d, at(p.X, p.Y, p.Z), color, mat)
+	end
+	local function egg(name: string, size: Vector3, p: Vector3, color: Color3, mat: Enum.Material, rot: CFrame?): Part
+		return PartKit.Ellipsoid(model, name, size, at(p.X, p.Y, p.Z) * (rot or CFrame.new()), color, mat)
+	end
+	-- Цилиндр между двумя точками (локальные координаты персонажа)
+	local function limb(name: string, a: Vector3, b: Vector3, d: number, color: Color3, mat: Enum.Material): Part
+		local cf = origin * CFrame.lookAt((a + b) / 2, b) * CFrame.Angles(-math.pi / 2, 0, 0)
+		return PartKit.Cylinder(model, name, d, (b - a).Magnitude, cf, color, mat)
+	end
+
+	-- Ноги и обувь
+	for _, sx in ipairs({ -1, 1 }) do
+		limb("Leg", Vector3.new(sx * 0.5, 0.45, 0), Vector3.new(sx * 0.5, 2.3, 0), 0.85, C.Pants, fabric)
+		egg("Shoe", Vector3.new(0.9, 0.55, 1.4), Vector3.new(sx * 0.5, 0.27, -0.18), C.Shoes, plastic)
+	end
+	egg("Hips", Vector3.new(1.95, 0.8, 1.05), Vector3.new(0, 2.35, 0), C.Pants, fabric)
+	PartKit.Cylinder(model, "Belt", 1.75, 0.16, at(0, 2.55, 0), C.Belt, plastic)
+	PartKit.Block(model, "BeltBuckle", Vector3.new(0.3, 0.2, 0.06), at(0, 2.55, -0.9), C.Gold, Enum.Material.Metal)
+
+	-- Корпус: сужающийся пиджак, рубашка, лацканы, воротник, бабочка
+	egg("JacketWaist", Vector3.new(1.85, 1.3, 1.0), Vector3.new(0, 2.85, 0), C.Jacket, fabric)
+	egg("JacketChest", Vector3.new(2.25, 1.9, 1.2), Vector3.new(0, 3.75, 0), C.Jacket, fabric)
+	egg("Shirt", Vector3.new(0.75, 1.5, 0.3), Vector3.new(0, 3.95, -0.5), C.Shirt, plastic)
+	for _, sx in ipairs({ -1, 1 }) do
+		PartKit.Block(model, "Lapel", Vector3.new(0.3, 1.25, 0.1), at(sx * 0.46, 3.95, -0.56) * CFrame.Angles(0, sx * math.rad(-14), sx * math.rad(-10)), C.Lapel, fabric)
+		egg("Collar", Vector3.new(0.5, 0.26, 0.4), Vector3.new(sx * 0.3, 4.6, -0.33), C.Shirt, plastic, CFrame.Angles(0, 0, sx * math.rad(-25)))
+	end
+	for i, y in ipairs({ 3.2, 2.95 }) do
+		ball("JacketButton" .. i, 0.13, Vector3.new(0, y, -0.6), C.Gold, Enum.Material.Metal)
+	end
+	egg("PocketSquare", Vector3.new(0.3, 0.2, 0.08), Vector3.new(-0.8, 3.7, -0.6), C.Accent, fabric, CFrame.Angles(0, 0, math.rad(12)))
+	for _, sx in ipairs({ -1, 1 }) do
+		egg("BowTieWing", Vector3.new(0.42, 0.26, 0.16), Vector3.new(sx * 0.27, 4.48, -0.5), C.Accent, fabric, CFrame.Angles(0, 0, sx * math.rad(14)))
+	end
+	ball("BowTieKnot", 0.2, Vector3.new(0, 4.48, -0.52), C.Accent, fabric)
+
+	-- Руки: плечо, локоть, манжета, кисть лежит на прилавке
+	for _, sx in ipairs({ -1, 1 }) do
+		local shoulder = Vector3.new(sx * 1.2, 4.2, 0)
+		local elbow = Vector3.new(sx * 1.45, 3.55, -0.55)
+		local wrist = Vector3.new(sx * 1.05, 3.3, -1.3)
+		local dir = (wrist - elbow).Unit
+		ball("Shoulder", 0.8, shoulder, C.Jacket, fabric)
+		limb("UpperArm", shoulder, elbow, 0.62, C.Jacket, fabric)
+		ball("Elbow", 0.6, elbow, C.Jacket, fabric)
+		limb("Forearm", elbow, wrist, 0.56, C.Jacket, fabric)
+		limb("Cuff", wrist - dir * 0.14, wrist + dir * 0.04, 0.6, C.Shirt, plastic)
+		local handPos = wrist + dir * 0.36
+		PartKit.Ellipsoid(model, "Hand", Vector3.new(0.58, 0.36, 0.78), origin * CFrame.lookAt(handPos, handPos + dir), C.Skin, plastic)
+	end
+
+	-- Шея и голова (классическая форма Head) с лицом
+	limb("Neck", Vector3.new(0, 4.4, 0), Vector3.new(0, 4.75, 0), 0.5, C.Skin, plastic)
+	local headY = 5.0
+	local head = PartKit.Block(model, "Head", Vector3.new(2, 1, 1) * 1.12, at(0, headY, 0), C.Skin, plastic)
+	local mesh = Instance.new("SpecialMesh")
+	mesh.MeshType = Enum.MeshType.Head
+	mesh.Scale = Vector3.new(1.25, 1.25, 1.25) * 1.12
+	mesh.Parent = head
+	local face = Instance.new("Decal")
+	face.Name = "face"
+	face.Texture = "rbxasset://textures/face.png"
+	face.Face = Enum.NormalId.Front
+	face.Parent = head
+
+	-- Волосы, выглядывающие из-под шляпы
+	egg("HairCap", Vector3.new(1.5, 0.8, 1.5), Vector3.new(0, headY + 0.38, 0.05), C.Hair, plastic)
+	egg("HairBack", Vector3.new(1.45, 1.2, 0.7), Vector3.new(0, headY + 0.05, 0.5), C.Hair, plastic)
+	for _, sx in ipairs({ -1, 1 }) do
+		egg("HairSide", Vector3.new(0.4, 0.9, 1.1), Vector3.new(sx * 0.66, headY + 0.12, 0.08), C.Hair, plastic)
+		egg("HairBang", Vector3.new(0.55, 0.3, 0.4), Vector3.new(sx * 0.38, headY + 0.5, -0.42), C.Hair, plastic, CFrame.Angles(0, 0, sx * math.rad(-12)))
+	end
+	egg("HairFringe", Vector3.new(0.9, 0.32, 0.35), Vector3.new(0, headY + 0.52, -0.46), C.Hair, plastic)
+
+	-- Фетровая шляпа: широкие поля, смятая тулья, лента
+	local hatTilt = CFrame.Angles(math.rad(-5), 0, math.rad(2))
+	PartKit.Cylinder(model, "HatBrim", 2.15, 0.1, at(0, headY + 0.56, 0) * hatTilt, C.Hat, fabric)
+	PartKit.Cylinder(model, "HatCrown", 1.6, 0.45, at(0, headY + 0.84, 0) * hatTilt, C.Hat, fabric)
+	PartKit.Cylinder(model, "HatCrownTop", 1.35, 0.25, at(0, headY + 1.15, 0) * hatTilt, C.Hat, fabric)
+	for _, sx in ipairs({ -1, 1 }) do
+		egg("HatPinch", Vector3.new(0.7, 0.35, 1.25), Vector3.new(sx * 0.3, headY + 1.3, 0), C.Hat, fabric, hatTilt)
+	end
+	PartKit.Cylinder(model, "HatBand", 1.65, 0.2, at(0, headY + 0.7, 0) * hatTilt, C.Accent, fabric)
+
+	model.Parent = parent
+	return model
+end
+
+-- ---------------------------------------------------------------------------
+-- Настоящий аватар
+-- ---------------------------------------------------------------------------
+local function createAvatar(): Model
+	local cfg = CONFIG.Avatar
+	local desc = Instance.new("HumanoidDescription")
+	desc.HatAccessory = cfg.HatAccessory
+	desc.HairAccessory = cfg.HairAccessory
+	desc.Shirt = cfg.Shirt
+	desc.Pants = cfg.Pants
+	desc.HeadColor = cfg.SkinColor
+	desc.TorsoColor = cfg.SkinColor
+	desc.LeftArmColor = cfg.SkinColor
+	desc.RightArmColor = cfg.SkinColor
+	desc.LeftLegColor = cfg.SkinColor
+	desc.RightLegColor = cfg.SkinColor
+	desc.HeightScale = cfg.HeightScale
+	desc.WidthScale = cfg.WidthScale
+	desc.DepthScale = cfg.DepthScale
+	desc.HeadScale = cfg.HeadScale
+	return game:GetService("Players"):CreateHumanoidModelFromDescription(desc, Enum.HumanoidRigType.R15)
+end
+
+-- Делает аватар статичным и ставит ногами на пол. false — модель непригодна.
+local function prepareAvatar(avatar: Model, origin: CFrame): boolean
+	local humanoid = avatar:FindFirstChildOfClass("Humanoid")
+	local root = avatar:FindFirstChild("HumanoidRootPart")
+	if not humanoid or not root or not root:IsA("BasePart") then
+		return false
+	end
+	avatar.Name = "MerchantAvatar"
+	humanoid.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
+	humanoid.HealthDisplayType = Enum.HumanoidHealthDisplayType.AlwaysOff
+	humanoid.WalkSpeed = 0
+	humanoid.AutoRotate = false
+	humanoid.BreakJointsOnDeath = false
+	if not humanoid:FindFirstChildOfClass("Animator") then
+		local animator = Instance.new("Animator")
+		animator.Parent = humanoid
+	end
+
+	local head = avatar:FindFirstChild("Head")
+	if head and not head:FindFirstChildOfClass("Decal") then
+		local face = Instance.new("Decal")
+		face.Name = "face"
+		face.Texture = "rbxasset://textures/face.png"
+		face.Face = Enum.NormalId.Front
+		face.Parent = head
+	end
+
+	for _, d in ipairs(avatar:GetDescendants()) do
+		if d:IsA("BasePart") then
+			d.CanCollide = false
+			d.CanTouch = false
+		end
+	end
+	root.Anchored = true
+
+	-- Ноги на пол: сначала приблизительно, затем по нижней точке стоп
+	avatar:PivotTo(origin * CFrame.new(0, 3, 0))
+	local lowest = math.huge
+	for _, footName in ipairs({ "LeftFoot", "RightFoot" }) do
+		local foot = avatar:FindFirstChild(footName)
+		if foot and foot:IsA("BasePart") then
+			lowest = math.min(lowest, foot.Position.Y - foot.Size.Y / 2)
+		end
+	end
+	if lowest &lt; math.huge then
+		avatar:PivotTo(avatar:GetPivot() + Vector3.new(0, origin.Position.Y - lowest, 0))
+	end
+	return true
+end
+
+local function loadAvatarAsync(st: NpcState)
+	for attempt = 1, CONFIG.Load.Attempts do
+		if st.Destroyed then
+			return
+		end
+		local ok, result = pcall(createAvatar)
+		if st.Destroyed then
+			if ok then
+				result:Destroy()
+			end
+			return
+		end
+		if ok and prepareAvatar(result, st.Origin) then
+			if st.Fallback then
+				st.Fallback:Destroy()
+				st.Fallback = nil
+			end
+			st.Avatar = result
+			result.Parent = st.Stall
+			if st.Active and st.Stall.Parent then
+				MerchantNpcBuilder.SetActive(st.Stall, true)
+			end
+			return
+		end
+		if ok then
+			result:Destroy()
+		else
+			warn("[MerchantNpcBuilder] avatar load failed (" .. attempt .. "/" .. CONFIG.Load.Attempts .. "): " .. tostring(result))
+		end
+		if attempt &lt; CONFIG.Load.Attempts then
+			task.wait(CONFIG.Load.RetryDelay)
+		end
+	end
+end
+
+-- ---------------------------------------------------------------------------
+-- Анимации
+-- ---------------------------------------------------------------------------
+local function stopAnimation(st: NpcState)
+	st.Gen += 1
+	local loop = st.Loop
+	st.Loop = nil
+	if loop then
+		pcall(task.cancel, loop)
+	end
+	for _, track in ipairs(st.Tracks) do
+		pcall(function()
+			track:Stop(0)
+			track:Destroy()
+		end)
+	end
+	table.clear(st.Tracks)
+end
+
+local function loadTrack(animator: Animator, id: string, priority: Enum.AnimationPriority, looped: boolean): AnimationTrack?
+	local anim = Instance.new("Animation")
+	anim.AnimationId = id
+	local ok, track = pcall(function()
+		return animator:LoadAnimation(anim)
+	end)
+	anim:Destroy()
+	if not ok then
+		return nil
+	end
+	track.Priority = priority
+	track.Looped = looped
+	return track
+end
+
+local function startAnimation(st: NpcState)
+	local avatar = st.Avatar
+	if not avatar or not st.Active or not st.Stall.Parent then
+		return
+	end
+	local humanoid = avatar:FindFirstChildOfClass("Humanoid")
+	local animator = humanoid and humanoid:FindFirstChildOfClass("Animator")
+	if not animator then
+		return
+	end
+	local gen = st.Gen
+	-- На случай, если Humanoid снова включил столкновения у частей тела
+	for _, d in ipairs(avatar:GetDescendants()) do
+		if d:IsA("BasePart") then
+			d.CanCollide = false
+		end
+	end
+
+	local A = CONFIG.Animations
+	st.Loop = task.spawn(function()
+		local idle = loadTrack(animator, A.Idle, Enum.AnimationPriority.Idle, true)
+		local wave = loadTrack(animator, A.Wave, Enum.AnimationPriority.Action, false)
+		if st.Gen ~= gen then
+			return
+		end
+		if idle then
+			table.insert(st.Tracks, idle)
+			idle:Play(0.3)
+		end
+		if wave then
+			table.insert(st.Tracks, wave)
+		end
+		while st.Gen == gen and st.Stall.Parent do
+			task.wait(rng:NextNumber(A.WaveMinDelay, A.WaveMaxDelay))
+			if st.Gen ~= gen or not st.Stall.Parent then
+				break
+			end
+			if wave then
+				wave:Play(0.25)
+				task.wait(A.WaveHold)
+				if st.Gen == gen then
+					wave:Stop(0.35)
+				end
+			end
+		end
+	end)
+end
+
+-- ---------------------------------------------------------------------------
+-- Публичный API
+-- ---------------------------------------------------------------------------
+
+-- Строит торговца внутри лавки: запасной персонаж, табличку с именем, мягкий свет.
+-- origin — центр стоп на полу лавки (лицом к покупателям, -Z).
+function MerchantNpcBuilder.Build(stall: Model, origin: CFrame, opts: NpcOptions?): Model
+	local fallback = MerchantNpcBuilder.BuildFallback(stall, origin)
+
+	local anchor = PartKit.Block(stall, "MerchantNameAnchor", Vector3.new(0.2, 0.2, 0.2), origin * CFrame.new(0, CONFIG.NameTag.Height, 0), Color3.new(1, 1, 1), Enum.Material.SmoothPlastic, { Transparency = 1, CastShadow = false })
+	local nameGui = Instance.new("BillboardGui")
+	nameGui.Name = "MerchantName"
+	nameGui.Size = UDim2.fromOffset(200, 40)
+	nameGui.MaxDistance = 60
+	nameGui.Parent = anchor
+	local nameLbl = Instance.new("TextLabel")
+	nameLbl.Size = UDim2.fromScale(1, 1)
+	nameLbl.BackgroundTransparency = 1
+	nameLbl.Text = CONFIG.NameTag.Text
+	nameLbl.TextColor3 = Color3.fromRGB(255, 225, 165)
+	nameLbl.TextScaled = true
+	nameLbl.Font = Enum.Font.FredokaOne
+	nameLbl.Parent = nameGui
+	local nameStroke = Instance.new("UIStroke")
+	nameStroke.Thickness = 2
+	nameStroke.Parent = nameLbl
+
+	local glow = PartKit.Block(stall, "MerchantGlow", Vector3.new(0.2, 0.2, 0.2), origin * CFrame.new(0, 4.3, -1.8), Color3.new(1, 1, 1), Enum.Material.SmoothPlastic, { Transparency = 1, CastShadow = false })
+	PartKit.PointLight(glow, Color3.fromRGB(255, 190, 120), 0.9, 10)
+
+	local st: NpcState = {
+		Stall = stall,
+		Origin = origin,
+		Fallback = fallback,
+		Avatar = nil,
+		Active = false,
+		Destroyed = false,
+		Gen = 0,
+		Loop = nil,
+		Tracks = {},
+	}
+	States[stall] = st
+	-- pcall: Instance.Destroying is absent in the out-of-engine (Lune) smoke environment
+	pcall(function()
+		stall.Destroying:Connect(function()
+			st.Destroyed = true
+			stopAnimation(st)
+			States[stall] = nil
+		end)
+	end)
+
+	if not opts or opts.LoadAvatar ~= false then
+		task.spawn(loadAvatarAsync, st)
+	end
+	return fallback
+end
+
+-- Вызывать после того, как лавка переставлена в мир (active) или убрана (не active).
+-- Каждый вызов сначала гасит прежний цикл анимаций, поэтому дублей не бывает.
+function MerchantNpcBuilder.SetActive(stall: Model, active: boolean)
+	local st = States[stall]
+	if not st then
+		return
+	end
+	stopAnimation(st)
+	st.Active = active
+	if active then
+		startAnimation(st)
+	end
+end
+
+return MerchantNpcBuilder
 </ProtectedString></Properties></Item><Item class="ModuleScript"><Properties><string name="Name">NightCycleService</string><ProtectedString name="Source">--!strict
 -- ============================================================================
 -- 🌙 МОДУЛЬ: NightCycleService (ServerScriptService.Modules.NightCycleService)
@@ -14643,6 +15446,9 @@ export type WallRefs = {
 	UpCFrame: CFrame,
 	Blockers: { BasePart },
 	FencePanels: { BasePart },
+	WallParts: { BasePart },
+	WallGuis: { SurfaceGui },
+	LidParts: { BasePart },
 	Emitters: { ParticleEmitter },
 	Lights: { Light },
 }
@@ -14651,6 +15457,7 @@ local TAG_MODEL = "NightMineWall"
 local TAG_RUNE = "NightWallRune"
 local TAG_COUNTDOWN = "NightWallCountdown"
 local TAG_DUST = "NightWallDust"
+local TAG_LID = "NightWallLid"
 
 -- Токены для защиты от устаревшего применения позы (день→ночь→день за короткое время)
 local poseTokens: { [Model]: number } = setmetatable({}, { __mode = "k" }) :: any
@@ -14659,8 +15466,8 @@ local poseTokens: { [Model]: number } = setmetatable({}, { __mode = "k" }) :: an
 -- Сборка подвижной стены
 -- ----------------------------------------------------------------------------
 
--- Собирает все видимые детали стены в ПОДНЯТОЙ позе и приваривает их к Root
-local function buildWall(model: Model, root: BasePart, upCF: CFrame, rng: Random): ({ Light }, { ParticleEmitter })
+-- Собирает все видимые детали стены вокруг baseCF (центр стены) и приваривает их к Root
+local function buildWall(model: Model, root: BasePart, baseCF: CFrame, rng: Random): ({ Light }, { ParticleEmitter })
 	local cfg = GameConfig.NIGHT_WALL
 	local col = cfg.Colors
 	local H = cfg.Height
@@ -14674,7 +15481,7 @@ local function buildWall(model: Model, root: BasePart, upCF: CFrame, rng: Random
 
 	-- Добавляет деталь: локальный CFrame задан относительно центра стены
 	local function add(name: string, size: Vector3, localCF: CFrame, color: Color3, material: Enum.Material, glow: boolean?): Part
-		local p = PartKit.Block(folder, name, size, upCF * localCF, color, material, {
+		local p = PartKit.Block(folder, name, size, baseCF * localCF, color, material, {
 			Anchored = false,
 			Massless = true,
 			CanCollide = false,
@@ -14687,7 +15494,7 @@ local function buildWall(model: Model, root: BasePart, upCF: CFrame, rng: Random
 	end
 
 	local function addWedge(name: string, size: Vector3, localCF: CFrame, color: Color3, material: Enum.Material): WedgePart
-		local p = PartKit.Wedge(folder, name, size, upCF * localCF, color, material, {
+		local p = PartKit.Wedge(folder, name, size, baseCF * localCF, color, material, {
 			Anchored = false,
 			Massless = true,
 			CanCollide = false,
@@ -14824,10 +15631,60 @@ local function buildWall(model: Model, root: BasePart, upCF: CFrame, rng: Random
 		end
 	end
 
+	-- Крылья: стена продолжается в обе стороны до углов карьера и закрывает весь фасад шахты.
+	-- Украшения только со стороны спавна: со стороны ямы ночью никого нет.
+	local wg = cfg.Wings
+	local wingInner = cfg.Width / 2
+	local wingLen = wg.OuterX - wingInner
+	local wingBodyH = wg.Height - wg.PlinthHeight - wg.CapHeight
+	local wingBodyMidY = -halfH + wg.PlinthHeight + wingBodyH / 2
+	local wingTop = -halfH + wg.Height
+	local wingFaceZ = wg.Thickness / 2
+	local bays = math.max(1, math.round(wingLen / wg.PillarSpacing))
+	local bayLen = wingLen / bays
+	local bayClear = bayLen - wg.PillarWidth
+	local signBay = math.ceil(bays / 2)
+	for _, sx in ipairs({ -1, 1 }) do
+		local midX = sx * (wingInner + wingLen / 2)
+		add("WingPlinth", Vector3.new(wingLen, wg.PlinthHeight, wg.Thickness + 0.9), CFrame.new(midX, -halfH + wg.PlinthHeight / 2, 0), col.BasaltDark, Enum.Material.Basalt)
+		add("WingBody", Vector3.new(wingLen, wingBodyH, wg.Thickness), CFrame.new(midX, wingBodyMidY, 0), col.Basalt, Enum.Material.Basalt)
+		add("WingCap", Vector3.new(wingLen, wg.CapHeight, wg.Thickness + 0.6), CFrame.new(midX, wingTop - wg.CapHeight / 2, 0), col.BasaltDark, Enum.Material.Basalt)
+
+		for bay = 1, bays do
+			local bayMidX = sx * (wingInner + (bay - 0.5) * bayLen)
+			-- Пилон на внешнем краю секции (последний стоит в углу карьера)
+			local pillarX = sx * (wingInner + bay * bayLen - wg.PillarWidth / 2)
+			local pillarH = wg.Height + 0.9
+			add("WingPillar", Vector3.new(wg.PillarWidth, pillarH, wg.Thickness + 1.2), CFrame.new(pillarX, -halfH + pillarH / 2, 0), col.Slate, Enum.Material.Slate)
+			addRune(1, pillarX, wingBodyMidY, 0.28, wingBodyH * 0.55, wingFaceZ + 0.65, false)
+
+			local insetX = bayMidX - sx * wg.PillarWidth / 2
+			add("WingInset", Vector3.new(bayClear - 1.2, wingBodyH - 1.6, 0.2), CFrame.new(insetX, wingBodyMidY, wingFaceZ + 0.05), col.Slate, Enum.Material.Slate)
+			if bay == signBay then
+				local sign = add("WingSignPanel", Vector3.new(wg.SignSize.X, wg.SignSize.Y, cfg.PanelThickness), CFrame.new(insetX, wingBodyMidY, wingFaceZ + 0.2), col.Panel, Enum.Material.SmoothPlastic)
+				NightWallBuilder._BuildSign(sign, Enum.NormalId.Back)
+			else
+				addRune(1, insetX, wingBodyMidY + wingBodyH * 0.28, bayClear - 4, 0.22, wingFaceZ + 0.2, false)
+				addRune(1, insetX, wingBodyMidY - 0.6, 1.1, 1.1, wingFaceZ + 0.2, true)
+				for _, dx in ipairs({ -2.4, 2.4 }) do
+					addRune(1, insetX + dx, wingBodyMidY - 0.6, 0.22, 1.7, wingFaceZ + 0.2, false)
+				end
+			end
+		end
+
+		local spikes = math.max(2, math.floor(wingLen / wg.SpikeSpacing))
+		for i = 1, spikes do
+			local x = sx * (wingInner + (i - 0.5) * wingLen / spikes)
+			local h = rng:NextNumber(wg.SpikeMinHeight, wg.SpikeMaxHeight)
+			local yaw = (if i % 2 == 0 then math.pi else 0) + math.rad(rng:NextNumber(-6, 6))
+			addWedge("WingSpike", Vector3.new(1.5, h, wg.Thickness), CFrame.new(x, wingTop + h / 2 - 0.05, 0) * CFrame.Angles(0, yaw, 0), PartKit.Lighten(col.Spike, rng:NextNumber(0, 0.12)), Enum.Material.Basalt)
+		end
+	end
+
 	-- Невидимые точки дыма по верху стены
 	local sm = cfg.Smoke
 	for _, x in ipairs({ -9, 0, 9 }) do
-		local anchor = PartKit.Block(folder, "SmokeAnchor", Vector3.new(1, 0.2, 1), upCF * CFrame.new(x, halfH + 0.1, 0), col.Spike, Enum.Material.SmoothPlastic, {
+		local anchor = PartKit.Block(folder, "SmokeAnchor", Vector3.new(1, 0.2, 1), baseCF * CFrame.new(x, halfH + 0.1, 0), col.Spike, Enum.Material.SmoothPlastic, {
 			Anchored = false,
 			Massless = true,
 			CanCollide = false,
@@ -14933,10 +15790,10 @@ end
 -- ----------------------------------------------------------------------------
 -- Пыль у основания (не приварена, остаётся на уровне земли)
 -- ----------------------------------------------------------------------------
-local function buildDust(model: Model): { ParticleEmitter }
+local function buildDustBase(model: Model, name: string, centerX: number, width: number): { ParticleEmitter }
 	local cfg = GameConfig.NIGHT_WALL
 	local d = cfg.Dust
-	local base = PartKit.Block(model, "DustBase", Vector3.new(cfg.Width, d.Height, cfg.Thickness + 2), CFrame.new(cfg.CenterX, d.Y, cfg.CenterZ), d.Color1, Enum.Material.SmoothPlastic, {
+	local base = PartKit.Block(model, name, Vector3.new(width, d.Height, cfg.Thickness + 2), CFrame.new(centerX, d.Y, cfg.CenterZ), d.Color1, Enum.Material.SmoothPlastic, {
 		Anchored = true,
 		CanCollide = false,
 		CanQuery = false,
@@ -15044,7 +15901,7 @@ local function buildPerimeter(model: Model): ({ BasePart }, { BasePart })
 		})
 		table.insert(blockers, blocker)
 
-		-- Красная энергопанель (днём полностью прозрачна)
+		-- Красная энергопанель (днём полностью прозрачна). На фасаде её заменяют крылья стены.
 		local pSize = if alongX then Vector3.new(totalLen, fence.PanelHeight, fence.PanelThickness) else Vector3.new(fence.PanelThickness, fence.PanelHeight, totalLen)
 		local panel = PartKit.Block(fenceFolder, "FencePanel", pSize, CFrame.new(mid.X, fence.PanelHeight / 2, mid.Z), fence.PanelColor, fence.PanelMaterial, {
 			Anchored = true,
@@ -15054,7 +15911,11 @@ local function buildPerimeter(model: Model): ({ BasePart }, { BasePart })
 			CastShadow = false,
 			Transparency = 1,
 		})
-		table.insert(panels, panel)
+		if li == 1 or li == #legs then
+			panel:Destroy()
+		else
+			table.insert(panels, panel)
+		end
 
 		-- Столбы через каждые ~PostSpacing studs; у проёма отступаем от стены
 		local count = math.max(1, math.ceil(len / fence.PostSpacing))
@@ -15080,10 +15941,83 @@ local function buildPerimeter(model: Model): ({ BasePart }, { BasePart })
 end
 
 -- ----------------------------------------------------------------------------
+-- Крышка над карьером: плиты с красными швами. Днём полностью прозрачна.
+-- Проявление играет клиент (тег NightWallLid), сервер фиксирует итог в SetRaised.
+-- ----------------------------------------------------------------------------
+local function buildLid(model: Model, rng: Random): { BasePart }
+	local cfg = GameConfig.NIGHT_WALL
+	local lid = cfg.Lid
+	local parts: { BasePart } = {}
+
+	local folder = Instance.new("Folder")
+	folder.Name = "Lid"
+	folder.Parent = model
+
+	local function add(name: string, size: Vector3, cf: CFrame, color: Color3, material: Enum.Material, fadeDelay: number): Part
+		local p = PartKit.Block(folder, name, size, cf, color, material, {
+			Anchored = true,
+			CanCollide = false,
+			CanQuery = false,
+			CanTouch = false,
+			CastShadow = false,
+			Transparency = 1,
+		})
+		p:SetAttribute("FadeDelay", fadeDelay)
+		CollectionService:AddTag(p, TAG_LID)
+		table.insert(parts, p)
+		return p
+	end
+
+	local sizeX = lid.MaxX - lid.MinX
+	local sizeZ = lid.SouthZ - lid.NorthZ
+	local cellX = sizeX / lid.Columns
+	local cellZ = sizeZ / lid.Rows
+
+	-- Светящаяся подложка видна только в швах между плитами и пульсирует вместе с рунами
+	local glow = add("LidGlow", Vector3.new(sizeX - 0.4, 0.1, sizeZ - 0.4), CFrame.new((lid.MinX + lid.MaxX) / 2, lid.Y - 0.1, (lid.SouthZ + lid.NorthZ) / 2), lid.SeamColor, Enum.Material.Neon, 0)
+	CollectionService:AddTag(glow, TAG_RUNE)
+
+	for row = 1, lid.Rows do -- row 1 — у входа
+		local delay = (row - 1) * lid.RowDelay
+		for column = 1, lid.Columns do
+			local x = lid.MinX + (column - 0.5) * cellX
+			local z = lid.SouthZ - (row - 0.5) * cellZ
+			local base = if (row + column) % 2 == 0 then lid.PlateColorA else lid.PlateColorB
+			add("LidPlate", Vector3.new(cellX - lid.Gap, lid.Thickness, cellZ - lid.Gap), CFrame.new(x, lid.Y, z), PartKit.Lighten(base, rng:NextNumber(0, 0.06)), Enum.Material.Basalt, delay)
+			if row % 2 == 1 and column % 2 == 1 then
+				local rune = add("LidRune", Vector3.new(lid.RuneSize, 0.12, lid.RuneSize), CFrame.new(x, lid.Y + lid.Thickness / 2 + 0.02, z) * CFrame.Angles(0, math.rad(45), 0), cfg.Colors.Rune, Enum.Material.Neon, delay + 0.25)
+				CollectionService:AddTag(rune, TAG_RUNE)
+			end
+		end
+	end
+
+	return parts
+end
+
+-- Показывает или прячет саму стену. Днём она под землёй и дополнительно невидима.
+local function setWallShown(refs: WallRefs, shown: boolean)
+	for _, p in ipairs(refs.WallParts) do
+		local base = p:GetAttribute("BaseTransparency")
+		p.Transparency = if shown then (if typeof(base) == "number" then base else 0) else 1
+	end
+	for _, gui in ipairs(refs.WallGuis) do
+		gui.Enabled = shown
+	end
+end
+
+local function setLidShown(refs: WallRefs, shown: boolean)
+	for _, p in ipairs(refs.LidParts) do
+		p.Transparency = if shown then 0 else 1
+	end
+end
+
+-- ----------------------------------------------------------------------------
 -- Публичный API
 -- ----------------------------------------------------------------------------
 
--- Строит стену, периметр и пыль. Модель возвращается в ОПУЩЕННОЙ позе, всё выключено.
+-- Строит стену, крышку, периметр и пыль. Стена сразу собирается в ОПУЩЕННОЙ позе и спрятана:
+-- WeldConstraint запоминает смещение по текущим позициям, поэтому «построить наверху и
+-- опустить корень» до появления модели в Workspace оставляло стену видимой днём.
 function NightWallBuilder.Build(parent: Instance): WallRefs
 	local cfg = GameConfig.NIGHT_WALL
 	local rng = Random.new(cfg.Seed)
@@ -15095,7 +16029,7 @@ function NightWallBuilder.Build(parent: Instance): WallRefs
 	model.Name = cfg.Name
 
 	-- Невидимый корень, к которому приварена вся стена; клиент твинит именно его
-	local root = PartKit.Block(model, "Root", Vector3.new(1, 1, 1), upCF, cfg.Colors.Basalt, Enum.Material.SmoothPlastic, {
+	local root = PartKit.Block(model, "Root", Vector3.new(1, 1, 1), downCF, cfg.Colors.Basalt, Enum.Material.SmoothPlastic, {
 		Anchored = true,
 		CanCollide = false,
 		CanQuery = false,
@@ -15105,21 +16039,36 @@ function NightWallBuilder.Build(parent: Instance): WallRefs
 	})
 	model.PrimaryPart = root
 
-	local lights, emitters = buildWall(model, root, upCF, rng)
-	buildDust(model)
+	local lights, emitters = buildWall(model, root, downCF, rng)
+	buildDustBase(model, "DustBase", cfg.CenterX, cfg.Width)
+	local wingLen = cfg.Wings.OuterX - cfg.Width / 2
+	for _, sx in ipairs({ -1, 1 }) do
+		buildDustBase(model, "DustBaseWing", cfg.CenterX + sx * (cfg.Width + wingLen) / 2, wingLen)
+	end
 	local blockers, panels = buildPerimeter(model)
+	local lidParts = buildLid(model, rng)
 
-	-- Только теперь, когда всё приварено, опускаем корень: сборка следует за ним
-	root.CFrame = downCF
+	local wallParts: { BasePart } = {}
+	local wallGuis: { SurfaceGui } = {}
+	local wallFolder = model:FindFirstChild("Wall")
+	if wallFolder then
+		for _, d in ipairs(wallFolder:GetDescendants()) do
+			if d:IsA("BasePart") then
+				d:SetAttribute("BaseTransparency", d.Transparency)
+				table.insert(wallParts, d)
+			elseif d:IsA("SurfaceGui") then
+				table.insert(wallGuis, d)
+			end
+		end
+	end
 
 	model:SetAttribute("Raised", false)
 	model:SetAttribute("DownCFrame", downCF)
 	model:SetAttribute("UpCFrame", upCF)
 	model:SetAttribute("LiftSeconds", cfg.LiftSeconds)
 	CollectionService:AddTag(model, TAG_MODEL)
-	model.Parent = parent
 
-	return {
+	local refs: WallRefs = {
 		Model = model,
 		Root = root,
 		DownCFrame = downCF,
@@ -15128,7 +16077,13 @@ function NightWallBuilder.Build(parent: Instance): WallRefs
 		FencePanels = panels,
 		Emitters = emitters,
 		Lights = lights,
+		WallParts = wallParts,
+		WallGuis = wallGuis,
+		LidParts = lidParts,
 	}
+	setWallShown(refs, false)
+	model.Parent = parent
+	return refs
 end
 
 -- Мгновенное авторитетное переключение. Коллизия включается сразу, поза Root
@@ -15167,6 +16122,9 @@ function NightWallBuilder.SetRaised(refs: WallRefs, raised: boolean)
 	if not changed then
 		return
 	end
+	if raised then
+		setWallShown(refs, true)
+	end
 
 	local token = (poseTokens[model] or 0) + 1
 	poseTokens[model] = token
@@ -15177,6 +16135,10 @@ function NightWallBuilder.SetRaised(refs: WallRefs, raised: boolean)
 	task.delay(delaySeconds, function()
 		if poseTokens[model] == token and model.Parent ~= nil then
 			refs.Root.CFrame = target
+			setLidShown(refs, raised)
+			if not raised then
+				setWallShown(refs, false)
+			end
 		end
 	end)
 end
@@ -16112,6 +17074,214 @@ function SpawnPlazaBuilder.Build(parent: Instance): PlazaRefs
 end
 
 return SpawnPlazaBuilder
+</ProtectedString></Properties></Item><Item class="ModuleScript"><Properties><string name="Name">TreasureMapService</string><ProtectedString name="Source">--!strict
+-- ============================================================================
+-- 🗺️ MODULE: TreasureMapService (ServerScriptService.Modules.TreasureMapService)
+-- Night Merchant "Treasure Map": hides one treasure per player on the island surface
+-- (curated open-ground spots from MerchantConfig), shows a marker (red X, half-buried
+-- chest, golden beam, name tag) and pays out when the owner digs it up.
+-- The purchase itself (coins, night/distance checks) is validated by ServerMain.
+-- ============================================================================
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Modules = ReplicatedStorage:WaitForChild("Modules")
+local MerchantConfig = require(Modules:WaitForChild("MerchantConfig"))
+local PartKit = require(Modules:WaitForChild("PartKit"))
+
+local TreasureMapService = {}
+
+type Treasure = {
+	Model: Model,
+	Position: Vector3,
+	Digging: boolean,
+}
+
+type Deps = {
+	DataManager: any,
+	SoundManager: any,
+	VFXModule: any,
+	SyncRemote: RemoteEvent?,
+}
+
+local Active: { [number]: Treasure } = {}
+local Injected: Deps? = nil
+local Rng = Random.new()
+local Folder: Folder? = nil
+
+local COMPASS = { "north", "north-east", "east", "south-east", "south", "south-west", "west", "north-west" }
+
+-- -Z is north (where the mine is), +X is east
+function TreasureMapService.Describe(from: Vector3, to: Vector3): (string, number)
+	local dx, dz = to.X - from.X, to.Z - from.Z
+	local deg = math.deg(math.atan2(dx, -dz)) % 360
+	local idx = math.floor((deg + 22.5) / 45) % 8 + 1
+	return COMPASS[idx], math.floor(math.sqrt(dx * dx + dz * dz) + 0.5)
+end
+
+local function rgb(r: number, g: number, b: number): Color3
+	return Color3.fromRGB(r, g, b)
+end
+
+-- Marker model with its pivot on the ground surface. "Hitbox" carries the Dig prompt.
+function TreasureMapService.BuildMarker(ownerName: string): Model
+	local model = Instance.new("Model")
+	model.Name = "Treasure_" .. ownerName
+	local wood, woodDark, gold = rgb(122, 80, 44), rgb(84, 52, 30), rgb(255, 204, 60)
+	local W, M = Enum.Material.Wood, Enum.Material.Metal
+
+	local hitbox = PartKit.Block(model, "Hitbox", Vector3.new(4.5, 3, 4.5), CFrame.new(0, 1.2, 0), rgb(255, 255, 255), Enum.Material.SmoothPlastic, { Transparency = 1 })
+	model.WorldPivot = CFrame.new() -- pivot on the ground so PivotTo places the marker on the surface
+
+	PartKit.Ellipsoid(model, "Mound", Vector3.new(4.2, 0.9, 3.2), CFrame.new(0, 0.05, 0), rgb(112, 80, 52), Enum.Material.Ground)
+	-- chest: half buried, tilted a little
+	local tilt = CFrame.Angles(0, math.rad(18), math.rad(-5))
+	PartKit.Block(model, "ChestBody", Vector3.new(2.4, 1.3, 1.5), tilt * CFrame.new(0, 0.4, 0), wood, W)
+	PartKit.Cylinder(model, "ChestLid", 1.5, 2.4, tilt * CFrame.new(0, 1.05, 0) * CFrame.Angles(0, 0, math.rad(90)), woodDark, W)
+	for _, sx in ipairs({ -0.85, 0.85 }) do
+		PartKit.Block(model, "TrimBand", Vector3.new(0.18, 1.34, 1.56), tilt * CFrame.new(sx, 0.4, 0), gold, M)
+		PartKit.Cylinder(model, "TrimBandLid", 1.56, 0.18, tilt * CFrame.new(sx, 1.05, 0) * CFrame.Angles(0, 0, math.rad(90)), gold, M)
+	end
+	PartKit.Block(model, "Lock", Vector3.new(0.36, 0.46, 0.1), tilt * CFrame.new(0, 0.9, 0.78), gold, M)
+	-- spilled coins and the red X on the ground
+	for i = 1, 5 do
+		local a = math.rad(i * 50 + 20)
+		PartKit.Cylinder(model, "Coin", 0.5, 0.07, CFrame.new(math.cos(a) * 1.9, 0.12, 1.1 + math.sin(a) * 0.5) * CFrame.Angles(math.rad(Rng:NextNumber(-20, 20)), 0, math.rad(Rng:NextNumber(-20, 20))), gold, M)
+	end
+	for _, s in ipairs({ -45, 45 }) do
+		PartKit.Block(model, "MarkX", Vector3.new(3.2, 0.06, 0.55), CFrame.new(0, 0.05, 3.2) * CFrame.Angles(0, math.rad(s), 0), rgb(214, 30, 34), Enum.Material.SmoothPlastic)
+	end
+
+	-- soft golden beam and sparkles
+	local beam = PartKit.Cylinder(model, "Beam", 1.4, 36, CFrame.new(0, 18, 0), rgb(255, 210, 90), Enum.Material.Neon, { Transparency = 0.82, CastShadow = false })
+	PartKit.PointLight(beam, rgb(255, 205, 90), 1.5, 16)
+	PartKit.Emitter(hitbox, {
+		Name = "TreasureSparkles", Color = rgb(255, 230, 140), Color2 = rgb(255, 190, 60), Rate = 10,
+		Lifetime = NumberRange.new(1.2, 2.0), Speed = NumberRange.new(1, 3), SizeStart = 0.5, Spread = 60,
+		Acceleration = Vector3.new(0, 2, 0),
+	})
+
+	local gui = Instance.new("BillboardGui")
+	gui.Name = "TreasureTag"
+	gui.Size = UDim2.fromOffset(240, 34)
+	gui.StudsOffset = Vector3.new(0, 5.5, 0)
+	gui.MaxDistance = 140
+	gui.AlwaysOnTop = false
+	gui.Adornee = hitbox
+	gui.Parent = hitbox
+	local label = Instance.new("TextLabel")
+	label.BackgroundTransparency = 1
+	label.Size = UDim2.fromScale(1, 1)
+	label.Font = Enum.Font.GothamBold
+	label.TextSize = 18
+	label.TextColor3 = rgb(255, 226, 120)
+	label.TextStrokeTransparency = 0.3
+	label.TextStrokeColor3 = rgb(40, 24, 8)
+	label.Text = "💰 " .. ownerName .. "'s treasure"
+	label.Parent = gui
+
+	local prompt = Instance.new("ProximityPrompt")
+	prompt.Name = "DigPrompt"
+	prompt.ActionText = "Dig"
+	prompt.ObjectText = "Treasure"
+	prompt.KeyboardKeyCode = Enum.KeyCode.E
+	prompt.HoldDuration = MerchantConfig.TreasureMap.HoldSeconds
+	prompt.MaxActivationDistance = 10
+	prompt.RequiresLineOfSight = false
+	prompt.Parent = hitbox
+	return model
+end
+
+local function groundAt(x: number, z: number, ignore: Instance): Vector3
+	local params = RaycastParams.new()
+	params.FilterType = Enum.RaycastFilterType.Exclude
+	params.FilterDescendantsInstances = { ignore }
+	local hit = workspace:Raycast(Vector3.new(x, 60, z), Vector3.new(0, -120, 0), params)
+	-- props on the ground would lift the marker: only accept ground-level hits
+	if hit and hit.Position.Y &lt; 1.2 and hit.Position.Y &gt; -1 then
+		return hit.Position
+	end
+	return Vector3.new(x, 0, z)
+end
+
+local function markerFolder(): Folder
+	if Folder and Folder.Parent then
+		return Folder
+	end
+	local f = Instance.new("Folder")
+	f.Name = "TreasureMarkers"
+	f.Parent = workspace
+	Folder = f
+	return f
+end
+
+local function remove(player: Player)
+	local t = Active[player.UserId]
+	if t then
+		Active[player.UserId] = nil
+		t.Model:Destroy()
+	end
+end
+
+function TreasureMapService.HasActive(player: Player): boolean
+	return Active[player.UserId] ~= nil
+end
+
+local function dig(player: Player, owner: Player, treasure: Treasure)
+	local deps = Injected
+	if not deps or player ~= owner or treasure.Digging or Active[owner.UserId] ~= treasure then
+		return
+	end
+	local profile = deps.DataManager.GetProfile(owner)
+	if not profile then
+		return
+	end
+	treasure.Digging = true
+	local cfg = MerchantConfig.TreasureMap
+	local coins = math.floor(cfg.Price * Rng:NextNumber(cfg.LootMin, cfg.LootMax) + 0.5)
+	local paid = deps.DataManager.GrantCoins(owner, coins, false)
+	deps.DataManager.GrantXP(owner, cfg.XpBase + cfg.XpPerLevel * (profile.Level or 1))
+	deps.DataManager.AddFunStat(owner, "TreasuresFound", 1)
+	deps.DataManager.UpdateLeaderstats(owner)
+	deps.DataManager.SyncToClient(owner, deps.SyncRemote)
+	local pos = treasure.Position
+	deps.SoundManager.PlayAt("CoinChime", pos)
+	deps.VFXModule.PlayPurchaseOrSellBurst(pos + Vector3.new(0, 1, 0), rgb(255, 215, 65))
+	deps.VFXModule.SpawnFloatingText(pos + Vector3.new(0, 3, 0), string.format("💰 Treasure found: +%d coins!", paid), rgb(255, 225, 75))
+	remove(owner)
+end
+
+-- Hides a treasure for the player and returns the hint text. nil + reason if one is already active.
+function TreasureMapService.Spawn(player: Player, from: Vector3): (string?, string?)
+	if Active[player.UserId] then
+		return nil, "🗺️ You already have a hidden treasure. Dig it up first!"
+	end
+	local spots = MerchantConfig.TreasureMap.Spots
+	local spot = spots[Rng:NextInteger(1, #spots)]
+	local folder = markerFolder()
+	local pos = groundAt(spot.X, spot.Y, folder)
+	local model = TreasureMapService.BuildMarker(player.Name)
+	model:PivotTo(CFrame.new(pos) * CFrame.Angles(0, math.rad(Rng:NextNumber(0, 360)), 0))
+	model.Parent = folder
+	local treasure: Treasure = { Model = model, Position = pos, Digging = false }
+	Active[player.UserId] = treasure
+	local prompt = model:FindFirstChild("DigPrompt", true) :: ProximityPrompt?
+	if prompt then
+		prompt.Triggered:Connect(function(who: Player)
+			dig(who, player, treasure)
+		end)
+	end
+	local dirName, studs = TreasureMapService.Describe(from, pos)
+	return string.format("🗺️ Treasure hidden %d studs to the %s!", studs, dirName), nil
+end
+
+function TreasureMapService.Start(deps: Deps)
+	Injected = deps
+	Players.PlayerRemoving:Connect(remove)
+end
+
+return TreasureMapService
 </ProtectedString></Properties></Item></Item>
     <Item class="Script">
       <Properties>
@@ -16637,14 +17807,17 @@ local MERCHANT_POS = Vector3.new(0, 0, 46)
 local MERCHANT_RADIUS = 18
 local MERCHANT_BUYBACK = 0.70
 local MerchantDebounce: { [number]: number } = {}
+local MerchantConfig = require(ReplicatedStorage:WaitForChild("Modules"):WaitForChild("MerchantConfig"))
+local TreasureMapService = require(ServerModules:WaitForChild("TreasureMapService"))
+local SHIELD_CFG = GameConfig.BOOSTS.Items.Shield
 
+-- v53: menu = Repair Kit, Treasure Map, Food, Miner Potion, Shield Potion (all prices x2.5 via configs)
 local MERCHANT_ITEMS: { [string]: (any) -&gt; number } = {
-	RepairKit    = function(_p: any) return GameConfig.BACKPACK_DIRT.RepairKitPrice end, -- v32: fixed 85
-	Book         = function(p: any) return 120 + 15 * (p.Level or 1) end,
-	Food         = function(_p: any) return GameConfig.FOOD.Price end,
-	Potion       = function(_p: any) return GameConfig.BOOSTS.Items.Potion.Price end, -- v52: цена в конфиге бустов
-	TopHat       = function(p: any) if p.Cosmetics and p.Cosmetics.TopHat then return 0 end return 800 end,
-	MorningCharm = function(p: any) if p.MorningCharm then return 0 end return 300 end,
+	RepairKit   = function(_p: any) return GameConfig.BACKPACK_DIRT.RepairKitPrice end,
+	TreasureMap = function(_p: any) return MerchantConfig.TreasureMap.Price end,
+	Food        = function(_p: any) return GameConfig.FOOD.Price end,
+	Potion      = function(_p: any) return GameConfig.BOOSTS.Items.Potion.Price end,
+	Shield      = function(_p: any) return SHIELD_CFG.Price end,
 }
 
 local function merchantState(player: Player, profile: any)
@@ -16654,17 +17827,33 @@ local function merchantState(player: Player, profile: any)
 		Prices = prices,
 		Coins = profile.Coins or 0,
 		Buyback = math.floor(DataManager.GetBackpackSellValue(player) * MERCHANT_BUYBACK),
-		OwnsHat = (profile.Cosmetics and profile.Cosmetics.TopHat) == true,
-		HatOn = (profile.Cosmetics and profile.Cosmetics.TopHatOn) == true,
-		Charm = profile.MorningCharm == true,
 		Dirt = math.floor(profile.DirtBlocks or 0),
 		DirtStage = GameConfig.GetDirtStage(profile.DirtBlocks or 0),
 		FoodStock = math.floor(profile.FoodStock or 0),
 		FoodMax = GameConfig.FOOD.MaxStock,
 		BagUsed = DataManager.GetBackpackUsed(player),
 		BagMax = DataManager.GetMaxBackpack(player),
-		PotionLeft = math.floor(BoostService.GetRemaining(player, "Potion")), -- v52
+		PotionLeft = math.floor(BoostService.GetRemaining(player, "Potion")),
+		ShieldLeft = math.floor(BoostService.GetRemaining(player, "Shield")),
+		TreasureActive = TreasureMapService.HasActive(player),
 	}
+end
+
+-- Shield Potion: a visible bubble while the boost is active (the dirt block itself is in DataManager)
+local function refreshShieldBubble(player: Player)
+	local char = player.Character
+	if not char then return end
+	local bubble = char:FindFirstChild("ShieldBubble")
+	if BoostService.IsActive(player, "Shield") then
+		if not bubble then
+			local ff = Instance.new("ForceField")
+			ff.Name = "ShieldBubble"
+			ff.Visible = true
+			ff.Parent = char
+		end
+	elseif bubble then
+		bubble:Destroy()
+	end
 end
 
 local function merchantCheck(player: Player): (any, BasePart?, string?)
@@ -16761,22 +17950,16 @@ NightMerchantRemote.OnServerEvent:Connect(function(player: Player, action: any, 
 		SoundManager.PlayAt("CoinChime", root.Position)
 	elseif action == "Buy" and type(itemId) == "string" and MERCHANT_ITEMS[itemId] then
 		local price = MERCHANT_ITEMS[itemId](profile)
-		if itemId == "TopHat" and price == 0 then
-			profile.Cosmetics.TopHatOn = not profile.Cosmetics.TopHatOn
-			attachTopHat(player.Character, profile.Cosmetics.TopHatOn)
-			merchantReply(player, true, profile.Cosmetics.TopHatOn and "🎩 Top Hat equipped" or "🎩 Top Hat removed", profile)
-			return
-		end
-		if itemId == "MorningCharm" and profile.MorningCharm then
-			merchantReply(player, false, "🌅 Morning Bonus is already active until sunrise", profile)
-			return
-		end
 		if itemId == "RepairKit" and (profile.DirtBlocks or 0) &lt;= 0 then
 			merchantReply(player, false, "✨ Your backpack is already clean!", profile)
 			return
 		end
 		if itemId == "Food" and (profile.FoodStock or 0) &gt;= GameConfig.FOOD.MaxStock then
 			merchantReply(player, false, string.format("🍔 Supplies are full (%d/%d)", profile.FoodStock or 0, GameConfig.FOOD.MaxStock), profile)
+			return
+		end
+		if itemId == "TreasureMap" and TreasureMapService.HasActive(player) then
+			merchantReply(player, false, "🗺️ You already have a hidden treasure. Dig it up first!", profile)
 			return
 		end
 		if (profile.Coins or 0) &lt; price then
@@ -16787,25 +17970,24 @@ NightMerchantRemote.OnServerEvent:Connect(function(player: Player, action: any, 
 		if itemId == "RepairKit" then
 			DataManager.ResetDirt(player)
 			msg = "🧰 Repair Kit used: backpack is clean, all slots are back!"
-		elseif itemId == "Book" then
-			-- v50: through GrantXP, so a book can level the player up right away
-			ProgressionManager.GrantXP(player, profile, 40 + 10 * (profile.Level or 1))
-			profile.StrengthXP = (profile.StrengthXP or 0) + 30
-			msg = "📘 Book read: +XP and +Strength XP"
+		elseif itemId == "TreasureMap" then
+			local hint = TreasureMapService.Spawn(player, MERCHANT_POS)
+			if not hint then
+				profile.Coins += price
+				merchantReply(player, false, "🗺️ You already have a hidden treasure. Dig it up first!", profile)
+				return
+			end
+			msg = hint
 		elseif itemId == "Food" then
 			profile.FoodStock = math.min(GameConfig.FOOD.MaxStock, (profile.FoodStock or 0) + 1)
 			msg = string.format("🍔 Burger added to supplies (x%d). Eat anytime: [%s]", profile.FoodStock, GameConfig.FOOD.Key)
 		elseif itemId == "Potion" then
 			BoostService.Activate(player, "Potion") -- v52: зелье — обычный буст (продлевается, сохраняется, виден чипом)
 			msg = "🧪 Miner Potion: +25% coins at $ SELL for 3 min"
-		elseif itemId == "TopHat" then
-			profile.Cosmetics.TopHat = true
-			profile.Cosmetics.TopHatOn = true
-			attachTopHat(player.Character, true)
-			msg = "🎩 Top Hat bought and equipped!"
-		elseif itemId == "MorningCharm" then
-			profile.MorningCharm = true
-			msg = "🌅 Morning Bonus active: reward at sunrise"
+		elseif itemId == "Shield" then
+			BoostService.Activate(player, "Shield")
+			refreshShieldBubble(player)
+			msg = string.format("🛡️ Shield Potion: your backpack stays clean for %d min", math.floor(SHIELD_CFG.Duration / 60))
 		end
 		SoundManager.PlayUISound("ShopPurchase", player)
 	else
@@ -16893,6 +18075,19 @@ local function hookHatRespawn(pl: Player)
 end
 Players.PlayerAdded:Connect(hookHatRespawn)
 for _, pl in ipairs(Players:GetPlayers()) do hookHatRespawn(pl) end
+
+-- Shield bubble: re-add after respawn and after saved boosts load (they load shortly after join)
+local function hookShieldRespawn(pl: Player)
+	pl.CharacterAdded:Connect(function()
+		for _, delaySec in ipairs({ 1, 5 }) do
+			task.delay(delaySec, refreshShieldBubble, pl)
+		end
+	end)
+	task.delay(1, refreshShieldBubble, pl)
+	task.delay(5, refreshShieldBubble, pl)
+end
+Players.PlayerAdded:Connect(hookShieldRespawn)
+for _, pl in ipairs(Players:GetPlayers()) do hookShieldRespawn(pl) end
 Players.PlayerRemoving:Connect(function(pl: Player) MerchantDebounce[pl.UserId] = nil end)
 
 -- v28: "E  Sell" button on the SELL kiosk plaque: sells the whole backpack, same as the pad
@@ -16935,8 +18130,15 @@ DataManager.StartAutoSaveLoop()
 -- v52: бусты (сервер хранит время конца) и их покупка в магазине (все запросы проверяет сервер)
 BoostService.SetChangedCallback(function(player: Player)
 	DataManager.SyncToClient(player, SyncPlayerData)
+	refreshShieldBubble(player)
 end)
 BoostService.Start()
+TreasureMapService.Start({
+	DataManager = DataManager,
+	SoundManager = SoundManager,
+	VFXModule = VFXModule,
+	SyncRemote = SyncPlayerData,
+})
 ShopService.Init({
 	DataManager = DataManager,
 	BoostService = BoostService,
@@ -21896,40 +23098,23 @@ local function playSound(s: Sound, pitch: number?)
 	s:Play()
 end
 
--- v47: приятный звук нового уровня
+-- v53: звук нового уровня — мягкий перелив колокольчиков с лёгким эхо.
+-- Свой звук (LevelUpCustom.Id) по-прежнему имеет приоритет, если он задан.
 local function playLevelUpSound()
 	local S = ProgressionConfig.SOUNDS :: any
 	local custom = S.LevelUpCustom
+	local cfg = S.LevelUpSoft
 	if custom and type(custom.Id) == "string" and custom.Id ~= "" then
-		local s = makeSound(custom)
-		s:Play()
-		task.delay(8, function() s:Destroy() end)
-		return
+		cfg = custom
 	end
-	local chime = S.LevelUpChime
-	-- до-ми-соль-до: мажорное арпеджио с лёгким эхо
-	local notes = { 1.0, 1.26, 1.5, 2.0 }
-	for i, pitch in ipairs(notes) do
-		task.delay((i - 1) * 0.11, function()
-			local s = Instance.new("Sound")
-			s.SoundId = chime.Id
-			s.Volume = chime.Volume * ((i == #notes) and 1.15 or 1)
-			s.PlaybackSpeed = pitch
-			local rv = Instance.new("ReverbSoundEffect")
-			rv.DecayTime = 1.2
-			rv.WetLevel = -8
-			rv.DryLevel = 0
-			rv.Parent = s
-			local eq = Instance.new("EqualizerSoundEffect")
-			eq.HighGain = -6
-			eq.MidGain = 0
-			eq.LowGain = 0
-			eq.Parent = s
-			s.Parent = SoundService
-			s:Play()
-			task.delay(4, function() s:Destroy() end)
-		end)
-	end
+	local s = makeSound(cfg)
+	local rv = Instance.new("ReverbSoundEffect")
+	rv.DecayTime = 1.6
+	rv.WetLevel = -10
+	rv.DryLevel = 0
+	rv.Parent = s
+	s:Play()
+	task.delay(8, function() s:Destroy() end)
 end
 
 local function formatNumber(n: number): string
@@ -23984,342 +25169,391 @@ end)
 
 
 -- ============================================================================
--- v32: NIGHT MERCHANT WINDOW — exactly like the reference:
--- starry night panel, 🌙 title + subtitle, coin pill, red round ✖,
--- 3×2 neon cards (round icon, name, description, price, colored button),
--- bottom bar with the red backpack icon ("Backpack is empty" / sell 70%).
+-- v53: NIGHT MERCHANT WINDOW — like the reference picture: starry purple panel, crescent moon,
+-- gold "NIGHT MERCHANT" plaque, coin pill and red ✕, five glowing cards (3 + 2 centred)
+-- with 3D icons, price and a "3D" button, bottom bar "Backpack is empty" / "Sell ore: +N coins (70%)".
+-- Designed at 1000x660 and shrunk (never enlarged) to fit small screens.
 -- ============================================================================
 do
 	local NMRemote = Remotes:WaitForChild("NightMerchant", 20) :: RemoteEvent?
 	local okIB, IB = pcall(function() return require(Modules:WaitForChild("InputBlocker")) end)
 	local okSM, SM = pcall(function() return require(Modules:WaitForChild("SoundManager")) end)
-	local okGC, GC = pcall(function() return require(Modules:WaitForChild("GameConfig")) end)
 	if NMRemote then
-		local NIGHT_0 = Color3.fromRGB(30, 26, 66)
-		local NIGHT_1 = Color3.fromRGB(12, 12, 34)
-		local CARD_0 = Color3.fromRGB(30, 28, 62)
-		local CARD_1 = Color3.fromRGB(16, 15, 38)
-		local GOLD = Color3.fromRGB(255, 205, 90)
-		local CREAM = Color3.fromRGB(255, 236, 196)
-		local MUTED = Color3.fromRGB(176, 172, 214)
-		local GREY = Color3.fromRGB(96, 94, 120)
+		local RunService = game:GetService("RunService")
+		local MC = require(Modules:WaitForChild("MerchantConfig"))
+		local MIcons = require(Modules:WaitForChild("MerchantIconModels"))
+		local LocCfg = require(Modules:WaitForChild("LocalizationConfig"))
+		local UIKit = require(Modules:WaitForChild("UIKit"))
+		local PAL = MC.Palette
 		local WHITE = Color3.new(1, 1, 1)
+		local DESIGN_W, DESIGN_H = 1000, 660
 
-		local function mCorner(p: Instance, r: number)
-			local c = Instance.new("UICorner"); c.CornerRadius = UDim.new(0, r); c.Parent = p
+		-- exact-match / format-template translation for texts built at runtime
+		local function tr(text: string): string
+			local locale = string.lower((string.gsub(player.LocaleId, "_", "-")))
+			return LocCfg.Translate(text, locale)
 		end
-		local function mStroke(p: Instance, col: Color3, th: number, tr: number?): UIStroke
-			local s = Instance.new("UIStroke"); s.Color = col; s.Thickness = th; s.Transparency = tr or 0
-			s.ApplyStrokeMode = Enum.ApplyStrokeMode.Border; s.Parent = p
-			return s
+
+		local function mk(class: string, props: { [string]: any }, parent: Instance?): any
+			local o = Instance.new(class)
+			for k, v in pairs(props) do
+				(o :: any)[k] = v
+			end
+			if parent then o.Parent = parent end
+			return o
 		end
-		local function mGrad(p: Instance, c0: Color3, c1: Color3, rot: number?): UIGradient
-			local g = Instance.new("UIGradient"); g.Color = ColorSequence.new(c0, c1); g.Rotation = rot or 90; g.Parent = p
-			return g
+		local function frame(parent: Instance, name: string, size: UDim2, pos: UDim2, color: Color3, transp: number?): Frame
+			return mk("Frame", { Name = name, Size = size, Position = pos, BackgroundColor3 = color, BackgroundTransparency = transp or 0, BorderSizePixel = 0 }, parent)
 		end
-		local function mLabel(parent: Instance, text: string, size: UDim2, pos: UDim2, ts: number, col: Color3, font: Enum.Font?, xa: Enum.TextXAlignment?): TextLabel
-			local t = Instance.new("TextLabel")
-			t.BackgroundTransparency = 1
-			t.Size = size; t.Position = pos
-			t.Text = text; t.TextSize = ts; t.TextColor3 = col
-			t.Font = font or Enum.Font.GothamBold
-			t.TextXAlignment = xa or Enum.TextXAlignment.Left
-			t.TextYAlignment = Enum.TextYAlignment.Center
-			t.TextWrapped = true
-			t.Parent = parent
+		local function corner(p: Instance, r: number)
+			mk("UICorner", { CornerRadius = UDim.new(0, r) }, p)
+		end
+		local function stroke(p: Instance, col: Color3, th: number, tr0: number?): UIStroke
+			return mk("UIStroke", { Color = col, Thickness = th, Transparency = tr0 or 0, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, p)
+		end
+		local function grad(p: Instance, c0: Color3, c1: Color3, rot: number): UIGradient
+			return mk("UIGradient", { Color = ColorSequence.new(c0, c1), Rotation = rot }, p)
+		end
+		-- text with an optional size cap (TextScaled + UITextSizeConstraint) and contextual outline
+		local function label(parent: Instance, name: string, text: string, size: UDim2, pos: UDim2, font: Enum.Font, maxSize: number, color: Color3, xa: Enum.TextXAlignment?, outline: Color3?): TextLabel
+			local t = mk("TextLabel", {
+				Name = name, BackgroundTransparency = 1, Size = size, Position = pos, Text = text, Font = font, TextColor3 = color,
+				TextScaled = true, TextWrapped = true, TextXAlignment = xa or Enum.TextXAlignment.Center, TextYAlignment = Enum.TextYAlignment.Center,
+			}, parent)
+			mk("UITextSizeConstraint", { MaxTextSize = maxSize, MinTextSize = 8 }, t)
+			if outline then
+				mk("UIStroke", { Color = outline, Thickness = 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Contextual }, t)
+			end
 			return t
 		end
-		local function press(btn: GuiObject)
-			local sc = btn:FindFirstChild("PressScale") :: UIScale?
-			if not sc then
-				local ns = Instance.new("UIScale"); ns.Name = "PressScale"; ns.Parent = btn
-				sc = ns
+		local function sparkle(parent: Instance, x: number, y: number, size: number, color: Color3, transp: number, z: number?)
+			mk("TextLabel", {
+				Name = "Star", BackgroundTransparency = 1, Size = UDim2.fromOffset(size, size), Position = UDim2.fromOffset(x, y),
+				Text = "✦", TextSize = size, Font = Enum.Font.GothamBold, TextColor3 = color, TextTransparency = transp, ZIndex = z or 3,
+			}, parent)
+		end
+
+		local function sfx(key: string)
+			if okSM and SM and SM.PlayUISound then pcall(SM.PlayUISound, key) end
+		end
+
+		-- "3D" pill button: darker edge below, glossy face, hover / press scale, grey disabled look
+		type Btn = { Button: TextButton, Face: Frame, Edge: Frame, Label: TextLabel, Grad: UIGradient, Stroke: UIStroke, Scale: UIScale, Set: (enabled: boolean, text: string?) -&gt; () }
+		local function makeButton(parent: Instance, name: string, size: UDim2, pos: UDim2, text: string, top: Color3, bottom: Color3, edge: Color3, radius: number, maxText: number): Btn
+			local b = mk("TextButton", { Name = name, Size = size, Position = pos, BackgroundTransparency = 1, Text = "", AutoButtonColor = false, ZIndex = 6 }, parent)
+			local e = frame(b, "Edge", UDim2.new(1, 0, 1, -4), UDim2.fromOffset(0, 4), edge)
+			e.ZIndex = 6
+			corner(e, radius)
+			local f = frame(b, "Face", UDim2.new(1, 0, 1, -4), UDim2.new(), WHITE)
+			f.ZIndex = 7
+			corner(f, radius)
+			local g = grad(f, top, bottom, 90)
+			local s = stroke(f, top:Lerp(WHITE, 0.45), 1.5, 0.35)
+			local gloss = frame(f, "Gloss", UDim2.new(0.86, 0, 0.26, 0), UDim2.fromScale(0.07, 0.07), WHITE, 0.82)
+			gloss.ZIndex = 8
+			corner(gloss, radius)
+			local lbl = label(f, "Label", text, UDim2.new(1, -16, 1, -8), UDim2.fromOffset(8, 4), Enum.Font.GothamBlack, maxText, WHITE, Enum.TextXAlignment.Center, edge:Lerp(Color3.new(0, 0, 0), 0.35))
+			lbl.ZIndex = 9
+			local sc = mk("UIScale", { Scale = 1 }, b)
+			local enabled = true
+			local function tween(to: number, t: number)
+				TweenService:Create(sc, TweenInfo.new(t, Enum.EasingStyle.Quad), { Scale = to }):Play()
 			end
-			;(sc :: UIScale).Scale = 0.92
-			TweenService:Create(sc :: UIScale, TweenInfo.new(0.18, Enum.EasingStyle.Back), { Scale = 1 }):Play()
-			if okSM and SM and SM.PlayUISound then pcall(SM.PlayUISound, "UIClick") end
-		end
-
-		local gui = Instance.new("ScreenGui")
-		gui.Name = "NightMerchantGui"
-		gui.ResetOnSpawn = false
-		gui.IgnoreGuiInset = true
-		gui.DisplayOrder = 30
-		gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-		gui.Parent = player:WaitForChild("PlayerGui")
-
-		local dim = Instance.new("Frame")
-		dim.Size = UDim2.fromScale(1, 1)
-		dim.BackgroundColor3 = Color3.fromRGB(4, 4, 14)
-		dim.BackgroundTransparency = 1
-		dim.Visible = false
-		dim.Active = true
-		dim.Parent = gui
-
-		local W, H = 812, 600
-		local panel = Instance.new("Frame")
-		panel.Name = "NightMerchantWindow"
-		panel.AnchorPoint = Vector2.new(0.5, 0.5)
-		panel.Position = UDim2.fromScale(0.5, 0.5)
-		panel.Size = UDim2.fromOffset(W, H)
-		panel.BackgroundColor3 = WHITE
-		panel.ClipsDescendants = false
-		panel.Parent = dim
-		mCorner(panel, 22)
-		mGrad(panel, NIGHT_0, NIGHT_1, 90)
-		mStroke(panel, Color3.fromRGB(120, 110, 230), 3, 0.1)
-		local scale = Instance.new("UIScale"); scale.Parent = panel
-		local function rescale()
-			local vp = (Workspace.CurrentCamera :: Camera).ViewportSize
-			scale.Scale = math.clamp(math.min(vp.X / (W + 60), vp.Y / (H + 60)), 0.42, 1.15)
-		end
-		rescale()
-		;(Workspace.CurrentCamera :: Camera):GetPropertyChangedSignal("ViewportSize"):Connect(rescale)
-
-		-- outer neon glow
-		local glow = Instance.new("Frame")
-		glow.Name = "Glow"
-		glow.BackgroundTransparency = 1
-		glow.Size = UDim2.new(1, 12, 1, 12)
-		glow.Position = UDim2.fromOffset(-6, -6)
-		glow.Parent = panel
-		mCorner(glow, 26)
-		mStroke(glow, Color3.fromRGB(140, 120, 255), 5, 0.72)
-
-		-- twinkling stars
-		local starRng = Random.new(31)
-		for i = 1, 46 do
-			local s = Instance.new("Frame")
-			local sz = starRng:NextInteger(2, 4)
-			s.Name = "Star"
-			s.BorderSizePixel = 0
-			s.BackgroundColor3 = (i % 5 == 0) and Color3.fromRGB(255, 230, 160) or Color3.fromRGB(210, 215, 255)
-			s.BackgroundTransparency = starRng:NextNumber(0.15, 0.6)
-			s.Size = UDim2.fromOffset(sz, sz)
-			s.Position = UDim2.new(starRng:NextNumber(0.02, 0.98), 0, starRng:NextNumber(0.02, 0.98), 0)
-			s.Parent = panel
-			mCorner(s, 9)
-			TweenService:Create(s, TweenInfo.new(starRng:NextNumber(0.9, 2.2), Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), { BackgroundTransparency = 0.9 }):Play()
-		end
-
-		-- header: moon + title + subtitle
-		local moon = mLabel(panel, "🌙", UDim2.fromOffset(60, 60), UDim2.fromOffset(20, 12), 44, GOLD, Enum.Font.GothamBlack, Enum.TextXAlignment.Center)
-		moon.TextScaled = true
-		local title = mLabel(panel, "NIGHT MERCHANT", UDim2.new(1, -330, 0, 44), UDim2.fromOffset(86, 12), 36, CREAM, Enum.Font.GothamBlack)
-		mGrad(title, Color3.fromRGB(255, 244, 210), Color3.fromRGB(255, 196, 92), 90)
-		local ts = Instance.new("UIStroke"); ts.Color = Color3.fromRGB(40, 22, 70); ts.Thickness = 2.5; ts.Parent = title
-		mLabel(panel, "Open only at night  •  Ore buyback 70%", UDim2.new(1, -330, 0, 22), UDim2.fromOffset(88, 56), 16, MUTED, Enum.Font.GothamBold)
-
-		-- coin pill
-		local pill = Instance.new("Frame")
-		pill.Name = "CoinPill"
-		pill.Size = UDim2.fromOffset(150, 44)
-		pill.Position = UDim2.new(1, -226, 0, 20)
-		pill.BackgroundColor3 = WHITE
-		pill.Parent = panel
-		mCorner(pill, 22)
-		mGrad(pill, Color3.fromRGB(44, 36, 20), Color3.fromRGB(24, 20, 12), 90)
-		mStroke(pill, GOLD, 2.5)
-		local coinsLbl = mLabel(pill, "💰 0", UDim2.new(1, -16, 1, 0), UDim2.fromOffset(8, 0), 22, GOLD, Enum.Font.GothamBlack, Enum.TextXAlignment.Center)
-
-		-- red round close button
-		local closeBtn = Instance.new("TextButton")
-		closeBtn.Name = "Close"
-		closeBtn.Size = UDim2.fromOffset(48, 48)
-		closeBtn.Position = UDim2.new(1, -64, 0, 18)
-		closeBtn.BackgroundColor3 = WHITE
-		closeBtn.AutoButtonColor = false
-		closeBtn.Text = "✖"
-		closeBtn.TextColor3 = WHITE
-		closeBtn.TextSize = 24
-		closeBtn.Font = Enum.Font.GothamBlack
-		closeBtn.Parent = panel
-		mCorner(closeBtn, 99)
-		mGrad(closeBtn, Color3.fromRGB(255, 92, 92), Color3.fromRGB(190, 28, 44), 90)
-		mStroke(closeBtn, Color3.fromRGB(255, 190, 190), 2.5)
-		vecCross(closeBtn)
-
-		-- 3×2 neon cards
-		local ITEMS = {
-			{ Id = "RepairKit",    Icon = "🧰", Name = "Repair Kit",    Desc = "Cleans ALL dirt from your backpack. Night only!", Col = Color3.fromRGB(255, 70, 92),  Btn = "CLEAN" },
-			{ Id = "Book",         Icon = "📘", Name = "Book",          Desc = "Read it: +XP and +Strength XP",                      Col = Color3.fromRGB(70, 150, 255), Btn = "BUY" },
-			{ Id = "Food",         Icon = "🍔", Name = "Food",          Desc = "Burger &amp; soda go to your supplies. Eat anytime [H]", Col = Color3.fromRGB(255, 150, 40), Btn = "BUY" },
-			{ Id = "Potion",       Icon = "🧪", Name = "Miner Potion",  Desc = "+25% coins at $ SELL for 3 minutes",                Col = Color3.fromRGB(80, 230, 110), Btn = "BUY" },
-			{ Id = "TopHat",       Icon = "🎩", Name = "Top Hat",       Desc = "Cosmetic: a classy night hat for your miner",        Col = Color3.fromRGB(180, 92, 255), Btn = "BUY" },
-			{ Id = "MorningCharm", Icon = "🌅", Name = "Morning Bonus", Desc = "Coins + full energy at sunrise",                     Col = Color3.fromRGB(60, 222, 240), Btn = "BUY" },
-		}
-		type Card = { Price: TextLabel, Extra: TextLabel, Btn: TextButton, BtnGrad: UIGradient, Col: Color3, Base: string, Stroke: UIStroke }
-		local cards: { [string]: Card } = {}
-		local last: any = nil
-		local CW, CH, GAP = 246, 182, 17
-		for i, it in ipairs(ITEMS) do
-			local col = (i - 1) % 3
-			local rowI = math.floor((i - 1) / 3)
-			local x = 26 + col * (CW + GAP)
-			local y = 98 + rowI * (CH + GAP)
-			local cg = Instance.new("Frame")
-			cg.Name = it.Id .. "_Glow"
-			cg.BackgroundTransparency = 1
-			cg.Size = UDim2.fromOffset(CW + 10, CH + 10)
-			cg.Position = UDim2.fromOffset(x - 5, y - 5)
-			cg.Parent = panel
-			mCorner(cg, 20)
-			mStroke(cg, it.Col, 6, 0.75)
-			local card = Instance.new("Frame")
-			card.Name = it.Id
-			card.Size = UDim2.fromOffset(CW, CH)
-			card.Position = UDim2.fromOffset(x, y)
-			card.BackgroundColor3 = WHITE
-			card.Parent = panel
-			mCorner(card, 16)
-			mGrad(card, CARD_0:Lerp(it.Col, 0.08), CARD_1, 90)
-			local cst = mStroke(card, it.Col, 2.5)
-			-- round icon
-			local ic = Instance.new("Frame")
-			ic.Name = "Icon"
-			ic.Size = UDim2.fromOffset(66, 66)
-			ic.Position = UDim2.fromOffset(14, 14)
-			ic.BackgroundColor3 = WHITE
-			ic.Parent = card
-			mCorner(ic, 99)
-			mGrad(ic, it.Col:Lerp(WHITE, 0.15), it.Col:Lerp(Color3.new(0, 0, 0), 0.55), 90)
-			mStroke(ic, it.Col:Lerp(WHITE, 0.45), 2.5)
-			local em = mLabel(ic, it.Icon, UDim2.fromScale(0.66, 0.66), UDim2.fromScale(0.17, 0.17), 30, WHITE, Enum.Font.GothamBlack, Enum.TextXAlignment.Center)
-			em.TextScaled = true
-			mLabel(card, it.Name, UDim2.new(1, -100, 0, 24), UDim2.fromOffset(90, 14), 19, WHITE, Enum.Font.GothamBlack)
-			local d = mLabel(card, it.Desc, UDim2.new(1, -100, 0, 54), UDim2.fromOffset(90, 38), 13, MUTED, Enum.Font.GothamMedium)
-			d.TextYAlignment = Enum.TextYAlignment.Top
-			local price = mLabel(card, "💰 0", UDim2.new(0.5, -14, 0, 28), UDim2.fromOffset(14, 96), 21, GOLD, Enum.Font.GothamBlack)
-			local extra = mLabel(card, "", UDim2.new(0.5, -14, 0, 28), UDim2.new(0.5, 0, 0, 96), 12, it.Col:Lerp(WHITE, 0.35), Enum.Font.GothamBold, Enum.TextXAlignment.Right)
-			local btn = Instance.new("TextButton")
-			btn.Name = "Buy"
-			btn.Size = UDim2.new(1, -28, 0, 40)
-			btn.Position = UDim2.fromOffset(14, CH - 54)
-			btn.BackgroundColor3 = WHITE
-			btn.AutoButtonColor = false
-			btn.Text = it.Btn
-			btn.TextColor3 = WHITE
-			btn.TextSize = 20
-			btn.Font = Enum.Font.GothamBlack
-			btn.Parent = card
-			mCorner(btn, 12)
-			local bgr = mGrad(btn, it.Col:Lerp(WHITE, 0.12), it.Col:Lerp(Color3.new(0, 0, 0), 0.35), 90)
-			mStroke(btn, it.Col:Lerp(WHITE, 0.5), 2)
-			local bts = Instance.new("UIStroke"); bts.ApplyStrokeMode = Enum.ApplyStrokeMode.Contextual; bts.Color = it.Col:Lerp(Color3.new(0, 0, 0), 0.6); bts.Thickness = 1.5; bts.Parent = btn
-			local gl = Instance.new("Frame")
-			gl.BackgroundColor3 = WHITE; gl.BackgroundTransparency = 0.82; gl.BorderSizePixel = 0
-			gl.Size = UDim2.new(1, -10, 0.42, 0); gl.Position = UDim2.fromOffset(5, 3); gl.Parent = btn
-			mCorner(gl, 9)
-			btn.MouseButton1Click:Connect(function()
-				press(btn)
-				;(NMRemote :: RemoteEvent):FireServer("Buy", it.Id)
-			end)
-			cards[it.Id] = { Price = price, Extra = extra, Btn = btn, BtnGrad = bgr, Col = it.Col, Base = it.Btn, Stroke = cst }
-		end
-
-		-- bottom bar: red backpack icon + "Backpack is empty" / sell 70%
-		local bar = Instance.new("Frame")
-		bar.Name = "BackpackBar"
-		bar.Size = UDim2.new(1, -52, 0, 60)
-		bar.Position = UDim2.fromOffset(26, 98 + 2 * (CH + GAP) + 4)
-		bar.BackgroundColor3 = WHITE
-		bar.Parent = panel
-		mCorner(bar, 16)
-		mGrad(bar, Color3.fromRGB(34, 30, 64), Color3.fromRGB(18, 16, 40), 90)
-		mStroke(bar, Color3.fromRGB(255, 80, 96), 2, 0.35)
-		local bi = Instance.new("Frame")
-		bi.Size = UDim2.fromOffset(44, 44)
-		bi.Position = UDim2.fromOffset(10, 8)
-		bi.BackgroundColor3 = WHITE
-		bi.Parent = bar
-		mCorner(bi, 12)
-		mGrad(bi, Color3.fromRGB(255, 92, 100), Color3.fromRGB(176, 26, 44), 90)
-		mStroke(bi, Color3.fromRGB(255, 180, 180), 2)
-		local bie = mLabel(bi, "🎒", UDim2.fromScale(0.7, 0.7), UDim2.fromScale(0.15, 0.15), 24, WHITE, Enum.Font.GothamBlack, Enum.TextXAlignment.Center)
-		bie.TextScaled = true
-		local barLbl = mLabel(bar, "Backpack is empty", UDim2.new(1, -250, 1, 0), UDim2.fromOffset(66, 0), 19, CREAM, Enum.Font.GothamBlack)
-		local sellBtn = Instance.new("TextButton")
-		sellBtn.Name = "SellAll"
-		sellBtn.Size = UDim2.fromOffset(170, 42)
-		sellBtn.Position = UDim2.new(1, -180, 0, 9)
-		sellBtn.BackgroundColor3 = WHITE
-		sellBtn.AutoButtonColor = false
-		sellBtn.Text = "SELL 70%"
-		sellBtn.TextColor3 = WHITE
-		sellBtn.TextSize = 18
-		sellBtn.Font = Enum.Font.GothamBlack
-		sellBtn.Visible = false
-		sellBtn.Parent = bar
-		mCorner(sellBtn, 12)
-		mGrad(sellBtn, Color3.fromRGB(255, 186, 70), Color3.fromRGB(226, 110, 20), 90)
-		mStroke(sellBtn, Color3.fromRGB(255, 226, 160), 2)
-		sellBtn.MouseButton1Click:Connect(function()
-			press(sellBtn)
-			;(NMRemote :: RemoteEvent):FireServer("Sell")
-		end)
-		local status = mLabel(panel, "", UDim2.new(1, -40, 0, 26), UDim2.new(0, 20, 1, -34), 16, CREAM, Enum.Font.GothamBold, Enum.TextXAlignment.Center)
-
-		local function setBtn(card: Card, txt: string, enabled: boolean)
-			card.Btn.Text = txt
-			local c = enabled and card.Col or GREY
-			card.BtnGrad.Color = ColorSequence.new(c:Lerp(WHITE, 0.12), c:Lerp(Color3.new(0, 0, 0), 0.35))
-			card.Btn.TextTransparency = enabled and 0 or 0.25
-			card.Stroke.Transparency = enabled and 0 or 0.45
-		end
-
-		local function dirtName(stage: number): string
-			if okGC and GC and GC.GetDirtStageName then return GC.GetDirtStageName(stage) end
-			return ({ [0] = "Clean", "Slightly Dirty", "Dirty", "Very Dirty", "Extremely Dirty" })[stage] or "Clean"
-		end
-
-		local function apply(st: any)
-			if type(st) ~= "table" then return end
-			last = st
-			local coins = math.floor(st.Coins or 0)
-			coinsLbl.Text = "💰 " .. tostring(coins)
-			for id, card in pairs(cards) do
-				local p = (st.Prices and st.Prices[id]) or 0
-				card.Price.Text = (p &gt; 0) and ("💰 " .. tostring(p)) or "✔ Owned"
-				card.Extra.Text = ""
-				local afford = p &lt;= coins
-				if id == "RepairKit" then
-					local stg = math.floor(st.DirtStage or 0)
-					local pen = ({ [0] = 0, 10, 20, 30, 40 })[stg] or 0
-					card.Extra.Text = stg &gt; 0 and string.format("%s -%d%%", dirtName(stg), pen) or "✨ Clean"
-					if stg &lt;= 0 and (st.Dirt or 0) &lt;= 0 then setBtn(card, "CLEAN ✔", false) else setBtn(card, "CLEAN", afford) end
-				elseif id == "Food" then
-					card.Extra.Text = string.format("Stock: %d/%d", math.floor(st.FoodStock or 0), math.floor(st.FoodMax or 20))
-					if (st.FoodStock or 0) &gt;= (st.FoodMax or 20) then setBtn(card, "FULL", false) else setBtn(card, "BUY", afford) end
-				elseif id == "TopHat" and st.OwnsHat then
-					setBtn(card, st.HatOn and "UNEQUIP" or "EQUIP", true)
-				elseif id == "MorningCharm" and st.Charm then
-					card.Extra.Text = "until sunrise"
-					setBtn(card, "ACTIVE", false)
-				elseif id == "Potion" and (st.PotionLeft or 0) &gt; 0 then
-					card.Extra.Text = string.format("%d:%02d left", math.floor(st.PotionLeft / 60), st.PotionLeft % 60)
-					setBtn(card, "EXTEND", afford)
+			b.MouseEnter:Connect(function() if enabled then tween(1.05, 0.12) end end)
+			b.MouseLeave:Connect(function() tween(1, 0.12) end)
+			b.MouseButton1Down:Connect(function() tween(0.94, 0.08) end)
+			b.MouseButton1Up:Connect(function() tween(enabled and 1.05 or 1, 0.12) end)
+			local obj: Btn = { Button = b, Face = f, Edge = e, Label = lbl, Grad = g, Stroke = s, Scale = sc, Set = function() end }
+			obj.Set = function(on: boolean, newText: string?)
+				enabled = on
+				if newText then lbl.Text = newText end
+				if on then
+					g.Color = ColorSequence.new(top, bottom)
+					e.BackgroundColor3 = edge
+					s.Color = top:Lerp(WHITE, 0.45)
+					lbl.TextColor3 = WHITE
 				else
-					setBtn(card, card.Base, afford)
+					g.Color = ColorSequence.new(Color3.fromRGB(146, 144, 166), Color3.fromRGB(98, 96, 124))
+					e.BackgroundColor3 = Color3.fromRGB(54, 52, 76)
+					s.Color = Color3.fromRGB(190, 188, 210)
+					lbl.TextColor3 = Color3.fromRGB(214, 212, 230)
 				end
 			end
-			local bb = math.floor(st.Buyback or 0)
-			if bb &gt; 0 then
-				barLbl.Text = string.format("Ore in backpack: %d / %d  →  +%d 💰 (70%%)", math.floor(st.BagUsed or 0), math.floor(st.BagMax or 0), bb)
-				sellBtn.Visible = true
-			else
-				barLbl.Text = "Backpack is empty"
-				sellBtn.Visible = false
-			end
+			return obj
 		end
 
+		-- ----- screen, dim, scaled container ------------------------------------------------
+		local gui = mk("ScreenGui", { Name = "NightMerchantGui", ResetOnSpawn = false, IgnoreGuiInset = true, DisplayOrder = 30, ZIndexBehavior = Enum.ZIndexBehavior.Sibling }, player:WaitForChild("PlayerGui"))
+		local dim = frame(gui, "Dim", UDim2.fromScale(1, 1), UDim2.new(), Color3.fromRGB(4, 4, 14), 1)
+		dim.Visible = false
+		dim.Active = true
+		local fit = frame(gui, "Fit", UDim2.fromOffset(DESIGN_W, DESIGN_H), UDim2.fromScale(0.5, 0.5), WHITE, 1)
+		fit.AnchorPoint = Vector2.new(0.5, 0.5)
+		fit.Visible = false
+		local fitScale = mk("UIScale", { Scale = 1 }, fit)
+		local window = frame(fit, "NightMerchantWindow", UDim2.fromScale(1, 1), UDim2.new(), WHITE, 1)
+		local popScale = mk("UIScale", { Scale = 1 }, window)
+		local function rescale()
+			local a = gui.AbsoluteSize
+			fitScale.Scale = math.max(0.2, math.min(1, (a.X - 16) / DESIGN_W, (a.Y - 16) / DESIGN_H))
+		end
+		rescale()
+		gui:GetPropertyChangedSignal("AbsoluteSize"):Connect(rescale)
+
+		-- ----- night panel with stars -------------------------------------------------------
+		local nightPanel = frame(window, "Panel", UDim2.fromOffset(DESIGN_W, 576), UDim2.fromOffset(0, 84), WHITE)
+		nightPanel.ZIndex = 0
+		corner(nightPanel, 26)
+		grad(nightPanel, PAL.PanelTop, PAL.PanelBottom, 90)
+		stroke(nightPanel, PAL.PanelStroke, 3)
+		local stars = {
+			{ 14, 118, 22, 0.35 }, { 962, 130, 18, 0.4 }, { 470, 340, 16, 0.5 }, { 20, 330, 20, 0.45 }, { 972, 346, 20, 0.4 },
+			{ 80, 560, 18, 0.5 }, { 905, 565, 22, 0.4 }, { 40, 450, 14, 0.5 }, { 950, 470, 16, 0.5 }, { 560, 94, 16, 0.5 },
+		}
+		for i, s in ipairs(stars) do
+			sparkle(window, s[1], s[2], s[3], i % 2 == 0 and Color3.fromRGB(255, 230, 150) or Color3.fromRGB(190, 160, 255), s[4], 1)
+		end
+
+		-- ----- header: moon, gold plaque, coin pill, close ----------------------------------
+		local header = frame(window, "Header", UDim2.fromOffset(DESIGN_W, 110), UDim2.new(), WHITE, 1)
+		header.ZIndex = 10
+		mk("TextLabel", { Name = "Moon", BackgroundTransparency = 1, Size = UDim2.fromOffset(100, 96), Position = UDim2.fromOffset(18, 4), Text = "🌙", TextSize = 78, Font = Enum.Font.GothamBold, ZIndex = 12 }, header)
+		sparkle(header, 8, 8, 20, PAL.GoldLight, 0.15)
+		sparkle(header, 92, 70, 16, PAL.GoldLight, 0.3)
+		local plaque = frame(header, "Plaque", UDim2.fromOffset(560, 96), UDim2.fromOffset(104, 8), WHITE)
+		plaque.ZIndex = 11
+		corner(plaque, 22)
+		grad(plaque, Color3.fromRGB(66, 44, 120), Color3.fromRGB(28, 20, 70), 90)
+		stroke(plaque, Color3.fromRGB(150, 104, 240), 3)
+		local trim = frame(plaque, "Trim", UDim2.new(1, -12, 1, -12), UDim2.fromOffset(6, 6), WHITE, 1)
+		corner(trim, 17)
+		stroke(trim, PAL.Gold, 1.5, 0.6)
+		local title = label(plaque, "Title", MC.Title, UDim2.new(1, -40, 0, 54), UDim2.fromOffset(20, 4), Enum.Font.GothamBlack, 46, WHITE, Enum.TextXAlignment.Center, Color3.fromRGB(96, 52, 10))
+		title.ZIndex = 13
+		grad(title, PAL.GoldLight, PAL.GoldDark, 90)
+		local subtitle = label(plaque, "Subtitle", MC.Subtitle, UDim2.new(1, -60, 0, 28), UDim2.fromOffset(30, 60), Enum.Font.GothamBold, 20, WHITE, Enum.TextXAlignment.Center, Color3.fromRGB(10, 6, 30))
+		subtitle.ZIndex = 13
+		sparkle(plaque, 528, 14, 18, PAL.GoldLight, 0.2)
+		sparkle(plaque, 520, 66, 14, WHITE, 0.4)
+
+		local pill = frame(header, "CoinPill", UDim2.fromOffset(200, 60), UDim2.fromOffset(676, 14), Color3.fromRGB(22, 20, 50))
+		pill.ZIndex = 11
+		corner(pill, 30)
+		stroke(pill, Color3.fromRGB(104, 92, 170), 2.5)
+		mk("TextLabel", { Name = "Icon", BackgroundTransparency = 1, Size = UDim2.fromOffset(48, 60), Position = UDim2.fromOffset(10, 0), Text = "💰", TextSize = 38, Font = Enum.Font.GothamBold, ZIndex = 12 }, pill)
+		local coinsLbl = label(pill, "Amount", "0", UDim2.new(1, -72, 1, -10), UDim2.fromOffset(62, 5), Enum.Font.GothamBlack, 34, Color3.fromRGB(255, 238, 160), Enum.TextXAlignment.Center, Color3.fromRGB(40, 24, 6))
+		coinsLbl.ZIndex = 12
+
+		local closeBtn = makeButton(header, "Close", UDim2.fromOffset(64, 64), UDim2.fromOffset(896, 12), "X", Color3.fromRGB(255, 96, 96), Color3.fromRGB(214, 34, 46), Color3.fromRGB(116, 14, 28), 16, 34)
+		closeBtn.Button.ZIndex = 12
+
+		-- ----- toast line (server result and local hints) ----------------------------------
+		local toast: (msg: string, ok: boolean) -&gt; () = function() end
+		local toastLbl = label(window, "Toast", "", UDim2.fromOffset(944, 26), UDim2.fromOffset(28, 568), Enum.Font.GothamBold, 19, WHITE, Enum.TextXAlignment.Center, Color3.fromRGB(10, 6, 24))
+		toastLbl.ZIndex = 6
+		local toastToken = 0
+		toast = function(msg: string, ok: boolean)
+			toastToken += 1
+			local my = toastToken
+			toastLbl.Text = tr(msg)
+			toastLbl.TextColor3 = ok and PAL.Ok or PAL.Fail
+			toastLbl.TextTransparency = 0
+			task.delay(3.2, function()
+				if my == toastToken then
+					TweenService:Create(toastLbl, TweenInfo.new(0.5), { TextTransparency = 1 }):Play()
+				end
+			end)
+		end
+
+		-- ----- cards -----------------------------------------------------------------------
+		type Card = { Id: string, Cfg: any, Price: TextLabel, Extra: TextLabel, Btn: Btn, Reason: string?, Spin: any }
+		local Cards: { [string]: Card } = {}
+		local spins: { any } = {}
+
+		local function buildCard(index: number)
+			local id = MC.Order[index]
+			local cfg = MC.Cards[id]
+			local top = index &lt;= MC.TopRow
+			local W, H = top and 304 or 366, top and 230 or 212
+			local x = top and (28 + (index - 1) * 320) or (126 + (index - MC.TopRow - 1) * 382)
+			local y = top and 106 or 352
+			local slot = frame(window, "Slot_" .. id, UDim2.fromOffset(W, H), UDim2.fromOffset(x, y), WHITE, 1)
+			slot.ZIndex = 2
+			local glow = frame(slot, "Glow", UDim2.new(1, 14, 1, 14), UDim2.fromOffset(-7, -7), cfg.Accent, 0.8)
+			glow.ZIndex = 1
+			corner(glow, 28)
+			local card = frame(slot, "Card", UDim2.fromScale(1, 1), UDim2.new(), WHITE)
+			card.ZIndex = 2
+			corner(card, 22)
+			grad(card, cfg.Bg0, cfg.Bg1, 125)
+			stroke(card, cfg.Accent, 3)
+			local shine = frame(card, "Shine", UDim2.new(1, -10, 0.34, 0), UDim2.fromOffset(5, 5), WHITE, 0.93)
+			shine.ZIndex = 3
+			corner(shine, 18)
+
+			local disc = frame(card, "IconGlow", UDim2.fromOffset(118, 118), UDim2.fromOffset(9, 10), cfg.Accent, 0.8)
+			disc.ZIndex = 3
+			corner(disc, 59)
+			local vp, cam, world = UIKit.Viewport(card, "Icon", UDim2.fromOffset(128, 128), UDim2.fromOffset(4, 6))
+			vp.ZIndex = 4
+			MIcons.Build(id).Parent = world
+			local camInfo = MIcons.Camera(id)
+			local spin = { Viewport = vp, Camera = cam, Center = camInfo.Center, Distance = camInfo.Distance, Height = camInfo.Height, Phase = 0 }
+			UIKit.OrbitCamera(spin, 0)
+			table.insert(spins, spin)
+
+			local lightAccent = cfg.Accent:Lerp(WHITE, 0.55)
+			sparkle(card, 130, 150, 14, lightAccent, 0.5)
+			sparkle(card, 14, 140, 16, lightAccent, 0.45)
+			sparkle(card, W - 30, 18, 14, lightAccent, 0.5)
+
+			local tx = 140
+			local name = label(card, "Name", cfg.Name, UDim2.fromOffset(W - tx - 10, 34), UDim2.fromOffset(tx, 12), Enum.Font.GothamBlack, 25, WHITE, Enum.TextXAlignment.Left, Color3.fromRGB(10, 6, 24))
+			name.ZIndex = 5
+			local desc = label(card, "Desc", cfg.Desc, UDim2.fromOffset(W - tx - 10, 62), UDim2.fromOffset(tx, 50), Enum.Font.GothamMedium, 17, PAL.Desc, Enum.TextXAlignment.Left)
+			desc.TextYAlignment = Enum.TextYAlignment.Top
+			desc.ZIndex = 5
+
+			local pw = top and 118 or 140
+			local bw = top and 150 or 180
+			local pricePill = frame(card, "PricePill", UDim2.fromOffset(pw, 46), UDim2.fromOffset(10, H - 58), Color3.fromRGB(12, 8, 26), 0.45)
+			pricePill.ZIndex = 4
+			corner(pricePill, 23)
+			mk("TextLabel", { Name = "Coin", BackgroundTransparency = 1, Size = UDim2.fromOffset(38, 46), Position = UDim2.fromOffset(6, 0), Text = "💰", TextSize = 30, Font = Enum.Font.GothamBold, ZIndex = 5 }, pricePill)
+			local price = label(pricePill, "Price", "0", UDim2.new(1, -50, 1, -8), UDim2.fromOffset(46, 4), Enum.Font.GothamBlack, 28, Color3.fromRGB(255, 218, 80), Enum.TextXAlignment.Left, Color3.fromRGB(50, 28, 6))
+			price.ZIndex = 5
+
+			local bx = W - 10 - bw
+			local extra = label(card, "Extra", "", UDim2.fromOffset(bw, 24), UDim2.fromOffset(bx, H - 94), Enum.Font.GothamBold, 17, cfg.Accent:Lerp(WHITE, 0.2), Enum.TextXAlignment.Center, Color3.fromRGB(20, 10, 10))
+			extra.ZIndex = 5
+			local btn = makeButton(card, "Buy", UDim2.fromOffset(bw, 54), UDim2.fromOffset(bx, H - 64), cfg.Button, cfg.BtnTop, cfg.BtnBottom, cfg.BtnEdge, 18, 28)
+			btn.Button.ZIndex = 6
+			Cards[id] = { Id = id, Cfg = cfg, Price = price, Extra = extra, Btn = btn, Reason = nil, Spin = spin }
+			btn.Button.MouseButton1Click:Connect(function()
+				sfx("UIClick")
+				local c = Cards[id]
+				if c.Reason then
+					toast(c.Reason, false)
+				else
+					(NMRemote :: RemoteEvent):FireServer("Buy", id)
+				end
+			end)
+		end
+
+		-- ----- bottom bar ---------------------------------------------------------------------
+		local bar = mk("TextButton", { Name = "Bar", Size = UDim2.fromOffset(944, 50), Position = UDim2.fromOffset(28, 598), Text = "", AutoButtonColor = false, BackgroundColor3 = WHITE, BorderSizePixel = 0, ZIndex = 4 }, window)
+		corner(bar, 18)
+		local barGrad = grad(bar, Color3.fromRGB(34, 30, 76), Color3.fromRGB(20, 18, 50), 90)
+		local barStroke = stroke(bar, Color3.fromRGB(98, 76, 176), 2.5)
+		local barScale = mk("UIScale", { Scale = 1 }, bar)
+		mk("UIListLayout", { FillDirection = Enum.FillDirection.Horizontal, HorizontalAlignment = Enum.HorizontalAlignment.Center, VerticalAlignment = Enum.VerticalAlignment.Center, Padding = UDim.new(0, 12), SortOrder = Enum.SortOrder.LayoutOrder }, bar)
+		local barIcon = mk("TextLabel", { Name = "Icon", BackgroundTransparency = 1, Size = UDim2.fromOffset(40, 44), Text = "🎒", TextSize = 30, Font = Enum.Font.GothamBold, LayoutOrder = 1, ZIndex = 5 }, bar)
+		local barText = mk("TextLabel", {
+			Name = "Text", BackgroundTransparency = 1, AutomaticSize = Enum.AutomaticSize.X, Size = UDim2.fromOffset(0, 44), Text = "", TextSize = 26,
+			Font = Enum.Font.GothamBold, TextColor3 = PAL.Muted, LayoutOrder = 2, ZIndex = 5,
+		}, bar)
+		local barActive = false
+		bar.MouseEnter:Connect(function() if barActive then TweenService:Create(barScale, TweenInfo.new(0.12), { Scale = 1.02 }):Play() end end)
+		bar.MouseLeave:Connect(function() TweenService:Create(barScale, TweenInfo.new(0.12), { Scale = 1 }):Play() end)
+		bar.MouseButton1Down:Connect(function() if barActive then TweenService:Create(barScale, TweenInfo.new(0.08), { Scale = 0.98 }):Play() end end)
+		bar.MouseButton1Click:Connect(function()
+			if barActive then
+				sfx("UIClick")
+				;(NMRemote :: RemoteEvent):FireServer("Sell")
+			end
+		end)
+
+		for i = 1, #MC.Order do
+			buildCard(i)
+		end
+
+		-- ----- state -&gt; widgets --------------------------------------------------------------
+		local last: any = nil
+		local function apply(st: any)
+			last = st
+			local coins = st.Coins or 0
+			local prices = st.Prices or {}
+			coinsLbl.Text = UIKit.FormatCoins(coins)
+			for id, card in pairs(Cards) do
+				local p = prices[id] or 0
+				card.Price.Text = UIKit.FormatCoins(p)
+				local afford = coins &gt;= p
+				local reason: string? = nil
+				local extra, extraColor = "", card.Cfg.Accent:Lerp(WHITE, 0.2)
+				if id == "RepairKit" then
+					if (st.Dirt or 0) &lt;= 0 then reason = "✨ Your backpack is already clean!" end
+				elseif id == "TreasureMap" then
+					if st.TreasureActive then
+						reason = "🗺️ You already have a hidden treasure. Dig it up first!"
+						extra = tr("Treasure is hidden!")
+					end
+				elseif id == "Food" then
+					extra = string.format(tr(MC.StockFormat), math.floor(st.FoodStock or 0), math.floor(st.FoodMax or 0))
+					if (st.FoodStock or 0) &gt;= (st.FoodMax or 0) then
+						reason = string.format("🍔 Supplies are full (%d/%d)", st.FoodStock or 0, st.FoodMax or 0)
+					end
+				elseif id == "Potion" or id == "Shield" then
+					local left = math.floor(id == "Potion" and (st.PotionLeft or 0) or (st.ShieldLeft or 0))
+					if left &gt; 0 then
+						extra = string.format(tr(MC.ActiveFormat), string.format("%d:%02d", left // 60, left % 60))
+						extraColor = Color3.fromRGB(190, 255, 190)
+					end
+				end
+				if not reason and not afford then reason = "💰 Not Enough Coins" end
+				card.Reason = reason
+				card.Extra.Text = extra
+				card.Extra.TextColor3 = extraColor
+				card.Btn.Set(reason == nil)
+			end
+			local bb = math.floor(st.Buyback or 0)
+			barActive = bb &gt; 0
+			if barActive then
+				barText.Text = string.format(tr(MC.SellFormat), UIKit.FormatCoins(bb))
+				barText.TextColor3 = WHITE
+				barGrad.Color = ColorSequence.new(Color3.fromRGB(70, 214, 96), Color3.fromRGB(30, 140, 64))
+				barStroke.Color = Color3.fromRGB(160, 255, 176)
+			else
+				barText.Text = tr(MC.EmptyBag)
+				barText.TextColor3 = PAL.Muted
+				barGrad.Color = ColorSequence.new(Color3.fromRGB(34, 30, 76), Color3.fromRGB(20, 18, 50))
+				barStroke.Color = Color3.fromRGB(98, 76, 176)
+			end
+			barIcon.TextTransparency = barActive and 0 or 0.25
+		end
+
+		-- ----- open / close; animation runs only while the window is open --------------------
 		local isOpen = false
+		local anim: RBXScriptConnection? = nil
+		local function stopAnim()
+			if anim then anim:Disconnect(); anim = nil end
+		end
+		local function startAnim()
+			stopAnim()
+			local t, acc = 0, 0
+			anim = RunService.Heartbeat:Connect(function(dt: number)
+				t += dt
+				acc += dt
+				for i, sp in ipairs(spins) do
+					UIKit.OrbitCamera(sp, math.sin(t * 0.9 + i * 0.8) * 0.45)
+				end
+				if acc &gt;= 1 then
+					acc -= 1
+					if last then
+						last.PotionLeft = math.max(0, (last.PotionLeft or 0) - 1)
+						last.ShieldLeft = math.max(0, (last.ShieldLeft or 0) - 1)
+						apply(last)
+					end
+				end
+			end)
+		end
 		local function close()
 			if not isOpen then return end
 			isOpen = false
+			stopAnim()
 			TweenService:Create(dim, TweenInfo.new(0.18), { BackgroundTransparency = 1 }):Play()
-			TweenService:Create(scale, TweenInfo.new(0.18, Enum.EasingStyle.Back, Enum.EasingDirection.In), { Scale = scale.Scale * 0.85 }):Play()
+			TweenService:Create(popScale, TweenInfo.new(0.18, Enum.EasingStyle.Back, Enum.EasingDirection.In), { Scale = 0.85 }):Play()
 			task.delay(0.19, function()
-				if not isOpen then dim.Visible = false; rescale() end
+				if not isOpen then dim.Visible = false; fit.Visible = false end
 			end)
 			if okIB and IB then pcall(IB.SetMenuOpen, "NightMerchant", false) end
 		end
@@ -24330,17 +25564,18 @@ do
 			end
 			if isOpen then return end
 			isOpen = true
-			status.Text = ""
+			toastLbl.Text = ""
 			rescale()
-			local target = scale.Scale
-			scale.Scale = target * 0.85
+			popScale.Scale = 0.85
 			dim.Visible = true
+			fit.Visible = true
 			TweenService:Create(dim, TweenInfo.new(0.2), { BackgroundTransparency = 0.4 }):Play()
-			TweenService:Create(scale, TweenInfo.new(0.24, Enum.EasingStyle.Back), { Scale = target }):Play()
-			if okSM and SM and SM.PlayUISound then pcall(SM.PlayUISound, "UIClick") end
+			TweenService:Create(popScale, TweenInfo.new(0.24, Enum.EasingStyle.Back), { Scale = 1 }):Play()
+			startAnim()
+			sfx("UIClick")
 		end
 		if okIB and IB then pcall(IB.RegisterCloseCallback, "NightMerchant", close) end
-		closeBtn.MouseButton1Click:Connect(function() press(closeBtn); close() end)
+		closeBtn.Button.MouseButton1Click:Connect(function() sfx("UIClick"); close() end)
 		UserInputService.InputBegan:Connect(function(input: InputObject, _gpe: boolean)
 			if isOpen and input.KeyCode == Enum.KeyCode.Escape then close() end
 		end)
@@ -24351,19 +25586,8 @@ do
 			elseif kind == "Close" then
 				close()
 			elseif kind == "Result" then
-				status.Text = tostring(b or "")
-				status.TextColor3 = (a == true) and Color3.fromRGB(130, 240, 150) or Color3.fromRGB(255, 130, 110)
+				toast(tostring(b or ""), a == true)
 				if c then apply(c) end
-			end
-		end)
-		-- potion countdown refresh
-		task.spawn(function()
-			while true do
-				task.wait(1)
-				if isOpen and last and (last.PotionLeft or 0) &gt; 0 then
-					last.PotionLeft -= 1
-					apply(last)
-				end
 			end
 		end)
 	end
@@ -25560,6 +26784,7 @@ end
 local Wall: Model? = nil
 local WallToken = 0
 local RuneTweens: { Tween } = {}
+local LidTweens: { Tween } = {}
 local RumbleSound: Sound? = nil
 local SlamSound: Sound? = nil
 
@@ -25630,6 +26855,28 @@ local function shakeNearWall(wallPos: Vector3, seconds: number, token: number)
 	end)
 end
 
+-- Крышка над карьером: плиты проявляются волной от входа (сервер позже фиксирует итог)
+local function setLidVisible(visible: boolean, instant: boolean)
+	UIKit.StopTweens(LidTweens)
+	local target = visible and 0 or 1
+	for _, part in ipairs(CollectionService:GetTagged("NightWallLid")) do
+		if part:IsA("BasePart") then
+			if instant then
+				part.Transparency = target
+			else
+				local delay = tonumber(part:GetAttribute("FadeDelay")) or 0
+				local tw = TweenService:Create(
+					part,
+					TweenInfo.new(FX.LidFadeSeconds, Enum.EasingStyle.Sine, Enum.EasingDirection.Out, 0, false, delay),
+					{ Transparency = target }
+				)
+				tw:Play()
+				table.insert(LidTweens, tw)
+			end
+		end
+	end
+end
+
 local function wallPoses(wall: Model): (BasePart?, CFrame?, CFrame?)
 	local root = wall.PrimaryPart or wall:FindFirstChild("Root")
 	local up = wall:GetAttribute("UpCFrame")
@@ -25649,6 +26896,7 @@ local function animateWall(wall: Model, raised: boolean, instant: boolean)
 	end
 	local target = raised and up or down
 	setRunesPulsing(raised)
+	setLidVisible(raised, instant)
 	if instant then
 		root.CFrame = target
 		return
@@ -26026,7 +27274,7 @@ local function makeChip(id: string, order: number): Chip
 		Font = UI.FontBlack, TextSize = 14, XAlign = Enum.TextXAlignment.Left, ZIndex = 2,
 	})
 	UIKit.Label(root, {
-		Name = "Mult", Text = "×" .. tostring(cfg.Multiplier), Size = UDim2.fromOffset(40, 14), Position = UDim2.fromOffset(48, 26),
+		Name = "Mult", Text = if cfg.Stat == "Shield" then "" else "×" .. tostring(cfg.Multiplier), Size = UDim2.fromOffset(40, 14), Position = UDim2.fromOffset(48, 26),
 		Font = UI.FontBlack, TextSize = 13, XAlign = Enum.TextXAlignment.Left, Color = cfg.Color:Lerp(Color3.new(1, 1, 1), 0.35), ZIndex = 2,
 	})
 	local timeText = UIKit.Label(root, {

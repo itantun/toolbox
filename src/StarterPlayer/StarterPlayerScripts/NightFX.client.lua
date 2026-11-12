@@ -239,6 +239,7 @@ end
 local Wall: Model? = nil
 local WallToken = 0
 local RuneTweens: { Tween } = {}
+local LidTweens: { Tween } = {}
 local RumbleSound: Sound? = nil
 local SlamSound: Sound? = nil
 
@@ -309,6 +310,28 @@ local function shakeNearWall(wallPos: Vector3, seconds: number, token: number)
 	end)
 end
 
+-- Крышка над карьером: плиты проявляются волной от входа (сервер позже фиксирует итог)
+local function setLidVisible(visible: boolean, instant: boolean)
+	UIKit.StopTweens(LidTweens)
+	local target = visible and 0 or 1
+	for _, part in ipairs(CollectionService:GetTagged("NightWallLid")) do
+		if part:IsA("BasePart") then
+			if instant then
+				part.Transparency = target
+			else
+				local delay = tonumber(part:GetAttribute("FadeDelay")) or 0
+				local tw = TweenService:Create(
+					part,
+					TweenInfo.new(FX.LidFadeSeconds, Enum.EasingStyle.Sine, Enum.EasingDirection.Out, 0, false, delay),
+					{ Transparency = target }
+				)
+				tw:Play()
+				table.insert(LidTweens, tw)
+			end
+		end
+	end
+end
+
 local function wallPoses(wall: Model): (BasePart?, CFrame?, CFrame?)
 	local root = wall.PrimaryPart or wall:FindFirstChild("Root")
 	local up = wall:GetAttribute("UpCFrame")
@@ -328,6 +351,7 @@ local function animateWall(wall: Model, raised: boolean, instant: boolean)
 	end
 	local target = raised and up or down
 	setRunesPulsing(raised)
+	setLidVisible(raised, instant)
 	if instant then
 		root.CFrame = target
 		return
