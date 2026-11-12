@@ -69,14 +69,14 @@ GameConfig.FALL_THRESHOLD_Y = -205 -- v49: below bottom of 30-level mine (-186)
 GameConfig.ENERGY = {
 	BaseMax = 100,                 -- Базовый максимум энергии
 	PerSkillLevelMaxBonus = 12,    -- +12 к макс. энергии за каждый уровень навыка «Энергия»
-	PerSkillLevelRegenBonus = 0.35,-- +0.35 регенерации/сек за каждый уровень навыка «Энергия»
+	PerSkillLevelRegenBonus = 0.20,-- +0.20 регенерации/сек за каждый уровень навыка «Энергия»
 	BaseSwingCost = 6.0,           -- Базовая трата энергии за удар
 	DepthExtraCostMax = 6.0,       -- На дне (30 бл.) удар тратит до 12 энергии
 	-- v50: swings cost half and energy comes back faster, so mining no longer
 	-- stalls after ~16 swings (the biggest frustration for young players)
 	SwingCostMultiplier = 0.5,
-	PassiveRegenPerSec = 3.6,      -- Базовое восстановление в секунду
-	SurfaceRestRegenPerSec = 9.0,  -- Восстановление на поверхности и каменных полках
+	PassiveRegenPerSec = 2.0,      -- Базовое восстановление в секунду (v53: было 3.6 — энергия копится медленнее)
+	SurfaceRestRegenPerSec = 5.0,  -- Восстановление на поверхности и каменных полках (v53: было 9.0)
 }
 
 -- ============================================================================
@@ -164,7 +164,7 @@ end
 -- v50: DAILY REWARD — first join of each (UTC) day; missing a day restarts the streak.
 -- Coins grow a little with the player's level so the gift stays useful later on.
 -- ============================================================================
-GameConfig.DAILY_REWARDS = { -- v51: small on day one (a first pickaxe costs 65 coins)
+GameConfig.DAILY_REWARDS = { -- v51: small on day one (a first pickaxe costs 165 coins)
 	{ Coins = 10 },
 	{ Coins = 20 },
 	{ Coins = 30 },
@@ -744,7 +744,7 @@ GameConfig.PICKAXE_TIERS = {
 	},
 	[2] = {
 		Level = 2, Name = "Stone Pickaxe", ShortName = "Stone",
-		Cost = 65, Damage = 11, BaseSwingCooldown = 0.46, SwingAnimSpeed = 1.04,
+		Cost = 165, Damage = 11, BaseSwingCooldown = 0.46, SwingAnimSpeed = 1.04,
 		UnlockSummary = "Stone and Coal seams",
 		VisualDesc = "Hewn slate blade with an iron collar",
 		BladeColor = Color3.fromRGB(136, 140, 150), HeadMaterial = Enum.Material.Slate, HeadReflectance = 0,
@@ -755,7 +755,7 @@ GameConfig.PICKAXE_TIERS = {
 	},
 	[3] = {
 		Level = 3, Name = "Iron Pickaxe", ShortName = "Iron",
-		Cost = 320, Damage = 18, BaseSwingCooldown = 0.44, SwingAnimSpeed = 1.08,
+		Cost = 800, Damage = 18, BaseSwingCooldown = 0.44, SwingAnimSpeed = 1.08,
 		UnlockSummary = "Unlocks Iron and Copper Ore",
 		VisualDesc = "Forged steel head with rivets and a quartz inlay",
 		BladeColor = Color3.fromRGB(145, 152, 166), HeadMaterial = Enum.Material.Metal, HeadReflectance = 0.14,
@@ -766,7 +766,7 @@ GameConfig.PICKAXE_TIERS = {
 	},
 	[4] = {
 		Level = 4, Name = "Steel Pickaxe", ShortName = "Steel",
-		Cost = 820, Damage = 24, BaseSwingCooldown = 0.42, SwingAnimSpeed = 1.12,
+		Cost = 2050, Damage = 24, BaseSwingCooldown = 0.42, SwingAnimSpeed = 1.12,
 		UnlockSummary = "Unlocks Tin Ore and mines Copper faster",
 		VisualDesc = "Heavy copper-tin alloy with a malachite crystal",
 		BladeColor = Color3.fromRGB(215, 132, 68), HeadMaterial = Enum.Material.Metal, HeadReflectance = 0.20,
@@ -777,7 +777,7 @@ GameConfig.PICKAXE_TIERS = {
 	},
 	[5] = {
 		Level = 5, Name = "Sapphire Pickaxe", ShortName = "Sapphire",
-		Cost = 1950, Damage = 34, BaseSwingCooldown = 0.40, SwingAnimSpeed = 1.16,
+		Cost = 4875, Damage = 34, BaseSwingCooldown = 0.40, SwingAnimSpeed = 1.16,
 		UnlockSummary = "Unlocks Silver and Gold Ore",
 		VisualDesc = "Polished steel with gold edges and a ruby core",
 		BladeColor = Color3.fromRGB(255, 198, 48), HeadMaterial = Enum.Material.Metal, HeadReflectance = 0.28,
@@ -788,7 +788,7 @@ GameConfig.PICKAXE_TIERS = {
 	},
 	[6] = {
 		Level = 6, Name = "Crystal Pickaxe", ShortName = "Crystal",
-		Cost = 5800, Damage = 48, BaseSwingCooldown = 0.38, SwingAnimSpeed = 1.22,
+		Cost = 14500, Damage = 48, BaseSwingCooldown = 0.38, SwingAnimSpeed = 1.22,
 		UnlockSummary = "Unlocks Amethyst geodes",
 		VisualDesc = "Quartz-amethyst blade with a soft glow",
 		BladeColor = Color3.fromRGB(185, 95, 255), HeadMaterial = Enum.Material.Glass, HeadReflectance = 0.24,
@@ -799,7 +799,7 @@ GameConfig.PICKAXE_TIERS = {
 	},
 	[7] = {
 		Level = 7, Name = "Amethyst Pickaxe", ShortName = "Amethyst",
-		Cost = 18500, Damage = 68, BaseSwingCooldown = 0.36, SwingAnimSpeed = 1.27,
+		Cost = 46250, Damage = 68, BaseSwingCooldown = 0.36, SwingAnimSpeed = 1.27,
 		UnlockSummary = "Unlocks Ruby and Emerald",
 		VisualDesc = "Faceted emerald blade in a gold frame",
 		BladeColor = Color3.fromRGB(35, 215, 110), HeadMaterial = Enum.Material.Glass, HeadReflectance = 0.22,
@@ -810,7 +810,7 @@ GameConfig.PICKAXE_TIERS = {
 	},
 	[8] = {
 		Level = 8, Name = "Void Pickaxe", ShortName = "Void",
-		Cost = 62000, Damage = 96, BaseSwingCooldown = 0.34, SwingAnimSpeed = 1.33,
+		Cost = 155000, Damage = 96, BaseSwingCooldown = 0.34, SwingAnimSpeed = 1.33,
 		UnlockSummary = "Unlocks Sapphire and Diamond",
 		VisualDesc = "Pure diamond with a blue shine",
 		BladeColor = Color3.fromRGB(80, 220, 255), HeadMaterial = Enum.Material.Glass, HeadReflectance = 0.28,
@@ -821,7 +821,7 @@ GameConfig.PICKAXE_TIERS = {
 	},
 	[9] = {
 		Level = 9, Name = "Golden Pickaxe", ShortName = "Golden",
-		Cost = 210000, Damage = 138, BaseSwingCooldown = 0.32, SwingAnimSpeed = 1.39,
+		Cost = 525000, Damage = 138, BaseSwingCooldown = 0.32, SwingAnimSpeed = 1.39,
 		UnlockSummary = "Unlocks relic Mithril at the bottom (30 m)",
 		VisualDesc = "Teal-silver mithril with star sparks",
 		BladeColor = Color3.fromRGB(70, 235, 225), HeadMaterial = Enum.Material.Metal, HeadReflectance = 0.35,
@@ -832,7 +832,7 @@ GameConfig.PICKAXE_TIERS = {
 	},
 	[10] = {
 		Level = 10, Name = "Royal Gold Pickaxe", ShortName = "Royal",
-		Cost = 750000, Damage = 195, BaseSwingCooldown = 0.29, SwingAnimSpeed = 1.45,
+		Cost = 1875000, Damage = 195, BaseSwingCooldown = 0.29, SwingAnimSpeed = 1.45,
 		UnlockSummary = "Maximum speed and damage on every block",
 		VisualDesc = "Obsidian-gold blade with a fiery plasma aura",
 		BladeColor = Color3.fromRGB(38, 32, 44), HeadMaterial = Enum.Material.Metal, HeadReflectance = 0.32,
@@ -909,7 +909,7 @@ GameConfig.BACKPACK_TIERS = {
 	},
 	[2] = {
 		Level = 2, Name = "Leather Bedroll Pack Lv.2", ShortName = "Leather",
-		Capacity = 25, Cost = 80,
+		Capacity = 25, Cost = 200,
 		VisualDesc = "Thick brown leather, side pockets and a bedroll on top",
 		Body = Color3.fromRGB(126, 84, 52), Trim = Color3.fromRGB(86, 54, 32), Fitting = Color3.fromRGB(185, 188, 195),
 		BodyMaterial = Enum.Material.Leather, FittingMaterial = Enum.Material.Metal,
@@ -918,7 +918,7 @@ GameConfig.BACKPACK_TIERS = {
 	},
 	[3] = {
 		Level = 3, Name = "Field Expedition Pack Lv.3", ShortName = "Field",
-		Capacity = 45, Cost = 240,
+		Capacity = 45, Cost = 600,
 		VisualDesc = "Olive canvas with bedroll, double straps and pouches",
 		Body = Color3.fromRGB(102, 116, 68), Trim = Color3.fromRGB(72, 84, 48), Fitting = Color3.fromRGB(178, 182, 172),
 		BodyMaterial = Enum.Material.Fabric, FittingMaterial = Enum.Material.Metal,
@@ -927,7 +927,7 @@ GameConfig.BACKPACK_TIERS = {
 	},
 	[4] = {
 		Level = 4, Name = "City Pack Lv.4", ShortName = "City",
-		Capacity = 75, Cost = 680,
+		Capacity = 75, Cost = 1700,
 		VisualDesc = "Matte black zip body with a steel badge",
 		Body = Color3.fromRGB(48, 52, 58), Trim = Color3.fromRGB(32, 35, 40), Fitting = Color3.fromRGB(165, 172, 184),
 		BodyMaterial = Enum.Material.SmoothPlastic, FittingMaterial = Enum.Material.Metal,
@@ -936,7 +936,7 @@ GameConfig.BACKPACK_TIERS = {
 	},
 	[5] = {
 		Level = 5, Name = "Vanguard Pack Lv.5", ShortName = "Vanguard",
-		Capacity = 120, Cost = 1850,
+		Capacity = 120, Cost = 4625,
 		VisualDesc = "Blue impact-proof shell with a glowing white diamond",
 		Body = Color3.fromRGB(38, 108, 215), Trim = Color3.fromRGB(24, 68, 148), Fitting = Color3.fromRGB(235, 245, 255),
 		BodyMaterial = Enum.Material.SmoothPlastic, FittingMaterial = Enum.Material.Neon,
@@ -945,7 +945,7 @@ GameConfig.BACKPACK_TIERS = {
 	},
 	[6] = {
 		Level = 6, Name = "Armored Tactical Pack Lv.6", ShortName = "Tactical",
-		Capacity = 180, Cost = 4900,
+		Capacity = 180, Cost = 12250,
 		VisualDesc = "Reinforced carbon pack with MOLLE straps and double locks",
 		Body = Color3.fromRGB(36, 38, 44), Trim = Color3.fromRGB(22, 24, 28), Fitting = Color3.fromRGB(128, 134, 145),
 		BodyMaterial = Enum.Material.Metal, FittingMaterial = Enum.Material.Metal,
@@ -954,7 +954,7 @@ GameConfig.BACKPACK_TIERS = {
 	},
 	[7] = {
 		Level = 7, Name = "North Star Cyber Pack Lv.7", ShortName = "North Star",
-		Capacity = 270, Cost = 13500,
+		Capacity = 270, Cost = 33750,
 		VisualDesc = "White titanium plates with a neon star core",
 		Body = Color3.fromRGB(218, 224, 234), Trim = Color3.fromRGB(38, 42, 52), Fitting = Color3.fromRGB(45, 195, 255),
 		BodyMaterial = Enum.Material.SmoothPlastic, FittingMaterial = Enum.Material.Neon,
@@ -963,7 +963,7 @@ GameConfig.BACKPACK_TIERS = {
 	},
 	[8] = {
 		Level = 8, Name = "Neon Crown Pack Lv.8", ShortName = "Crown",
-		Capacity = 400, Cost = 38000,
+		Capacity = 400, Cost = 95000,
 		VisualDesc = "Dark purple cyber case with neon edges and a crown emblem",
 		Body = Color3.fromRGB(34, 28, 48), Trim = Color3.fromRGB(22, 18, 34), Fitting = Color3.fromRGB(168, 65, 255),
 		BodyMaterial = Enum.Material.SmoothPlastic, FittingMaterial = Enum.Material.Neon,
@@ -972,7 +972,7 @@ GameConfig.BACKPACK_TIERS = {
 	},
 	[9] = {
 		Level = 9, Name = "Volcanic Exo Pack Lv.9", ShortName = "Volcanic",
-		Capacity = 620, Cost = 110000,
+		Capacity = 620, Cost = 275000,
 		VisualDesc = "Faceted basalt armor with glowing red energy lines",
 		Body = Color3.fromRGB(28, 26, 30), Trim = Color3.fromRGB(18, 16, 20), Fitting = Color3.fromRGB(255, 42, 32),
 		BodyMaterial = Enum.Material.Basalt, FittingMaterial = Enum.Material.Neon,
@@ -981,7 +981,7 @@ GameConfig.BACKPACK_TIERS = {
 	},
 	[10] = {
 		Level = 10, Name = "Quantum Cyber Pack Lv.10", ShortName = "Quantum",
-		Capacity = 1000, Cost = 340000,
+		Capacity = 1000, Cost = 850000,
 		VisualDesc = "Futuristic reactor pack with 4 crystal energy wings",
 		Body = Color3.fromRGB(24, 30, 42), Trim = Color3.fromRGB(14, 18, 28), Fitting = Color3.fromRGB(0, 225, 255),
 		BodyMaterial = Enum.Material.Metal, FittingMaterial = Enum.Material.Neon,
@@ -1037,7 +1037,7 @@ end
 -- ============================================================================
 GameConfig.BACKPACK_DIRT = {
 	CleanCooldown = 2.0,
-	RepairKitPrice = 85,
+	RepairKitPrice = 215,
 	MaxBlocks = 300,
 	Stages = {
 		{ Blocks = 20,  Penalty = 0.10, Name = "Slightly Dirty",  Color = Color3.fromRGB(190, 200, 110) },
@@ -1098,7 +1098,7 @@ end
 
 -- v32: Night Merchant food supplies (burgers are stored and eaten any time)
 GameConfig.FOOD = {
-	Price = 45,
+	Price = 115,
 	MaxStock = 20,
 	EatCooldown = 1.0,
 	Key = "H",
@@ -1312,7 +1312,7 @@ export type BoostConfig = {
 	Name: string,
 	Icon: string,
 	Desc: string,
-	Stat: string,          -- "Luck" | "MineSpeed" | "Coins"
+	Stat: string,          -- "Luck" | "MineSpeed" | "Coins" | "Shield"
 	Multiplier: number,
 	Duration: number,      -- секунд за одну покупку (повторная покупка ПРОДЛЕВАЕТ буст)
 	Price: number,
@@ -1322,30 +1322,36 @@ export type BoostConfig = {
 }
 
 GameConfig.BOOSTS = {
-	Order = { "Luck", "Speed", "Coins", "Potion" },
+	Order = { "Luck", "Speed", "Coins", "Potion", "Shield" },
 	MaxSeconds = 3600,        -- больше часа буст не накапливается
 	ExpireWarnSeconds = 10,   -- чип пульсирует, когда осталось меньше
 	Items = {
 		Luck = {
 			Id = "Luck", Name = "Удача", Icon = "🍀", Desc = "Шанс бонусной руды ×2",
-			Stat = "Luck", Multiplier = 2, Duration = 300, Price = 450,
+			Stat = "Luck", Multiplier = 2, Duration = 300, Price = 1125,
 			Color = Color3.fromRGB(86, 220, 110), Rarity = 2, InShop = true,
 		},
 		Speed = {
 			Id = "Speed", Name = "Скорость", Icon = "⚡", Desc = "Кирка бьёт в 1.5 раза быстрее",
-			Stat = "MineSpeed", Multiplier = 1.5, Duration = 300, Price = 600,
+			Stat = "MineSpeed", Multiplier = 1.5, Duration = 300, Price = 1500,
 			Color = Color3.fromRGB(80, 190, 255), Rarity = 3, InShop = true,
 		},
 		Coins = {
 			Id = "Coins", Name = "Монеты", Icon = "💰", Desc = "Продажа руды приносит ×2 монет",
-			Stat = "Coins", Multiplier = 2, Duration = 300, Price = 900,
+			Stat = "Coins", Multiplier = 2, Duration = 300, Price = 2250,
 			Color = Color3.fromRGB(255, 200, 60), Rarity = 4, InShop = true,
 		},
 		-- Зелье Ночного торговца (существовало в v51 как атрибут SellBoostUntil) — теперь тоже буст с чипом
 		Potion = {
 			Id = "Potion", Name = "Зелье шахтёра", Icon = "🧪", Desc = "+25% монет при продаже",
-			Stat = "Coins", Multiplier = 1.25, Duration = 180, Price = 150,
+			Stat = "Coins", Multiplier = 1.25, Duration = 180, Price = 375,
 			Color = Color3.fromRGB(205, 100, 235), Rarity = 2, InShop = false,
+		},
+		-- v53: Зелье щита Ночного торговца — пока действует, рюкзак не пачкается
+		Shield = {
+			Id = "Shield", Name = "Щит", Icon = "🛡️", Desc = "Рюкзак не пачкается",
+			Stat = "Shield", Multiplier = 1, Duration = 300, Price = 400,
+			Color = Color3.fromRGB(70, 150, 255), Rarity = 3, InShop = false,
 		},
 	} :: { [string]: BoostConfig },
 }
