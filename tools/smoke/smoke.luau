@@ -215,15 +215,18 @@ for level = 1, 10 do
 		torso.Size = roblox.Vector3.new(2, 1.6, 1)
 		torso.CFrame = roblox.CFrame.new(0, 3, 0)
 		Builder.BuildBackpackParts(m, level, torso, false, 1.0)
-		local minZ = 1e9
+		local minZ, minName = 1e9, "?"
 		for _, d in ipairs(m:GetDescendants()) do
 			if d:IsA("BasePart") and not string.find(d.Name, "Strap") then
 				local cf, sz = d.CFrame, d.Size
 				local hz = (math.abs(cf.RightVector.Z) * sz.X + math.abs(cf.UpVector.Z) * sz.Y + math.abs(cf.LookVector.Z) * sz.Z) / 2
-				minZ = math.min(minZ, cf.Z - hz)
+				if cf.Z - hz < minZ then
+					minZ = cf.Z - hz
+					minName = d.Name
+				end
 			end
 		end
-		return stats(m) .. string.format("  ближайшая к спине деталь z=%.2f (спина торса z=0.50)", minZ)
+		return stats(m) .. string.format("  ближайшая к спине деталь %s z=%.2f (спина торса z=0.50)", minName, minZ)
 	end)
 	run("backpack " .. level .. " (превью)", function()
 		local m = Instance.new("Model")
