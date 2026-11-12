@@ -25,6 +25,9 @@ export type WallRefs = {
 	UpCFrame: CFrame,
 	Blockers: { BasePart },
 	FencePanels: { BasePart },
+	WallParts: { BasePart },
+	WallGuis: { SurfaceGui },
+	LidParts: { BasePart },
 	Emitters: { ParticleEmitter },
 	Lights: { Light },
 }
@@ -33,6 +36,7 @@ local TAG_MODEL = "NightMineWall"
 local TAG_RUNE = "NightWallRune"
 local TAG_COUNTDOWN = "NightWallCountdown"
 local TAG_DUST = "NightWallDust"
+local TAG_LID = "NightWallLid"
 
 -- Токены для защиты от устаревшего применения позы (день→ночь→день за короткое время)
 local poseTokens: { [Model]: number } = setmetatable({}, { __mode = "k" }) :: any
@@ -41,8 +45,8 @@ local poseTokens: { [Model]: number } = setmetatable({}, { __mode = "k" }) :: an
 -- Сборка подвижной стены
 -- ----------------------------------------------------------------------------
 
--- Собирает все видимые детали стены в ПОДНЯТОЙ позе и приваривает их к Root
-local function buildWall(model: Model, root: BasePart, upCF: CFrame, rng: Random): ({ Light }, { ParticleEmitter })
+-- Собирает все видимые детали стены вокруг baseCF (центр стены) и приваривает их к Root
+local function buildWall(model: Model, root: BasePart, baseCF: CFrame, rng: Random): ({ Light }, { ParticleEmitter })
 	local cfg = GameConfig.NIGHT_WALL
 	local col = cfg.Colors
 	local H = cfg.Height
@@ -56,7 +60,7 @@ local function buildWall(model: Model, root: BasePart, upCF: CFrame, rng: Random
 
 	-- Добавляет деталь: локальный CFrame задан относительно центра стены
 	local function add(name: string, size: Vector3, localCF: CFrame, color: Color3, material: Enum.Material, glow: boolean?): Part
-		local p = PartKit.Block(folder, name, size, upCF * localCF, color, material, {
+		local p = PartKit.Block(folder, name, size, baseCF * localCF, color, material, {
 			Anchored = false,
 			Massless = true,
 			CanCollide = false,
@@ -69,7 +73,7 @@ local function buildWall(model: Model, root: BasePart, upCF: CFrame, rng: Random
 	end
 
 	local function addWedge(name: string, size: Vector3, localCF: CFrame, color: Color3, material: Enum.Material): WedgePart
-		local p = PartKit.Wedge(folder, name, size, upCF * localCF, color, material, {
+		local p = PartKit.Wedge(folder, name, size, baseCF * localCF, color, material, {
 			Anchored = false,
 			Massless = true,
 			CanCollide = false,
@@ -206,10 +210,60 @@ local function buildWall(model: Model, root: BasePart, upCF: CFrame, rng: Random
 		end
 	end
 
+	-- Крылья: стена продолжается в обе стороны до углов карьера и закрывает весь фасад шахты.
+	-- Украшения только со стороны спавна: со стороны ямы ночью никого нет.
+	local wg = cfg.Wings
+	local wingInner = cfg.Width / 2
+	local wingLen = wg.OuterX - wingInner
+	local wingBodyH = wg.Height - wg.PlinthHeight - wg.CapHeight
+	local wingBodyMidY = -halfH + wg.PlinthHeight + wingBodyH / 2
+	local wingTop = -halfH + wg.Height
+	local wingFaceZ = wg.Thickness / 2
+	local bays = math.max(1, math.round(wingLen / wg.PillarSpacing))
+	local bayLen = wingLen / bays
+	local bayClear = bayLen - wg.PillarWidth
+	local signBay = math.ceil(bays / 2)
+	for _, sx in ipairs({ -1, 1 }) do
+		local midX = sx * (wingInner + wingLen / 2)
+		add("WingPlinth", Vector3.new(wingLen, wg.PlinthHeight, wg.Thickness + 0.9), CFrame.new(midX, -halfH + wg.PlinthHeight / 2, 0), col.BasaltDark, Enum.Material.Basalt)
+		add("WingBody", Vector3.new(wingLen, wingBodyH, wg.Thickness), CFrame.new(midX, wingBodyMidY, 0), col.Basalt, Enum.Material.Basalt)
+		add("WingCap", Vector3.new(wingLen, wg.CapHeight, wg.Thickness + 0.6), CFrame.new(midX, wingTop - wg.CapHeight / 2, 0), col.BasaltDark, Enum.Material.Basalt)
+
+		for bay = 1, bays do
+			local bayMidX = sx * (wingInner + (bay - 0.5) * bayLen)
+			-- Пилон на внешнем краю секции (последний стоит в углу карьера)
+			local pillarX = sx * (wingInner + bay * bayLen - wg.PillarWidth / 2)
+			local pillarH = wg.Height + 0.9
+			add("WingPillar", Vector3.new(wg.PillarWidth, pillarH, wg.Thickness + 1.2), CFrame.new(pillarX, -halfH + pillarH / 2, 0), col.Slate, Enum.Material.Slate)
+			addRune(1, pillarX, wingBodyMidY, 0.28, wingBodyH * 0.55, wingFaceZ + 0.65, false)
+
+			local insetX = bayMidX - sx * wg.PillarWidth / 2
+			add("WingInset", Vector3.new(bayClear - 1.2, wingBodyH - 1.6, 0.2), CFrame.new(insetX, wingBodyMidY, wingFaceZ + 0.05), col.Slate, Enum.Material.Slate)
+			if bay == signBay then
+				local sign = add("WingSignPanel", Vector3.new(wg.SignSize.X, wg.SignSize.Y, cfg.PanelThickness), CFrame.new(insetX, wingBodyMidY, wingFaceZ + 0.2), col.Panel, Enum.Material.SmoothPlastic)
+				NightWallBuilder._BuildSign(sign, Enum.NormalId.Back)
+			else
+				addRune(1, insetX, wingBodyMidY + wingBodyH * 0.28, bayClear - 4, 0.22, wingFaceZ + 0.2, false)
+				addRune(1, insetX, wingBodyMidY - 0.6, 1.1, 1.1, wingFaceZ + 0.2, true)
+				for _, dx in ipairs({ -2.4, 2.4 }) do
+					addRune(1, insetX + dx, wingBodyMidY - 0.6, 0.22, 1.7, wingFaceZ + 0.2, false)
+				end
+			end
+		end
+
+		local spikes = math.max(2, math.floor(wingLen / wg.SpikeSpacing))
+		for i = 1, spikes do
+			local x = sx * (wingInner + (i - 0.5) * wingLen / spikes)
+			local h = rng:NextNumber(wg.SpikeMinHeight, wg.SpikeMaxHeight)
+			local yaw = (if i % 2 == 0 then math.pi else 0) + math.rad(rng:NextNumber(-6, 6))
+			addWedge("WingSpike", Vector3.new(1.5, h, wg.Thickness), CFrame.new(x, wingTop + h / 2 - 0.05, 0) * CFrame.Angles(0, yaw, 0), PartKit.Lighten(col.Spike, rng:NextNumber(0, 0.12)), Enum.Material.Basalt)
+		end
+	end
+
 	-- Невидимые точки дыма по верху стены
 	local sm = cfg.Smoke
 	for _, x in ipairs({ -9, 0, 9 }) do
-		local anchor = PartKit.Block(folder, "SmokeAnchor", Vector3.new(1, 0.2, 1), upCF * CFrame.new(x, halfH + 0.1, 0), col.Spike, Enum.Material.SmoothPlastic, {
+		local anchor = PartKit.Block(folder, "SmokeAnchor", Vector3.new(1, 0.2, 1), baseCF * CFrame.new(x, halfH + 0.1, 0), col.Spike, Enum.Material.SmoothPlastic, {
 			Anchored = false,
 			Massless = true,
 			CanCollide = false,
@@ -315,10 +369,10 @@ end
 -- ----------------------------------------------------------------------------
 -- Пыль у основания (не приварена, остаётся на уровне земли)
 -- ----------------------------------------------------------------------------
-local function buildDust(model: Model): { ParticleEmitter }
+local function buildDustBase(model: Model, name: string, centerX: number, width: number): { ParticleEmitter }
 	local cfg = GameConfig.NIGHT_WALL
 	local d = cfg.Dust
-	local base = PartKit.Block(model, "DustBase", Vector3.new(cfg.Width, d.Height, cfg.Thickness + 2), CFrame.new(cfg.CenterX, d.Y, cfg.CenterZ), d.Color1, Enum.Material.SmoothPlastic, {
+	local base = PartKit.Block(model, name, Vector3.new(width, d.Height, cfg.Thickness + 2), CFrame.new(centerX, d.Y, cfg.CenterZ), d.Color1, Enum.Material.SmoothPlastic, {
 		Anchored = true,
 		CanCollide = false,
 		CanQuery = false,
@@ -426,7 +480,7 @@ local function buildPerimeter(model: Model): ({ BasePart }, { BasePart })
 		})
 		table.insert(blockers, blocker)
 
-		-- Красная энергопанель (днём полностью прозрачна)
+		-- Красная энергопанель (днём полностью прозрачна). На фасаде её заменяют крылья стены.
 		local pSize = if alongX then Vector3.new(totalLen, fence.PanelHeight, fence.PanelThickness) else Vector3.new(fence.PanelThickness, fence.PanelHeight, totalLen)
 		local panel = PartKit.Block(fenceFolder, "FencePanel", pSize, CFrame.new(mid.X, fence.PanelHeight / 2, mid.Z), fence.PanelColor, fence.PanelMaterial, {
 			Anchored = true,
@@ -436,7 +490,11 @@ local function buildPerimeter(model: Model): ({ BasePart }, { BasePart })
 			CastShadow = false,
 			Transparency = 1,
 		})
-		table.insert(panels, panel)
+		if li == 1 or li == #legs then
+			panel:Destroy()
+		else
+			table.insert(panels, panel)
+		end
 
 		-- Столбы через каждые ~PostSpacing studs; у проёма отступаем от стены
 		local count = math.max(1, math.ceil(len / fence.PostSpacing))
@@ -462,10 +520,83 @@ local function buildPerimeter(model: Model): ({ BasePart }, { BasePart })
 end
 
 -- ----------------------------------------------------------------------------
+-- Крышка над карьером: плиты с красными швами. Днём полностью прозрачна.
+-- Проявление играет клиент (тег NightWallLid), сервер фиксирует итог в SetRaised.
+-- ----------------------------------------------------------------------------
+local function buildLid(model: Model, rng: Random): { BasePart }
+	local cfg = GameConfig.NIGHT_WALL
+	local lid = cfg.Lid
+	local parts: { BasePart } = {}
+
+	local folder = Instance.new("Folder")
+	folder.Name = "Lid"
+	folder.Parent = model
+
+	local function add(name: string, size: Vector3, cf: CFrame, color: Color3, material: Enum.Material, fadeDelay: number): Part
+		local p = PartKit.Block(folder, name, size, cf, color, material, {
+			Anchored = true,
+			CanCollide = false,
+			CanQuery = false,
+			CanTouch = false,
+			CastShadow = false,
+			Transparency = 1,
+		})
+		p:SetAttribute("FadeDelay", fadeDelay)
+		CollectionService:AddTag(p, TAG_LID)
+		table.insert(parts, p)
+		return p
+	end
+
+	local sizeX = lid.MaxX - lid.MinX
+	local sizeZ = lid.SouthZ - lid.NorthZ
+	local cellX = sizeX / lid.Columns
+	local cellZ = sizeZ / lid.Rows
+
+	-- Светящаяся подложка видна только в швах между плитами и пульсирует вместе с рунами
+	local glow = add("LidGlow", Vector3.new(sizeX - 0.4, 0.1, sizeZ - 0.4), CFrame.new((lid.MinX + lid.MaxX) / 2, lid.Y - 0.1, (lid.SouthZ + lid.NorthZ) / 2), lid.SeamColor, Enum.Material.Neon, 0)
+	CollectionService:AddTag(glow, TAG_RUNE)
+
+	for row = 1, lid.Rows do -- row 1 — у входа
+		local delay = (row - 1) * lid.RowDelay
+		for column = 1, lid.Columns do
+			local x = lid.MinX + (column - 0.5) * cellX
+			local z = lid.SouthZ - (row - 0.5) * cellZ
+			local base = if (row + column) % 2 == 0 then lid.PlateColorA else lid.PlateColorB
+			add("LidPlate", Vector3.new(cellX - lid.Gap, lid.Thickness, cellZ - lid.Gap), CFrame.new(x, lid.Y, z), PartKit.Lighten(base, rng:NextNumber(0, 0.06)), Enum.Material.Basalt, delay)
+			if row % 2 == 1 and column % 2 == 1 then
+				local rune = add("LidRune", Vector3.new(lid.RuneSize, 0.12, lid.RuneSize), CFrame.new(x, lid.Y + lid.Thickness / 2 + 0.02, z) * CFrame.Angles(0, math.rad(45), 0), cfg.Colors.Rune, Enum.Material.Neon, delay + 0.25)
+				CollectionService:AddTag(rune, TAG_RUNE)
+			end
+		end
+	end
+
+	return parts
+end
+
+-- Показывает или прячет саму стену. Днём она под землёй и дополнительно невидима.
+local function setWallShown(refs: WallRefs, shown: boolean)
+	for _, p in ipairs(refs.WallParts) do
+		local base = p:GetAttribute("BaseTransparency")
+		p.Transparency = if shown then (if typeof(base) == "number" then base else 0) else 1
+	end
+	for _, gui in ipairs(refs.WallGuis) do
+		gui.Enabled = shown
+	end
+end
+
+local function setLidShown(refs: WallRefs, shown: boolean)
+	for _, p in ipairs(refs.LidParts) do
+		p.Transparency = if shown then 0 else 1
+	end
+end
+
+-- ----------------------------------------------------------------------------
 -- Публичный API
 -- ----------------------------------------------------------------------------
 
--- Строит стену, периметр и пыль. Модель возвращается в ОПУЩЕННОЙ позе, всё выключено.
+-- Строит стену, крышку, периметр и пыль. Стена сразу собирается в ОПУЩЕННОЙ позе и спрятана:
+-- WeldConstraint запоминает смещение по текущим позициям, поэтому «построить наверху и
+-- опустить корень» до появления модели в Workspace оставляло стену видимой днём.
 function NightWallBuilder.Build(parent: Instance): WallRefs
 	local cfg = GameConfig.NIGHT_WALL
 	local rng = Random.new(cfg.Seed)
@@ -477,7 +608,7 @@ function NightWallBuilder.Build(parent: Instance): WallRefs
 	model.Name = cfg.Name
 
 	-- Невидимый корень, к которому приварена вся стена; клиент твинит именно его
-	local root = PartKit.Block(model, "Root", Vector3.new(1, 1, 1), upCF, cfg.Colors.Basalt, Enum.Material.SmoothPlastic, {
+	local root = PartKit.Block(model, "Root", Vector3.new(1, 1, 1), downCF, cfg.Colors.Basalt, Enum.Material.SmoothPlastic, {
 		Anchored = true,
 		CanCollide = false,
 		CanQuery = false,
@@ -487,21 +618,34 @@ function NightWallBuilder.Build(parent: Instance): WallRefs
 	})
 	model.PrimaryPart = root
 
-	local lights, emitters = buildWall(model, root, upCF, rng)
-	buildDust(model)
+	local lights, emitters = buildWall(model, root, downCF, rng)
+	buildDustBase(model, "DustBase", cfg.CenterX, cfg.Width)
+	local wingLen = cfg.Wings.OuterX - cfg.Width / 2
+	for _, sx in ipairs({ -1, 1 }) do
+		buildDustBase(model, "DustBaseWing", cfg.CenterX + sx * (cfg.Width + wingLen) / 2, wingLen)
+	end
 	local blockers, panels = buildPerimeter(model)
+	local lidParts = buildLid(model, rng)
 
-	-- Только теперь, когда всё приварено, опускаем корень: сборка следует за ним
-	root.CFrame = downCF
+	local wallParts: { BasePart } = {}
+	local wallGuis: { SurfaceGui } = {}
+	local wallFolder = model:FindFirstChild("Wall")
+	for _, d in ipairs(if wallFolder then wallFolder:GetDescendants() else {}) do
+		if d:IsA("BasePart") then
+			d:SetAttribute("BaseTransparency", d.Transparency)
+			table.insert(wallParts, d)
+		elseif d:IsA("SurfaceGui") then
+			table.insert(wallGuis, d)
+		end
+	end
 
 	model:SetAttribute("Raised", false)
 	model:SetAttribute("DownCFrame", downCF)
 	model:SetAttribute("UpCFrame", upCF)
 	model:SetAttribute("LiftSeconds", cfg.LiftSeconds)
 	CollectionService:AddTag(model, TAG_MODEL)
-	model.Parent = parent
 
-	return {
+	local refs: WallRefs = {
 		Model = model,
 		Root = root,
 		DownCFrame = downCF,
@@ -510,7 +654,13 @@ function NightWallBuilder.Build(parent: Instance): WallRefs
 		FencePanels = panels,
 		Emitters = emitters,
 		Lights = lights,
+		WallParts = wallParts,
+		WallGuis = wallGuis,
+		LidParts = lidParts,
 	}
+	setWallShown(refs, false)
+	model.Parent = parent
+	return refs
 end
 
 -- Мгновенное авторитетное переключение. Коллизия включается сразу, поза Root
@@ -549,6 +699,9 @@ function NightWallBuilder.SetRaised(refs: WallRefs, raised: boolean)
 	if not changed then
 		return
 	end
+	if raised then
+		setWallShown(refs, true)
+	end
 
 	local token = (poseTokens[model] or 0) + 1
 	poseTokens[model] = token
@@ -559,6 +712,10 @@ function NightWallBuilder.SetRaised(refs: WallRefs, raised: boolean)
 	task.delay(delaySeconds, function()
 		if poseTokens[model] == token and model.Parent ~= nil then
 			refs.Root.CFrame = target
+			setLidShown(refs, raised)
+			if not raised then
+				setWallShown(refs, false)
+			end
 		end
 	end)
 end

@@ -25,7 +25,10 @@ ProgressionConfig.SOUNDS = {
 	-- v47: мягкое арпеджио из «колокольчика» вместо резкого звука
 	LevelUpChime = { Id = "rbxassetid://9113728756", Volume = 0.22 },
 	-- Свой звук: загрузи LevelUp_Chime.ogg и вставь ID, например "rbxassetid://123"
-	LevelUpCustom = { Id = "rbxassetid://135458320667545", Volume = 0.5 }, -- v48: звук игрока
+	LevelUpCustom = { Id = "", Volume = 0.5 }, -- пусто = играет LevelUpSoft (прежний свой звук: rbxassetid://135458320667545)
+	-- v53: мягкий перелив колокольчиков из лицензированной библиотеки Roblox (ProSoundEffects,
+	-- «Magic Glows Soft Clusters Of Chiming Hits 1», 2.1 с). Работает в любой игре без загрузки.
+	LevelUpSoft = { Id = "rbxassetid://9116394545", Volume = 0.55 },
 	Click       = { Id = "rbxassetid://12221976",   Volume = 0.10 },
 	Achievement = { Id = "rbxassetid://1839901345", Volume = 0.07 }, -- тихий мягкий сигнал (было 0.40)
 	Prestige    = { Id = "rbxassetid://1845411858", Volume = 0.50 },
