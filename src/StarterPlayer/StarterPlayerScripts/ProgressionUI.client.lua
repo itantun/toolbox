@@ -106,40 +106,23 @@ local function playSound(s: Sound, pitch: number?)
 	s:Play()
 end
 
--- v47: приятный звук нового уровня
+-- v53: звук нового уровня — мягкий перелив колокольчиков с лёгким эхо.
+-- Свой звук (LevelUpCustom.Id) по-прежнему имеет приоритет, если он задан.
 local function playLevelUpSound()
 	local S = ProgressionConfig.SOUNDS :: any
 	local custom = S.LevelUpCustom
+	local cfg = S.LevelUpSoft
 	if custom and type(custom.Id) == "string" and custom.Id ~= "" then
-		local s = makeSound(custom)
-		s:Play()
-		task.delay(8, function() s:Destroy() end)
-		return
+		cfg = custom
 	end
-	local chime = S.LevelUpChime
-	-- до-ми-соль-до: мажорное арпеджио с лёгким эхо
-	local notes = { 1.0, 1.26, 1.5, 2.0 }
-	for i, pitch in ipairs(notes) do
-		task.delay((i - 1) * 0.11, function()
-			local s = Instance.new("Sound")
-			s.SoundId = chime.Id
-			s.Volume = chime.Volume * ((i == #notes) and 1.15 or 1)
-			s.PlaybackSpeed = pitch
-			local rv = Instance.new("ReverbSoundEffect")
-			rv.DecayTime = 1.2
-			rv.WetLevel = -8
-			rv.DryLevel = 0
-			rv.Parent = s
-			local eq = Instance.new("EqualizerSoundEffect")
-			eq.HighGain = -6
-			eq.MidGain = 0
-			eq.LowGain = 0
-			eq.Parent = s
-			s.Parent = SoundService
-			s:Play()
-			task.delay(4, function() s:Destroy() end)
-		end)
-	end
+	local s = makeSound(cfg)
+	local rv = Instance.new("ReverbSoundEffect")
+	rv.DecayTime = 1.6
+	rv.WetLevel = -10
+	rv.DryLevel = 0
+	rv.Parent = s
+	s:Play()
+	task.delay(8, function() s:Destroy() end)
 end
 
 local function formatNumber(n: number): string
