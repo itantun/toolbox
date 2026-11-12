@@ -11,6 +11,7 @@ if [ ! -x "$BIN" ] || [ ! -f "$DEFS" ]; then
 	(cd /tmp/tools && unzip -oq lsp.zip)
 	curl -sL -o "$DEFS" https://raw.githubusercontent.com/JohnnyMorganz/luau-lsp/main/scripts/globalTypes.d.luau
 fi
+python3 tools/assemble_config.py
 python3 tools/place_tool.py sourcemap src /tmp/sourcemap.json >/dev/null
 if [ "$#" -eq 0 ]; then
 	set -- src
