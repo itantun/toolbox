@@ -298,8 +298,8 @@ GameConfig.ORE_ICON = {
 
 -- Камера 3D-превью кирок и рюкзаков в карточках магазина
 GameConfig.SHOP_PREVIEW = {
-	PickaxeDistance = 8.4,
-	PickaxeHeight = 1.2,
-	BackpackDistance = 7.2,
-	BackpackHeight = 1.0,
+	PickaxeDistance = 9.6,
+	PickaxeHeight = 1.5,
+	BackpackDistance = 7.0,
+	BackpackHeight = 0.9,
 }
