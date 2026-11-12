@@ -26,6 +26,7 @@ local GameConfig = require(ReplicatedStorage:WaitForChild("Modules"):WaitForChil
 local SoundManager = require(ReplicatedStorage:WaitForChild("Modules"):WaitForChild("SoundManager"))
 -- v52: процедурные постройки «сочного» обновления
 local SpawnPlazaBuilder = require(script.Parent:WaitForChild("SpawnPlazaBuilder"))
+local MerchantNpcBuilder = require(script.Parent:WaitForChild("MerchantNpcBuilder"))
 local VFXModule = require(ReplicatedStorage:WaitForChild("Modules"):WaitForChild("VFXModule"))
 
 local WorldBuilder = {}
@@ -173,8 +174,6 @@ function WorldBuilder.BuildNightMerchant(parent: Instance, basePos: Vector3): Mo
 	local crystalBlue = Color3.fromRGB(65, 155, 255)
 	local potionPink = Color3.fromRGB(205, 75, 230)
 	local potionGreen = Color3.fromRGB(70, 220, 120)
-	local suit = Color3.fromRGB(38, 34, 52)
-	local skin = Color3.fromRGB(234, 190, 150)
 	local purple = Color3.fromRGB(110, 60, 170)
 	local ironCol = Color3.fromRGB(42, 48, 58)
 
@@ -299,42 +298,8 @@ function WorldBuilder.BuildNightMerchant(parent: Instance, basePos: Vector3): Mo
 		candle(-4 + i * 4, shelfYs[3] + 0.12, -0.85)
 	end
 
-	-- STANDING merchant (behind the counter, no seat)
-	local nz = -2.7
-	for _, sx in ipairs({ -1, 1 }) do
-		P("MerchantLeg", Vector3.new(0.8, 2.6, 0.8), sx * 0.5, 1.3, nz, Color3.fromRGB(28, 26, 34), Enum.Material.Fabric)
-		P("MerchantArm", Vector3.new(0.7, 2.2, 0.7), sx * 1.45, 3.75, nz - 0.2, suit, Enum.Material.Fabric, nil, false, nil, CFrame.Angles(math.rad(25), 0, 0))
-		P("MerchantHand", Vector3.new(0.6, 0.6, 0.6), sx * 1.45, 2.85, nz - 0.75, skin, Enum.Material.SmoothPlastic, Enum.PartType.Ball)
-	end
-	P("MerchantTorso", Vector3.new(2.2, 2.3, 1.1), 0, 3.75, nz, suit, Enum.Material.Fabric)
-	P("MerchantShirt", Vector3.new(0.6, 1.7, 0.05), 0, 3.95, nz - 0.57, Color3.fromRGB(235, 232, 225), Enum.Material.SmoothPlastic)
-	P("MerchantBowtie", Vector3.new(0.7, 0.3, 0.1), 0, 4.7, nz - 0.62, purple, Enum.Material.SmoothPlastic)
-	local head = P("MerchantHead", Vector3.new(1.3, 1.3, 1.3), 0, 5.55, nz, skin, Enum.Material.SmoothPlastic)
-	local face = Instance.new("Decal")
-	face.Texture = "rbxasset://textures/face.png"
-	face.Face = Enum.NormalId.Front
-	face.Parent = head
-	P("MerchantMustache", Vector3.new(0.8, 0.14, 0.08), 0, 5.3, nz - 0.68, Color3.fromRGB(60, 40, 28), Enum.Material.SmoothPlastic)
-	cyl("MerchantHatBrim", 0.12, 2.0, 0, 6.26, nz, Color3.fromRGB(24, 22, 28), Enum.Material.Fabric)
-	cyl("MerchantHatCrown", 1.3, 1.3, 0, 6.95, nz, Color3.fromRGB(24, 22, 28), Enum.Material.Fabric)
-	cyl("MerchantHatBand", 0.24, 1.34, 0, 6.45, nz, purple, Enum.Material.Fabric)
-	local nameGui = Instance.new("BillboardGui")
-	nameGui.Name = "MerchantName"
-	nameGui.Size = UDim2.fromOffset(200, 40)
-	nameGui.StudsOffset = Vector3.new(0, 2.4, 0)
-	nameGui.MaxDistance = 60
-	nameGui.Parent = head
-	local nameLbl = Instance.new("TextLabel")
-	nameLbl.Size = UDim2.fromScale(1, 1)
-	nameLbl.BackgroundTransparency = 1
-	nameLbl.Text = "🌙 Night Merchant"
-	nameLbl.TextColor3 = Color3.fromRGB(255, 225, 165)
-	nameLbl.TextScaled = true
-	nameLbl.Font = Enum.Font.FredokaOne
-	nameLbl.Parent = nameGui
-	local nameStroke = Instance.new("UIStroke")
-	nameStroke.Thickness = 2
-	nameStroke.Parent = nameLbl
+	-- Merchant NPC: procedural fallback now, real avatar loaded asynchronously
+	MerchantNpcBuilder.Build(m, o * CFrame.new(0, 0.3, -2.7))
 
 	-- Sign board
 	local sign = P("NightMerchantSign", Vector3.new(9, 1.6, 0.3), 0, 7.95, -6.45, darkWood, Enum.Material.WoodPlanks)
@@ -411,6 +376,7 @@ function WorldBuilder.SetNightMerchantActive(isNight: boolean)
 	else
 		m.Parent = nil
 	end
+	MerchantNpcBuilder.SetActive(m, isNight)
 end
 
 function WorldBuilder.SetNightLightsActive(isNight: boolean)
