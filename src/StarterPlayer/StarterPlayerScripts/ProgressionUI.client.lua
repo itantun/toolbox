@@ -106,40 +106,23 @@ local function playSound(s: Sound, pitch: number?)
 	s:Play()
 end
 
--- v47: приятный звук нового уровня
+-- v53: звук нового уровня — мягкий перелив колокольчиков с лёгким эхо.
+-- Свой звук (LevelUpCustom.Id) по-прежнему имеет приоритет, если он задан.
 local function playLevelUpSound()
 	local S = ProgressionConfig.SOUNDS :: any
 	local custom = S.LevelUpCustom
+	local cfg = S.LevelUpSoft
 	if custom and type(custom.Id) == "string" and custom.Id ~= "" then
-		local s = makeSound(custom)
-		s:Play()
-		task.delay(8, function() s:Destroy() end)
-		return
+		cfg = custom
 	end
-	local chime = S.LevelUpChime
-	-- до-ми-соль-до: мажорное арпеджио с лёгким эхо
-	local notes = { 1.0, 1.26, 1.5, 2.0 }
-	for i, pitch in ipairs(notes) do
-		task.delay((i - 1) * 0.11, function()
-			local s = Instance.new("Sound")
-			s.SoundId = chime.Id
-			s.Volume = chime.Volume * ((i == #notes) and 1.15 or 1)
-			s.PlaybackSpeed = pitch
-			local rv = Instance.new("ReverbSoundEffect")
-			rv.DecayTime = 1.2
-			rv.WetLevel = -8
-			rv.DryLevel = 0
-			rv.Parent = s
-			local eq = Instance.new("EqualizerSoundEffect")
-			eq.HighGain = -6
-			eq.MidGain = 0
-			eq.LowGain = 0
-			eq.Parent = s
-			s.Parent = SoundService
-			s:Play()
-			task.delay(4, function() s:Destroy() end)
-		end)
-	end
+	local s = makeSound(cfg)
+	local rv = Instance.new("ReverbSoundEffect")
+	rv.DecayTime = 1.6
+	rv.WetLevel = -10
+	rv.DryLevel = 0
+	rv.Parent = s
+	s:Play()
+	task.delay(8, function() s:Destroy() end)
 end
 
 local function formatNumber(n: number): string
@@ -2194,342 +2177,391 @@ end)
 
 
 -- ============================================================================
--- v32: NIGHT MERCHANT WINDOW — exactly like the reference:
--- starry night panel, 🌙 title + subtitle, coin pill, red round ✖,
--- 3×2 neon cards (round icon, name, description, price, colored button),
--- bottom bar with the red backpack icon ("Backpack is empty" / sell 70%).
+-- v53: NIGHT MERCHANT WINDOW — like the reference picture: starry purple panel, crescent moon,
+-- gold "NIGHT MERCHANT" plaque, coin pill and red ✕, five glowing cards (3 + 2 centred)
+-- with 3D icons, price and a "3D" button, bottom bar "Backpack is empty" / "Sell ore: +N coins (70%)".
+-- Designed at 1000x660 and shrunk (never enlarged) to fit small screens.
 -- ============================================================================
 do
 	local NMRemote = Remotes:WaitForChild("NightMerchant", 20) :: RemoteEvent?
 	local okIB, IB = pcall(function() return require(Modules:WaitForChild("InputBlocker")) end)
 	local okSM, SM = pcall(function() return require(Modules:WaitForChild("SoundManager")) end)
-	local okGC, GC = pcall(function() return require(Modules:WaitForChild("GameConfig")) end)
 	if NMRemote then
-		local NIGHT_0 = Color3.fromRGB(30, 26, 66)
-		local NIGHT_1 = Color3.fromRGB(12, 12, 34)
-		local CARD_0 = Color3.fromRGB(30, 28, 62)
-		local CARD_1 = Color3.fromRGB(16, 15, 38)
-		local GOLD = Color3.fromRGB(255, 205, 90)
-		local CREAM = Color3.fromRGB(255, 236, 196)
-		local MUTED = Color3.fromRGB(176, 172, 214)
-		local GREY = Color3.fromRGB(96, 94, 120)
+		local RunService = game:GetService("RunService")
+		local MC = require(Modules:WaitForChild("MerchantConfig"))
+		local MIcons = require(Modules:WaitForChild("MerchantIconModels"))
+		local LocCfg = require(Modules:WaitForChild("LocalizationConfig"))
+		local UIKit = require(Modules:WaitForChild("UIKit"))
+		local PAL = MC.Palette
 		local WHITE = Color3.new(1, 1, 1)
+		local DESIGN_W, DESIGN_H = 1000, 660
 
-		local function mCorner(p: Instance, r: number)
-			local c = Instance.new("UICorner"); c.CornerRadius = UDim.new(0, r); c.Parent = p
+		-- exact-match / format-template translation for texts built at runtime
+		local function tr(text: string): string
+			local locale = string.lower((string.gsub(player.LocaleId, "_", "-")))
+			return LocCfg.Translate(text, locale)
 		end
-		local function mStroke(p: Instance, col: Color3, th: number, tr: number?): UIStroke
-			local s = Instance.new("UIStroke"); s.Color = col; s.Thickness = th; s.Transparency = tr or 0
-			s.ApplyStrokeMode = Enum.ApplyStrokeMode.Border; s.Parent = p
-			return s
+
+		local function mk(class: string, props: { [string]: any }, parent: Instance?): any
+			local o = Instance.new(class)
+			for k, v in pairs(props) do
+				(o :: any)[k] = v
+			end
+			if parent then o.Parent = parent end
+			return o
 		end
-		local function mGrad(p: Instance, c0: Color3, c1: Color3, rot: number?): UIGradient
-			local g = Instance.new("UIGradient"); g.Color = ColorSequence.new(c0, c1); g.Rotation = rot or 90; g.Parent = p
-			return g
+		local function frame(parent: Instance, name: string, size: UDim2, pos: UDim2, color: Color3, transp: number?): Frame
+			return mk("Frame", { Name = name, Size = size, Position = pos, BackgroundColor3 = color, BackgroundTransparency = transp or 0, BorderSizePixel = 0 }, parent)
 		end
-		local function mLabel(parent: Instance, text: string, size: UDim2, pos: UDim2, ts: number, col: Color3, font: Enum.Font?, xa: Enum.TextXAlignment?): TextLabel
-			local t = Instance.new("TextLabel")
-			t.BackgroundTransparency = 1
-			t.Size = size; t.Position = pos
-			t.Text = text; t.TextSize = ts; t.TextColor3 = col
-			t.Font = font or Enum.Font.GothamBold
-			t.TextXAlignment = xa or Enum.TextXAlignment.Left
-			t.TextYAlignment = Enum.TextYAlignment.Center
-			t.TextWrapped = true
-			t.Parent = parent
+		local function corner(p: Instance, r: number)
+			mk("UICorner", { CornerRadius = UDim.new(0, r) }, p)
+		end
+		local function stroke(p: Instance, col: Color3, th: number, tr0: number?): UIStroke
+			return mk("UIStroke", { Color = col, Thickness = th, Transparency = tr0 or 0, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, p)
+		end
+		local function grad(p: Instance, c0: Color3, c1: Color3, rot: number): UIGradient
+			return mk("UIGradient", { Color = ColorSequence.new(c0, c1), Rotation = rot }, p)
+		end
+		-- text with an optional size cap (TextScaled + UITextSizeConstraint) and contextual outline
+		local function label(parent: Instance, name: string, text: string, size: UDim2, pos: UDim2, font: Enum.Font, maxSize: number, color: Color3, xa: Enum.TextXAlignment?, outline: Color3?): TextLabel
+			local t = mk("TextLabel", {
+				Name = name, BackgroundTransparency = 1, Size = size, Position = pos, Text = text, Font = font, TextColor3 = color,
+				TextScaled = true, TextWrapped = true, TextXAlignment = xa or Enum.TextXAlignment.Center, TextYAlignment = Enum.TextYAlignment.Center,
+			}, parent)
+			mk("UITextSizeConstraint", { MaxTextSize = maxSize, MinTextSize = 8 }, t)
+			if outline then
+				mk("UIStroke", { Color = outline, Thickness = 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Contextual }, t)
+			end
 			return t
 		end
-		local function press(btn: GuiObject)
-			local sc = btn:FindFirstChild("PressScale") :: UIScale?
-			if not sc then
-				local ns = Instance.new("UIScale"); ns.Name = "PressScale"; ns.Parent = btn
-				sc = ns
+		local function sparkle(parent: Instance, x: number, y: number, size: number, color: Color3, transp: number, z: number?)
+			mk("TextLabel", {
+				Name = "Star", BackgroundTransparency = 1, Size = UDim2.fromOffset(size, size), Position = UDim2.fromOffset(x, y),
+				Text = "✦", TextSize = size, Font = Enum.Font.GothamBold, TextColor3 = color, TextTransparency = transp, ZIndex = z or 3,
+			}, parent)
+		end
+
+		local function sfx(key: string)
+			if okSM and SM and SM.PlayUISound then pcall(SM.PlayUISound, key) end
+		end
+
+		-- "3D" pill button: darker edge below, glossy face, hover / press scale, grey disabled look
+		type Btn = { Button: TextButton, Face: Frame, Edge: Frame, Label: TextLabel, Grad: UIGradient, Stroke: UIStroke, Scale: UIScale, Set: (enabled: boolean, text: string?) -> () }
+		local function makeButton(parent: Instance, name: string, size: UDim2, pos: UDim2, text: string, top: Color3, bottom: Color3, edge: Color3, radius: number, maxText: number): Btn
+			local b = mk("TextButton", { Name = name, Size = size, Position = pos, BackgroundTransparency = 1, Text = "", AutoButtonColor = false, ZIndex = 6 }, parent)
+			local e = frame(b, "Edge", UDim2.new(1, 0, 1, -4), UDim2.fromOffset(0, 4), edge)
+			e.ZIndex = 6
+			corner(e, radius)
+			local f = frame(b, "Face", UDim2.new(1, 0, 1, -4), UDim2.new(), WHITE)
+			f.ZIndex = 7
+			corner(f, radius)
+			local g = grad(f, top, bottom, 90)
+			local s = stroke(f, top:Lerp(WHITE, 0.45), 1.5, 0.35)
+			local gloss = frame(f, "Gloss", UDim2.new(0.86, 0, 0.26, 0), UDim2.fromScale(0.07, 0.07), WHITE, 0.82)
+			gloss.ZIndex = 8
+			corner(gloss, radius)
+			local lbl = label(f, "Label", text, UDim2.new(1, -16, 1, -8), UDim2.fromOffset(8, 4), Enum.Font.GothamBlack, maxText, WHITE, Enum.TextXAlignment.Center, edge:Lerp(Color3.new(0, 0, 0), 0.35))
+			lbl.ZIndex = 9
+			local sc = mk("UIScale", { Scale = 1 }, b)
+			local enabled = true
+			local function tween(to: number, t: number)
+				TweenService:Create(sc, TweenInfo.new(t, Enum.EasingStyle.Quad), { Scale = to }):Play()
 			end
-			;(sc :: UIScale).Scale = 0.92
-			TweenService:Create(sc :: UIScale, TweenInfo.new(0.18, Enum.EasingStyle.Back), { Scale = 1 }):Play()
-			if okSM and SM and SM.PlayUISound then pcall(SM.PlayUISound, "UIClick") end
-		end
-
-		local gui = Instance.new("ScreenGui")
-		gui.Name = "NightMerchantGui"
-		gui.ResetOnSpawn = false
-		gui.IgnoreGuiInset = true
-		gui.DisplayOrder = 30
-		gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-		gui.Parent = player:WaitForChild("PlayerGui")
-
-		local dim = Instance.new("Frame")
-		dim.Size = UDim2.fromScale(1, 1)
-		dim.BackgroundColor3 = Color3.fromRGB(4, 4, 14)
-		dim.BackgroundTransparency = 1
-		dim.Visible = false
-		dim.Active = true
-		dim.Parent = gui
-
-		local W, H = 812, 600
-		local panel = Instance.new("Frame")
-		panel.Name = "NightMerchantWindow"
-		panel.AnchorPoint = Vector2.new(0.5, 0.5)
-		panel.Position = UDim2.fromScale(0.5, 0.5)
-		panel.Size = UDim2.fromOffset(W, H)
-		panel.BackgroundColor3 = WHITE
-		panel.ClipsDescendants = false
-		panel.Parent = dim
-		mCorner(panel, 22)
-		mGrad(panel, NIGHT_0, NIGHT_1, 90)
-		mStroke(panel, Color3.fromRGB(120, 110, 230), 3, 0.1)
-		local scale = Instance.new("UIScale"); scale.Parent = panel
-		local function rescale()
-			local vp = (Workspace.CurrentCamera :: Camera).ViewportSize
-			scale.Scale = math.clamp(math.min(vp.X / (W + 60), vp.Y / (H + 60)), 0.42, 1.15)
-		end
-		rescale()
-		;(Workspace.CurrentCamera :: Camera):GetPropertyChangedSignal("ViewportSize"):Connect(rescale)
-
-		-- outer neon glow
-		local glow = Instance.new("Frame")
-		glow.Name = "Glow"
-		glow.BackgroundTransparency = 1
-		glow.Size = UDim2.new(1, 12, 1, 12)
-		glow.Position = UDim2.fromOffset(-6, -6)
-		glow.Parent = panel
-		mCorner(glow, 26)
-		mStroke(glow, Color3.fromRGB(140, 120, 255), 5, 0.72)
-
-		-- twinkling stars
-		local starRng = Random.new(31)
-		for i = 1, 46 do
-			local s = Instance.new("Frame")
-			local sz = starRng:NextInteger(2, 4)
-			s.Name = "Star"
-			s.BorderSizePixel = 0
-			s.BackgroundColor3 = (i % 5 == 0) and Color3.fromRGB(255, 230, 160) or Color3.fromRGB(210, 215, 255)
-			s.BackgroundTransparency = starRng:NextNumber(0.15, 0.6)
-			s.Size = UDim2.fromOffset(sz, sz)
-			s.Position = UDim2.new(starRng:NextNumber(0.02, 0.98), 0, starRng:NextNumber(0.02, 0.98), 0)
-			s.Parent = panel
-			mCorner(s, 9)
-			TweenService:Create(s, TweenInfo.new(starRng:NextNumber(0.9, 2.2), Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), { BackgroundTransparency = 0.9 }):Play()
-		end
-
-		-- header: moon + title + subtitle
-		local moon = mLabel(panel, "🌙", UDim2.fromOffset(60, 60), UDim2.fromOffset(20, 12), 44, GOLD, Enum.Font.GothamBlack, Enum.TextXAlignment.Center)
-		moon.TextScaled = true
-		local title = mLabel(panel, "NIGHT MERCHANT", UDim2.new(1, -330, 0, 44), UDim2.fromOffset(86, 12), 36, CREAM, Enum.Font.GothamBlack)
-		mGrad(title, Color3.fromRGB(255, 244, 210), Color3.fromRGB(255, 196, 92), 90)
-		local ts = Instance.new("UIStroke"); ts.Color = Color3.fromRGB(40, 22, 70); ts.Thickness = 2.5; ts.Parent = title
-		mLabel(panel, "Open only at night  •  Ore buyback 70%", UDim2.new(1, -330, 0, 22), UDim2.fromOffset(88, 56), 16, MUTED, Enum.Font.GothamBold)
-
-		-- coin pill
-		local pill = Instance.new("Frame")
-		pill.Name = "CoinPill"
-		pill.Size = UDim2.fromOffset(150, 44)
-		pill.Position = UDim2.new(1, -226, 0, 20)
-		pill.BackgroundColor3 = WHITE
-		pill.Parent = panel
-		mCorner(pill, 22)
-		mGrad(pill, Color3.fromRGB(44, 36, 20), Color3.fromRGB(24, 20, 12), 90)
-		mStroke(pill, GOLD, 2.5)
-		local coinsLbl = mLabel(pill, "💰 0", UDim2.new(1, -16, 1, 0), UDim2.fromOffset(8, 0), 22, GOLD, Enum.Font.GothamBlack, Enum.TextXAlignment.Center)
-
-		-- red round close button
-		local closeBtn = Instance.new("TextButton")
-		closeBtn.Name = "Close"
-		closeBtn.Size = UDim2.fromOffset(48, 48)
-		closeBtn.Position = UDim2.new(1, -64, 0, 18)
-		closeBtn.BackgroundColor3 = WHITE
-		closeBtn.AutoButtonColor = false
-		closeBtn.Text = "✖"
-		closeBtn.TextColor3 = WHITE
-		closeBtn.TextSize = 24
-		closeBtn.Font = Enum.Font.GothamBlack
-		closeBtn.Parent = panel
-		mCorner(closeBtn, 99)
-		mGrad(closeBtn, Color3.fromRGB(255, 92, 92), Color3.fromRGB(190, 28, 44), 90)
-		mStroke(closeBtn, Color3.fromRGB(255, 190, 190), 2.5)
-		vecCross(closeBtn)
-
-		-- 3×2 neon cards
-		local ITEMS = {
-			{ Id = "RepairKit",    Icon = "🧰", Name = "Repair Kit",    Desc = "Cleans ALL dirt from your backpack. Night only!", Col = Color3.fromRGB(255, 70, 92),  Btn = "CLEAN" },
-			{ Id = "Book",         Icon = "📘", Name = "Book",          Desc = "Read it: +XP and +Strength XP",                      Col = Color3.fromRGB(70, 150, 255), Btn = "BUY" },
-			{ Id = "Food",         Icon = "🍔", Name = "Food",          Desc = "Burger & soda go to your supplies. Eat anytime [H]", Col = Color3.fromRGB(255, 150, 40), Btn = "BUY" },
-			{ Id = "Potion",       Icon = "🧪", Name = "Miner Potion",  Desc = "+25% coins at $ SELL for 3 minutes",                Col = Color3.fromRGB(80, 230, 110), Btn = "BUY" },
-			{ Id = "TopHat",       Icon = "🎩", Name = "Top Hat",       Desc = "Cosmetic: a classy night hat for your miner",        Col = Color3.fromRGB(180, 92, 255), Btn = "BUY" },
-			{ Id = "MorningCharm", Icon = "🌅", Name = "Morning Bonus", Desc = "Coins + full energy at sunrise",                     Col = Color3.fromRGB(60, 222, 240), Btn = "BUY" },
-		}
-		type Card = { Price: TextLabel, Extra: TextLabel, Btn: TextButton, BtnGrad: UIGradient, Col: Color3, Base: string, Stroke: UIStroke }
-		local cards: { [string]: Card } = {}
-		local last: any = nil
-		local CW, CH, GAP = 246, 182, 17
-		for i, it in ipairs(ITEMS) do
-			local col = (i - 1) % 3
-			local rowI = math.floor((i - 1) / 3)
-			local x = 26 + col * (CW + GAP)
-			local y = 98 + rowI * (CH + GAP)
-			local cg = Instance.new("Frame")
-			cg.Name = it.Id .. "_Glow"
-			cg.BackgroundTransparency = 1
-			cg.Size = UDim2.fromOffset(CW + 10, CH + 10)
-			cg.Position = UDim2.fromOffset(x - 5, y - 5)
-			cg.Parent = panel
-			mCorner(cg, 20)
-			mStroke(cg, it.Col, 6, 0.75)
-			local card = Instance.new("Frame")
-			card.Name = it.Id
-			card.Size = UDim2.fromOffset(CW, CH)
-			card.Position = UDim2.fromOffset(x, y)
-			card.BackgroundColor3 = WHITE
-			card.Parent = panel
-			mCorner(card, 16)
-			mGrad(card, CARD_0:Lerp(it.Col, 0.08), CARD_1, 90)
-			local cst = mStroke(card, it.Col, 2.5)
-			-- round icon
-			local ic = Instance.new("Frame")
-			ic.Name = "Icon"
-			ic.Size = UDim2.fromOffset(66, 66)
-			ic.Position = UDim2.fromOffset(14, 14)
-			ic.BackgroundColor3 = WHITE
-			ic.Parent = card
-			mCorner(ic, 99)
-			mGrad(ic, it.Col:Lerp(WHITE, 0.15), it.Col:Lerp(Color3.new(0, 0, 0), 0.55), 90)
-			mStroke(ic, it.Col:Lerp(WHITE, 0.45), 2.5)
-			local em = mLabel(ic, it.Icon, UDim2.fromScale(0.66, 0.66), UDim2.fromScale(0.17, 0.17), 30, WHITE, Enum.Font.GothamBlack, Enum.TextXAlignment.Center)
-			em.TextScaled = true
-			mLabel(card, it.Name, UDim2.new(1, -100, 0, 24), UDim2.fromOffset(90, 14), 19, WHITE, Enum.Font.GothamBlack)
-			local d = mLabel(card, it.Desc, UDim2.new(1, -100, 0, 54), UDim2.fromOffset(90, 38), 13, MUTED, Enum.Font.GothamMedium)
-			d.TextYAlignment = Enum.TextYAlignment.Top
-			local price = mLabel(card, "💰 0", UDim2.new(0.5, -14, 0, 28), UDim2.fromOffset(14, 96), 21, GOLD, Enum.Font.GothamBlack)
-			local extra = mLabel(card, "", UDim2.new(0.5, -14, 0, 28), UDim2.new(0.5, 0, 0, 96), 12, it.Col:Lerp(WHITE, 0.35), Enum.Font.GothamBold, Enum.TextXAlignment.Right)
-			local btn = Instance.new("TextButton")
-			btn.Name = "Buy"
-			btn.Size = UDim2.new(1, -28, 0, 40)
-			btn.Position = UDim2.fromOffset(14, CH - 54)
-			btn.BackgroundColor3 = WHITE
-			btn.AutoButtonColor = false
-			btn.Text = it.Btn
-			btn.TextColor3 = WHITE
-			btn.TextSize = 20
-			btn.Font = Enum.Font.GothamBlack
-			btn.Parent = card
-			mCorner(btn, 12)
-			local bgr = mGrad(btn, it.Col:Lerp(WHITE, 0.12), it.Col:Lerp(Color3.new(0, 0, 0), 0.35), 90)
-			mStroke(btn, it.Col:Lerp(WHITE, 0.5), 2)
-			local bts = Instance.new("UIStroke"); bts.ApplyStrokeMode = Enum.ApplyStrokeMode.Contextual; bts.Color = it.Col:Lerp(Color3.new(0, 0, 0), 0.6); bts.Thickness = 1.5; bts.Parent = btn
-			local gl = Instance.new("Frame")
-			gl.BackgroundColor3 = WHITE; gl.BackgroundTransparency = 0.82; gl.BorderSizePixel = 0
-			gl.Size = UDim2.new(1, -10, 0.42, 0); gl.Position = UDim2.fromOffset(5, 3); gl.Parent = btn
-			mCorner(gl, 9)
-			btn.MouseButton1Click:Connect(function()
-				press(btn)
-				;(NMRemote :: RemoteEvent):FireServer("Buy", it.Id)
-			end)
-			cards[it.Id] = { Price = price, Extra = extra, Btn = btn, BtnGrad = bgr, Col = it.Col, Base = it.Btn, Stroke = cst }
-		end
-
-		-- bottom bar: red backpack icon + "Backpack is empty" / sell 70%
-		local bar = Instance.new("Frame")
-		bar.Name = "BackpackBar"
-		bar.Size = UDim2.new(1, -52, 0, 60)
-		bar.Position = UDim2.fromOffset(26, 98 + 2 * (CH + GAP) + 4)
-		bar.BackgroundColor3 = WHITE
-		bar.Parent = panel
-		mCorner(bar, 16)
-		mGrad(bar, Color3.fromRGB(34, 30, 64), Color3.fromRGB(18, 16, 40), 90)
-		mStroke(bar, Color3.fromRGB(255, 80, 96), 2, 0.35)
-		local bi = Instance.new("Frame")
-		bi.Size = UDim2.fromOffset(44, 44)
-		bi.Position = UDim2.fromOffset(10, 8)
-		bi.BackgroundColor3 = WHITE
-		bi.Parent = bar
-		mCorner(bi, 12)
-		mGrad(bi, Color3.fromRGB(255, 92, 100), Color3.fromRGB(176, 26, 44), 90)
-		mStroke(bi, Color3.fromRGB(255, 180, 180), 2)
-		local bie = mLabel(bi, "🎒", UDim2.fromScale(0.7, 0.7), UDim2.fromScale(0.15, 0.15), 24, WHITE, Enum.Font.GothamBlack, Enum.TextXAlignment.Center)
-		bie.TextScaled = true
-		local barLbl = mLabel(bar, "Backpack is empty", UDim2.new(1, -250, 1, 0), UDim2.fromOffset(66, 0), 19, CREAM, Enum.Font.GothamBlack)
-		local sellBtn = Instance.new("TextButton")
-		sellBtn.Name = "SellAll"
-		sellBtn.Size = UDim2.fromOffset(170, 42)
-		sellBtn.Position = UDim2.new(1, -180, 0, 9)
-		sellBtn.BackgroundColor3 = WHITE
-		sellBtn.AutoButtonColor = false
-		sellBtn.Text = "SELL 70%"
-		sellBtn.TextColor3 = WHITE
-		sellBtn.TextSize = 18
-		sellBtn.Font = Enum.Font.GothamBlack
-		sellBtn.Visible = false
-		sellBtn.Parent = bar
-		mCorner(sellBtn, 12)
-		mGrad(sellBtn, Color3.fromRGB(255, 186, 70), Color3.fromRGB(226, 110, 20), 90)
-		mStroke(sellBtn, Color3.fromRGB(255, 226, 160), 2)
-		sellBtn.MouseButton1Click:Connect(function()
-			press(sellBtn)
-			;(NMRemote :: RemoteEvent):FireServer("Sell")
-		end)
-		local status = mLabel(panel, "", UDim2.new(1, -40, 0, 26), UDim2.new(0, 20, 1, -34), 16, CREAM, Enum.Font.GothamBold, Enum.TextXAlignment.Center)
-
-		local function setBtn(card: Card, txt: string, enabled: boolean)
-			card.Btn.Text = txt
-			local c = enabled and card.Col or GREY
-			card.BtnGrad.Color = ColorSequence.new(c:Lerp(WHITE, 0.12), c:Lerp(Color3.new(0, 0, 0), 0.35))
-			card.Btn.TextTransparency = enabled and 0 or 0.25
-			card.Stroke.Transparency = enabled and 0 or 0.45
-		end
-
-		local function dirtName(stage: number): string
-			if okGC and GC and GC.GetDirtStageName then return GC.GetDirtStageName(stage) end
-			return ({ [0] = "Clean", "Slightly Dirty", "Dirty", "Very Dirty", "Extremely Dirty" })[stage] or "Clean"
-		end
-
-		local function apply(st: any)
-			if type(st) ~= "table" then return end
-			last = st
-			local coins = math.floor(st.Coins or 0)
-			coinsLbl.Text = "💰 " .. tostring(coins)
-			for id, card in pairs(cards) do
-				local p = (st.Prices and st.Prices[id]) or 0
-				card.Price.Text = (p > 0) and ("💰 " .. tostring(p)) or "✔ Owned"
-				card.Extra.Text = ""
-				local afford = p <= coins
-				if id == "RepairKit" then
-					local stg = math.floor(st.DirtStage or 0)
-					local pen = ({ [0] = 0, 10, 20, 30, 40 })[stg] or 0
-					card.Extra.Text = stg > 0 and string.format("%s -%d%%", dirtName(stg), pen) or "✨ Clean"
-					if stg <= 0 and (st.Dirt or 0) <= 0 then setBtn(card, "CLEAN ✔", false) else setBtn(card, "CLEAN", afford) end
-				elseif id == "Food" then
-					card.Extra.Text = string.format("Stock: %d/%d", math.floor(st.FoodStock or 0), math.floor(st.FoodMax or 20))
-					if (st.FoodStock or 0) >= (st.FoodMax or 20) then setBtn(card, "FULL", false) else setBtn(card, "BUY", afford) end
-				elseif id == "TopHat" and st.OwnsHat then
-					setBtn(card, st.HatOn and "UNEQUIP" or "EQUIP", true)
-				elseif id == "MorningCharm" and st.Charm then
-					card.Extra.Text = "until sunrise"
-					setBtn(card, "ACTIVE", false)
-				elseif id == "Potion" and (st.PotionLeft or 0) > 0 then
-					card.Extra.Text = string.format("%d:%02d left", math.floor(st.PotionLeft / 60), st.PotionLeft % 60)
-					setBtn(card, "EXTEND", afford)
+			b.MouseEnter:Connect(function() if enabled then tween(1.05, 0.12) end end)
+			b.MouseLeave:Connect(function() tween(1, 0.12) end)
+			b.MouseButton1Down:Connect(function() tween(0.94, 0.08) end)
+			b.MouseButton1Up:Connect(function() tween(enabled and 1.05 or 1, 0.12) end)
+			local obj: Btn = { Button = b, Face = f, Edge = e, Label = lbl, Grad = g, Stroke = s, Scale = sc, Set = function() end }
+			obj.Set = function(on: boolean, newText: string?)
+				enabled = on
+				if newText then lbl.Text = newText end
+				if on then
+					g.Color = ColorSequence.new(top, bottom)
+					e.BackgroundColor3 = edge
+					s.Color = top:Lerp(WHITE, 0.45)
+					lbl.TextColor3 = WHITE
 				else
-					setBtn(card, card.Base, afford)
+					g.Color = ColorSequence.new(Color3.fromRGB(146, 144, 166), Color3.fromRGB(98, 96, 124))
+					e.BackgroundColor3 = Color3.fromRGB(54, 52, 76)
+					s.Color = Color3.fromRGB(190, 188, 210)
+					lbl.TextColor3 = Color3.fromRGB(214, 212, 230)
 				end
 			end
-			local bb = math.floor(st.Buyback or 0)
-			if bb > 0 then
-				barLbl.Text = string.format("Ore in backpack: %d / %d  →  +%d 💰 (70%%)", math.floor(st.BagUsed or 0), math.floor(st.BagMax or 0), bb)
-				sellBtn.Visible = true
-			else
-				barLbl.Text = "Backpack is empty"
-				sellBtn.Visible = false
-			end
+			return obj
 		end
 
+		-- ----- screen, dim, scaled container ------------------------------------------------
+		local gui = mk("ScreenGui", { Name = "NightMerchantGui", ResetOnSpawn = false, IgnoreGuiInset = true, DisplayOrder = 30, ZIndexBehavior = Enum.ZIndexBehavior.Sibling }, player:WaitForChild("PlayerGui"))
+		local dim = frame(gui, "Dim", UDim2.fromScale(1, 1), UDim2.new(), Color3.fromRGB(4, 4, 14), 1)
+		dim.Visible = false
+		dim.Active = true
+		local fit = frame(gui, "Fit", UDim2.fromOffset(DESIGN_W, DESIGN_H), UDim2.fromScale(0.5, 0.5), WHITE, 1)
+		fit.AnchorPoint = Vector2.new(0.5, 0.5)
+		fit.Visible = false
+		local fitScale = mk("UIScale", { Scale = 1 }, fit)
+		local window = frame(fit, "NightMerchantWindow", UDim2.fromScale(1, 1), UDim2.new(), WHITE, 1)
+		local popScale = mk("UIScale", { Scale = 1 }, window)
+		local function rescale()
+			local a = gui.AbsoluteSize
+			fitScale.Scale = math.max(0.2, math.min(1, (a.X - 16) / DESIGN_W, (a.Y - 16) / DESIGN_H))
+		end
+		rescale()
+		gui:GetPropertyChangedSignal("AbsoluteSize"):Connect(rescale)
+
+		-- ----- night panel with stars -------------------------------------------------------
+		local nightPanel = frame(window, "Panel", UDim2.fromOffset(DESIGN_W, 576), UDim2.fromOffset(0, 84), WHITE)
+		nightPanel.ZIndex = 0
+		corner(nightPanel, 26)
+		grad(nightPanel, PAL.PanelTop, PAL.PanelBottom, 90)
+		stroke(nightPanel, PAL.PanelStroke, 3)
+		local stars = {
+			{ 14, 118, 22, 0.35 }, { 962, 130, 18, 0.4 }, { 470, 340, 16, 0.5 }, { 20, 330, 20, 0.45 }, { 972, 346, 20, 0.4 },
+			{ 80, 560, 18, 0.5 }, { 905, 565, 22, 0.4 }, { 40, 450, 14, 0.5 }, { 950, 470, 16, 0.5 }, { 560, 94, 16, 0.5 },
+		}
+		for i, s in ipairs(stars) do
+			sparkle(window, s[1], s[2], s[3], i % 2 == 0 and Color3.fromRGB(255, 230, 150) or Color3.fromRGB(190, 160, 255), s[4], 1)
+		end
+
+		-- ----- header: moon, gold plaque, coin pill, close ----------------------------------
+		local header = frame(window, "Header", UDim2.fromOffset(DESIGN_W, 110), UDim2.new(), WHITE, 1)
+		header.ZIndex = 10
+		mk("TextLabel", { Name = "Moon", BackgroundTransparency = 1, Size = UDim2.fromOffset(100, 96), Position = UDim2.fromOffset(18, 4), Text = "🌙", TextSize = 78, Font = Enum.Font.GothamBold, ZIndex = 12 }, header)
+		sparkle(header, 8, 8, 20, PAL.GoldLight, 0.15)
+		sparkle(header, 92, 70, 16, PAL.GoldLight, 0.3)
+		local plaque = frame(header, "Plaque", UDim2.fromOffset(560, 96), UDim2.fromOffset(104, 8), WHITE)
+		plaque.ZIndex = 11
+		corner(plaque, 22)
+		grad(plaque, Color3.fromRGB(66, 44, 120), Color3.fromRGB(28, 20, 70), 90)
+		stroke(plaque, Color3.fromRGB(150, 104, 240), 3)
+		local trim = frame(plaque, "Trim", UDim2.new(1, -12, 1, -12), UDim2.fromOffset(6, 6), WHITE, 1)
+		corner(trim, 17)
+		stroke(trim, PAL.Gold, 1.5, 0.6)
+		local title = label(plaque, "Title", MC.Title, UDim2.new(1, -40, 0, 54), UDim2.fromOffset(20, 4), Enum.Font.GothamBlack, 46, WHITE, Enum.TextXAlignment.Center, Color3.fromRGB(96, 52, 10))
+		title.ZIndex = 13
+		grad(title, PAL.GoldLight, PAL.GoldDark, 90)
+		local subtitle = label(plaque, "Subtitle", MC.Subtitle, UDim2.new(1, -60, 0, 28), UDim2.fromOffset(30, 60), Enum.Font.GothamBold, 20, WHITE, Enum.TextXAlignment.Center, Color3.fromRGB(10, 6, 30))
+		subtitle.ZIndex = 13
+		sparkle(plaque, 528, 14, 18, PAL.GoldLight, 0.2)
+		sparkle(plaque, 520, 66, 14, WHITE, 0.4)
+
+		local pill = frame(header, "CoinPill", UDim2.fromOffset(200, 60), UDim2.fromOffset(676, 14), Color3.fromRGB(22, 20, 50))
+		pill.ZIndex = 11
+		corner(pill, 30)
+		stroke(pill, Color3.fromRGB(104, 92, 170), 2.5)
+		mk("TextLabel", { Name = "Icon", BackgroundTransparency = 1, Size = UDim2.fromOffset(48, 60), Position = UDim2.fromOffset(10, 0), Text = "💰", TextSize = 38, Font = Enum.Font.GothamBold, ZIndex = 12 }, pill)
+		local coinsLbl = label(pill, "Amount", "0", UDim2.new(1, -72, 1, -10), UDim2.fromOffset(62, 5), Enum.Font.GothamBlack, 34, Color3.fromRGB(255, 238, 160), Enum.TextXAlignment.Center, Color3.fromRGB(40, 24, 6))
+		coinsLbl.ZIndex = 12
+
+		local closeBtn = makeButton(header, "Close", UDim2.fromOffset(64, 64), UDim2.fromOffset(896, 12), "X", Color3.fromRGB(255, 96, 96), Color3.fromRGB(214, 34, 46), Color3.fromRGB(116, 14, 28), 16, 34)
+		closeBtn.Button.ZIndex = 12
+
+		-- ----- toast line (server result and local hints) ----------------------------------
+		local toast: (msg: string, ok: boolean) -> () = function() end
+		local toastLbl = label(window, "Toast", "", UDim2.fromOffset(944, 26), UDim2.fromOffset(28, 568), Enum.Font.GothamBold, 19, WHITE, Enum.TextXAlignment.Center, Color3.fromRGB(10, 6, 24))
+		toastLbl.ZIndex = 6
+		local toastToken = 0
+		toast = function(msg: string, ok: boolean)
+			toastToken += 1
+			local my = toastToken
+			toastLbl.Text = tr(msg)
+			toastLbl.TextColor3 = ok and PAL.Ok or PAL.Fail
+			toastLbl.TextTransparency = 0
+			task.delay(3.2, function()
+				if my == toastToken then
+					TweenService:Create(toastLbl, TweenInfo.new(0.5), { TextTransparency = 1 }):Play()
+				end
+			end)
+		end
+
+		-- ----- cards -----------------------------------------------------------------------
+		type Card = { Id: string, Cfg: any, Price: TextLabel, Extra: TextLabel, Btn: Btn, Reason: string?, Spin: any }
+		local Cards: { [string]: Card } = {}
+		local spins: { any } = {}
+
+		local function buildCard(index: number)
+			local id = MC.Order[index]
+			local cfg = MC.Cards[id]
+			local top = index <= MC.TopRow
+			local W, H = top and 304 or 366, top and 230 or 212
+			local x = top and (28 + (index - 1) * 320) or (126 + (index - MC.TopRow - 1) * 382)
+			local y = top and 106 or 352
+			local slot = frame(window, "Slot_" .. id, UDim2.fromOffset(W, H), UDim2.fromOffset(x, y), WHITE, 1)
+			slot.ZIndex = 2
+			local glow = frame(slot, "Glow", UDim2.new(1, 14, 1, 14), UDim2.fromOffset(-7, -7), cfg.Accent, 0.8)
+			glow.ZIndex = 1
+			corner(glow, 28)
+			local card = frame(slot, "Card", UDim2.fromScale(1, 1), UDim2.new(), WHITE)
+			card.ZIndex = 2
+			corner(card, 22)
+			grad(card, cfg.Bg0, cfg.Bg1, 125)
+			stroke(card, cfg.Accent, 3)
+			local shine = frame(card, "Shine", UDim2.new(1, -10, 0.34, 0), UDim2.fromOffset(5, 5), WHITE, 0.93)
+			shine.ZIndex = 3
+			corner(shine, 18)
+
+			local disc = frame(card, "IconGlow", UDim2.fromOffset(118, 118), UDim2.fromOffset(9, 10), cfg.Accent, 0.8)
+			disc.ZIndex = 3
+			corner(disc, 59)
+			local vp, cam, world = UIKit.Viewport(card, "Icon", UDim2.fromOffset(128, 128), UDim2.fromOffset(4, 6))
+			vp.ZIndex = 4
+			MIcons.Build(id).Parent = world
+			local camInfo = MIcons.Camera(id)
+			local spin = { Viewport = vp, Camera = cam, Center = camInfo.Center, Distance = camInfo.Distance, Height = camInfo.Height, Phase = 0 }
+			UIKit.OrbitCamera(spin, 0)
+			table.insert(spins, spin)
+
+			local lightAccent = cfg.Accent:Lerp(WHITE, 0.55)
+			sparkle(card, 130, 150, 14, lightAccent, 0.5)
+			sparkle(card, 14, 140, 16, lightAccent, 0.45)
+			sparkle(card, W - 30, 18, 14, lightAccent, 0.5)
+
+			local tx = 140
+			local name = label(card, "Name", cfg.Name, UDim2.fromOffset(W - tx - 10, 34), UDim2.fromOffset(tx, 12), Enum.Font.GothamBlack, 25, WHITE, Enum.TextXAlignment.Left, Color3.fromRGB(10, 6, 24))
+			name.ZIndex = 5
+			local desc = label(card, "Desc", cfg.Desc, UDim2.fromOffset(W - tx - 10, 62), UDim2.fromOffset(tx, 50), Enum.Font.GothamMedium, 17, PAL.Desc, Enum.TextXAlignment.Left)
+			desc.TextYAlignment = Enum.TextYAlignment.Top
+			desc.ZIndex = 5
+
+			local pw = top and 118 or 140
+			local bw = top and 150 or 180
+			local pricePill = frame(card, "PricePill", UDim2.fromOffset(pw, 46), UDim2.fromOffset(10, H - 58), Color3.fromRGB(12, 8, 26), 0.45)
+			pricePill.ZIndex = 4
+			corner(pricePill, 23)
+			mk("TextLabel", { Name = "Coin", BackgroundTransparency = 1, Size = UDim2.fromOffset(38, 46), Position = UDim2.fromOffset(6, 0), Text = "💰", TextSize = 30, Font = Enum.Font.GothamBold, ZIndex = 5 }, pricePill)
+			local price = label(pricePill, "Price", "0", UDim2.new(1, -50, 1, -8), UDim2.fromOffset(46, 4), Enum.Font.GothamBlack, 28, Color3.fromRGB(255, 218, 80), Enum.TextXAlignment.Left, Color3.fromRGB(50, 28, 6))
+			price.ZIndex = 5
+
+			local bx = W - 10 - bw
+			local extra = label(card, "Extra", "", UDim2.fromOffset(bw, 24), UDim2.fromOffset(bx, H - 94), Enum.Font.GothamBold, 17, cfg.Accent:Lerp(WHITE, 0.2), Enum.TextXAlignment.Center, Color3.fromRGB(20, 10, 10))
+			extra.ZIndex = 5
+			local btn = makeButton(card, "Buy", UDim2.fromOffset(bw, 54), UDim2.fromOffset(bx, H - 64), cfg.Button, cfg.BtnTop, cfg.BtnBottom, cfg.BtnEdge, 18, 28)
+			btn.Button.ZIndex = 6
+			Cards[id] = { Id = id, Cfg = cfg, Price = price, Extra = extra, Btn = btn, Reason = nil, Spin = spin }
+			btn.Button.MouseButton1Click:Connect(function()
+				sfx("UIClick")
+				local c = Cards[id]
+				if c.Reason then
+					toast(c.Reason, false)
+				else
+					(NMRemote :: RemoteEvent):FireServer("Buy", id)
+				end
+			end)
+		end
+
+		-- ----- bottom bar ---------------------------------------------------------------------
+		local bar = mk("TextButton", { Name = "Bar", Size = UDim2.fromOffset(944, 50), Position = UDim2.fromOffset(28, 598), Text = "", AutoButtonColor = false, BackgroundColor3 = WHITE, BorderSizePixel = 0, ZIndex = 4 }, window)
+		corner(bar, 18)
+		local barGrad = grad(bar, Color3.fromRGB(34, 30, 76), Color3.fromRGB(20, 18, 50), 90)
+		local barStroke = stroke(bar, Color3.fromRGB(98, 76, 176), 2.5)
+		local barScale = mk("UIScale", { Scale = 1 }, bar)
+		mk("UIListLayout", { FillDirection = Enum.FillDirection.Horizontal, HorizontalAlignment = Enum.HorizontalAlignment.Center, VerticalAlignment = Enum.VerticalAlignment.Center, Padding = UDim.new(0, 12), SortOrder = Enum.SortOrder.LayoutOrder }, bar)
+		local barIcon = mk("TextLabel", { Name = "Icon", BackgroundTransparency = 1, Size = UDim2.fromOffset(40, 44), Text = "🎒", TextSize = 30, Font = Enum.Font.GothamBold, LayoutOrder = 1, ZIndex = 5 }, bar)
+		local barText = mk("TextLabel", {
+			Name = "Text", BackgroundTransparency = 1, AutomaticSize = Enum.AutomaticSize.X, Size = UDim2.fromOffset(0, 44), Text = "", TextSize = 26,
+			Font = Enum.Font.GothamBold, TextColor3 = PAL.Muted, LayoutOrder = 2, ZIndex = 5,
+		}, bar)
+		local barActive = false
+		bar.MouseEnter:Connect(function() if barActive then TweenService:Create(barScale, TweenInfo.new(0.12), { Scale = 1.02 }):Play() end end)
+		bar.MouseLeave:Connect(function() TweenService:Create(barScale, TweenInfo.new(0.12), { Scale = 1 }):Play() end)
+		bar.MouseButton1Down:Connect(function() if barActive then TweenService:Create(barScale, TweenInfo.new(0.08), { Scale = 0.98 }):Play() end end)
+		bar.MouseButton1Click:Connect(function()
+			if barActive then
+				sfx("UIClick")
+				;(NMRemote :: RemoteEvent):FireServer("Sell")
+			end
+		end)
+
+		for i = 1, #MC.Order do
+			buildCard(i)
+		end
+
+		-- ----- state -> widgets --------------------------------------------------------------
+		local last: any = nil
+		local function apply(st: any)
+			last = st
+			local coins = st.Coins or 0
+			local prices = st.Prices or {}
+			coinsLbl.Text = UIKit.FormatCoins(coins)
+			for id, card in pairs(Cards) do
+				local p = prices[id] or 0
+				card.Price.Text = UIKit.FormatCoins(p)
+				local afford = coins >= p
+				local reason: string? = nil
+				local extra, extraColor = "", card.Cfg.Accent:Lerp(WHITE, 0.2)
+				if id == "RepairKit" then
+					if (st.Dirt or 0) <= 0 then reason = "✨ Your backpack is already clean!" end
+				elseif id == "TreasureMap" then
+					if st.TreasureActive then
+						reason = "🗺️ You already have a hidden treasure. Dig it up first!"
+						extra = tr("Treasure is hidden!")
+					end
+				elseif id == "Food" then
+					extra = string.format(tr(MC.StockFormat), math.floor(st.FoodStock or 0), math.floor(st.FoodMax or 0))
+					if (st.FoodStock or 0) >= (st.FoodMax or 0) then
+						reason = string.format("🍔 Supplies are full (%d/%d)", st.FoodStock or 0, st.FoodMax or 0)
+					end
+				elseif id == "Potion" or id == "Shield" then
+					local left = math.floor(id == "Potion" and (st.PotionLeft or 0) or (st.ShieldLeft or 0))
+					if left > 0 then
+						extra = string.format(tr(MC.ActiveFormat), string.format("%d:%02d", left // 60, left % 60))
+						extraColor = Color3.fromRGB(190, 255, 190)
+					end
+				end
+				if not reason and not afford then reason = "💰 Not Enough Coins" end
+				card.Reason = reason
+				card.Extra.Text = extra
+				card.Extra.TextColor3 = extraColor
+				card.Btn.Set(reason == nil)
+			end
+			local bb = math.floor(st.Buyback or 0)
+			barActive = bb > 0
+			if barActive then
+				barText.Text = string.format(tr(MC.SellFormat), UIKit.FormatCoins(bb))
+				barText.TextColor3 = WHITE
+				barGrad.Color = ColorSequence.new(Color3.fromRGB(70, 214, 96), Color3.fromRGB(30, 140, 64))
+				barStroke.Color = Color3.fromRGB(160, 255, 176)
+			else
+				barText.Text = tr(MC.EmptyBag)
+				barText.TextColor3 = PAL.Muted
+				barGrad.Color = ColorSequence.new(Color3.fromRGB(34, 30, 76), Color3.fromRGB(20, 18, 50))
+				barStroke.Color = Color3.fromRGB(98, 76, 176)
+			end
+			barIcon.TextTransparency = barActive and 0 or 0.25
+		end
+
+		-- ----- open / close; animation runs only while the window is open --------------------
 		local isOpen = false
+		local anim: RBXScriptConnection? = nil
+		local function stopAnim()
+			if anim then anim:Disconnect(); anim = nil end
+		end
+		local function startAnim()
+			stopAnim()
+			local t, acc = 0, 0
+			anim = RunService.Heartbeat:Connect(function(dt: number)
+				t += dt
+				acc += dt
+				for i, sp in ipairs(spins) do
+					UIKit.OrbitCamera(sp, math.sin(t * 0.9 + i * 0.8) * 0.45)
+				end
+				if acc >= 1 then
+					acc -= 1
+					if last then
+						last.PotionLeft = math.max(0, (last.PotionLeft or 0) - 1)
+						last.ShieldLeft = math.max(0, (last.ShieldLeft or 0) - 1)
+						apply(last)
+					end
+				end
+			end)
+		end
 		local function close()
 			if not isOpen then return end
 			isOpen = false
+			stopAnim()
 			TweenService:Create(dim, TweenInfo.new(0.18), { BackgroundTransparency = 1 }):Play()
-			TweenService:Create(scale, TweenInfo.new(0.18, Enum.EasingStyle.Back, Enum.EasingDirection.In), { Scale = scale.Scale * 0.85 }):Play()
+			TweenService:Create(popScale, TweenInfo.new(0.18, Enum.EasingStyle.Back, Enum.EasingDirection.In), { Scale = 0.85 }):Play()
 			task.delay(0.19, function()
-				if not isOpen then dim.Visible = false; rescale() end
+				if not isOpen then dim.Visible = false; fit.Visible = false end
 			end)
 			if okIB and IB then pcall(IB.SetMenuOpen, "NightMerchant", false) end
 		end
@@ -2540,17 +2572,18 @@ do
 			end
 			if isOpen then return end
 			isOpen = true
-			status.Text = ""
+			toastLbl.Text = ""
 			rescale()
-			local target = scale.Scale
-			scale.Scale = target * 0.85
+			popScale.Scale = 0.85
 			dim.Visible = true
+			fit.Visible = true
 			TweenService:Create(dim, TweenInfo.new(0.2), { BackgroundTransparency = 0.4 }):Play()
-			TweenService:Create(scale, TweenInfo.new(0.24, Enum.EasingStyle.Back), { Scale = target }):Play()
-			if okSM and SM and SM.PlayUISound then pcall(SM.PlayUISound, "UIClick") end
+			TweenService:Create(popScale, TweenInfo.new(0.24, Enum.EasingStyle.Back), { Scale = 1 }):Play()
+			startAnim()
+			sfx("UIClick")
 		end
 		if okIB and IB then pcall(IB.RegisterCloseCallback, "NightMerchant", close) end
-		closeBtn.MouseButton1Click:Connect(function() press(closeBtn); close() end)
+		closeBtn.Button.MouseButton1Click:Connect(function() sfx("UIClick"); close() end)
 		UserInputService.InputBegan:Connect(function(input: InputObject, _gpe: boolean)
 			if isOpen and input.KeyCode == Enum.KeyCode.Escape then close() end
 		end)
@@ -2561,19 +2594,8 @@ do
 			elseif kind == "Close" then
 				close()
 			elseif kind == "Result" then
-				status.Text = tostring(b or "")
-				status.TextColor3 = (a == true) and Color3.fromRGB(130, 240, 150) or Color3.fromRGB(255, 130, 110)
+				toast(tostring(b or ""), a == true)
 				if c then apply(c) end
-			end
-		end)
-		-- potion countdown refresh
-		task.spawn(function()
-			while true do
-				task.wait(1)
-				if isOpen and last and (last.PotionLeft or 0) > 0 then
-					last.PotionLeft -= 1
-					apply(last)
-				end
 			end
 		end)
 	end

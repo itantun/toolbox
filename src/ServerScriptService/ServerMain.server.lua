@@ -519,14 +519,17 @@ local MERCHANT_POS = Vector3.new(0, 0, 46)
 local MERCHANT_RADIUS = 18
 local MERCHANT_BUYBACK = 0.70
 local MerchantDebounce: { [number]: number } = {}
+local MerchantConfig = require(ReplicatedStorage:WaitForChild("Modules"):WaitForChild("MerchantConfig"))
+local TreasureMapService = require(ServerModules:WaitForChild("TreasureMapService"))
+local SHIELD_CFG = GameConfig.BOOSTS.Items.Shield
 
+-- v53: menu = Repair Kit, Treasure Map, Food, Miner Potion, Shield Potion (all prices x2.5 via configs)
 local MERCHANT_ITEMS: { [string]: (any) -> number } = {
-	RepairKit    = function(_p: any) return GameConfig.BACKPACK_DIRT.RepairKitPrice end, -- v32: fixed 85
-	Book         = function(p: any) return 120 + 15 * (p.Level or 1) end,
-	Food         = function(_p: any) return GameConfig.FOOD.Price end,
-	Potion       = function(_p: any) return GameConfig.BOOSTS.Items.Potion.Price end, -- v52: цена в конфиге бустов
-	TopHat       = function(p: any) if p.Cosmetics and p.Cosmetics.TopHat then return 0 end return 800 end,
-	MorningCharm = function(p: any) if p.MorningCharm then return 0 end return 300 end,
+	RepairKit   = function(_p: any) return GameConfig.BACKPACK_DIRT.RepairKitPrice end,
+	TreasureMap = function(_p: any) return MerchantConfig.TreasureMap.Price end,
+	Food        = function(_p: any) return GameConfig.FOOD.Price end,
+	Potion      = function(_p: any) return GameConfig.BOOSTS.Items.Potion.Price end,
+	Shield      = function(_p: any) return SHIELD_CFG.Price end,
 }
 
 local function merchantState(player: Player, profile: any)
@@ -536,17 +539,33 @@ local function merchantState(player: Player, profile: any)
 		Prices = prices,
 		Coins = profile.Coins or 0,
 		Buyback = math.floor(DataManager.GetBackpackSellValue(player) * MERCHANT_BUYBACK),
-		OwnsHat = (profile.Cosmetics and profile.Cosmetics.TopHat) == true,
-		HatOn = (profile.Cosmetics and profile.Cosmetics.TopHatOn) == true,
-		Charm = profile.MorningCharm == true,
 		Dirt = math.floor(profile.DirtBlocks or 0),
 		DirtStage = GameConfig.GetDirtStage(profile.DirtBlocks or 0),
 		FoodStock = math.floor(profile.FoodStock or 0),
 		FoodMax = GameConfig.FOOD.MaxStock,
 		BagUsed = DataManager.GetBackpackUsed(player),
 		BagMax = DataManager.GetMaxBackpack(player),
-		PotionLeft = math.floor(BoostService.GetRemaining(player, "Potion")), -- v52
+		PotionLeft = math.floor(BoostService.GetRemaining(player, "Potion")),
+		ShieldLeft = math.floor(BoostService.GetRemaining(player, "Shield")),
+		TreasureActive = TreasureMapService.HasActive(player),
 	}
+end
+
+-- Shield Potion: a visible bubble while the boost is active (the dirt block itself is in DataManager)
+local function refreshShieldBubble(player: Player)
+	local char = player.Character
+	if not char then return end
+	local bubble = char:FindFirstChild("ShieldBubble")
+	if BoostService.IsActive(player, "Shield") then
+		if not bubble then
+			local ff = Instance.new("ForceField")
+			ff.Name = "ShieldBubble"
+			ff.Visible = true
+			ff.Parent = char
+		end
+	elseif bubble then
+		bubble:Destroy()
+	end
 end
 
 local function merchantCheck(player: Player): (any, BasePart?, string?)
@@ -643,22 +662,16 @@ NightMerchantRemote.OnServerEvent:Connect(function(player: Player, action: any, 
 		SoundManager.PlayAt("CoinChime", root.Position)
 	elseif action == "Buy" and type(itemId) == "string" and MERCHANT_ITEMS[itemId] then
 		local price = MERCHANT_ITEMS[itemId](profile)
-		if itemId == "TopHat" and price == 0 then
-			profile.Cosmetics.TopHatOn = not profile.Cosmetics.TopHatOn
-			attachTopHat(player.Character, profile.Cosmetics.TopHatOn)
-			merchantReply(player, true, profile.Cosmetics.TopHatOn and "🎩 Top Hat equipped" or "🎩 Top Hat removed", profile)
-			return
-		end
-		if itemId == "MorningCharm" and profile.MorningCharm then
-			merchantReply(player, false, "🌅 Morning Bonus is already active until sunrise", profile)
-			return
-		end
 		if itemId == "RepairKit" and (profile.DirtBlocks or 0) <= 0 then
 			merchantReply(player, false, "✨ Your backpack is already clean!", profile)
 			return
 		end
 		if itemId == "Food" and (profile.FoodStock or 0) >= GameConfig.FOOD.MaxStock then
 			merchantReply(player, false, string.format("🍔 Supplies are full (%d/%d)", profile.FoodStock or 0, GameConfig.FOOD.MaxStock), profile)
+			return
+		end
+		if itemId == "TreasureMap" and TreasureMapService.HasActive(player) then
+			merchantReply(player, false, "🗺️ You already have a hidden treasure. Dig it up first!", profile)
 			return
 		end
 		if (profile.Coins or 0) < price then
@@ -669,25 +682,24 @@ NightMerchantRemote.OnServerEvent:Connect(function(player: Player, action: any, 
 		if itemId == "RepairKit" then
 			DataManager.ResetDirt(player)
 			msg = "🧰 Repair Kit used: backpack is clean, all slots are back!"
-		elseif itemId == "Book" then
-			-- v50: through GrantXP, so a book can level the player up right away
-			ProgressionManager.GrantXP(player, profile, 40 + 10 * (profile.Level or 1))
-			profile.StrengthXP = (profile.StrengthXP or 0) + 30
-			msg = "📘 Book read: +XP and +Strength XP"
+		elseif itemId == "TreasureMap" then
+			local hint = TreasureMapService.Spawn(player, MERCHANT_POS)
+			if not hint then
+				profile.Coins += price
+				merchantReply(player, false, "🗺️ You already have a hidden treasure. Dig it up first!", profile)
+				return
+			end
+			msg = hint
 		elseif itemId == "Food" then
 			profile.FoodStock = math.min(GameConfig.FOOD.MaxStock, (profile.FoodStock or 0) + 1)
 			msg = string.format("🍔 Burger added to supplies (x%d). Eat anytime: [%s]", profile.FoodStock, GameConfig.FOOD.Key)
 		elseif itemId == "Potion" then
 			BoostService.Activate(player, "Potion") -- v52: зелье — обычный буст (продлевается, сохраняется, виден чипом)
 			msg = "🧪 Miner Potion: +25% coins at $ SELL for 3 min"
-		elseif itemId == "TopHat" then
-			profile.Cosmetics.TopHat = true
-			profile.Cosmetics.TopHatOn = true
-			attachTopHat(player.Character, true)
-			msg = "🎩 Top Hat bought and equipped!"
-		elseif itemId == "MorningCharm" then
-			profile.MorningCharm = true
-			msg = "🌅 Morning Bonus active: reward at sunrise"
+		elseif itemId == "Shield" then
+			BoostService.Activate(player, "Shield")
+			refreshShieldBubble(player)
+			msg = string.format("🛡️ Shield Potion: your backpack stays clean for %d min", math.floor(SHIELD_CFG.Duration / 60))
 		end
 		SoundManager.PlayUISound("ShopPurchase", player)
 	else
@@ -775,6 +787,19 @@ local function hookHatRespawn(pl: Player)
 end
 Players.PlayerAdded:Connect(hookHatRespawn)
 for _, pl in ipairs(Players:GetPlayers()) do hookHatRespawn(pl) end
+
+-- Shield bubble: re-add after respawn and after saved boosts load (they load shortly after join)
+local function hookShieldRespawn(pl: Player)
+	pl.CharacterAdded:Connect(function()
+		for _, delaySec in ipairs({ 1, 5 }) do
+			task.delay(delaySec, refreshShieldBubble, pl)
+		end
+	end)
+	task.delay(1, refreshShieldBubble, pl)
+	task.delay(5, refreshShieldBubble, pl)
+end
+Players.PlayerAdded:Connect(hookShieldRespawn)
+for _, pl in ipairs(Players:GetPlayers()) do hookShieldRespawn(pl) end
 Players.PlayerRemoving:Connect(function(pl: Player) MerchantDebounce[pl.UserId] = nil end)
 
 -- v28: "E  Sell" button on the SELL kiosk plaque: sells the whole backpack, same as the pad
@@ -817,8 +842,15 @@ DataManager.StartAutoSaveLoop()
 -- v52: бусты (сервер хранит время конца) и их покупка в магазине (все запросы проверяет сервер)
 BoostService.SetChangedCallback(function(player: Player)
 	DataManager.SyncToClient(player, SyncPlayerData)
+	refreshShieldBubble(player)
 end)
 BoostService.Start()
+TreasureMapService.Start({
+	DataManager = DataManager,
+	SoundManager = SoundManager,
+	VFXModule = VFXModule,
+	SyncRemote = SyncPlayerData,
+})
 ShopService.Init({
 	DataManager = DataManager,
 	BoostService = BoostService,

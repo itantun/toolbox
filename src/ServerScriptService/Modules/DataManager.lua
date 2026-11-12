@@ -332,7 +332,8 @@ function DataManager.AddResourceToBackpack(
 		profile.Inventory[blockId] = (profile.Inventory[blockId] or 0) + 1
 	end
 	profile.TotalMined += 1
-	do -- v32: every mined block makes the backpack dirtier (stages at 20/50/100/300 blocks)
+	-- v32: every mined block makes the backpack dirtier (stages at 20/50/100/300 blocks); Shield Potion keeps it clean
+	if not BoostService.IsActive(player, "Shield") then
 		local beforeStage = GameConfig.GetDirtStage(profile.DirtBlocks or 0)
 		profile.DirtBlocks = math.min(99999, (profile.DirtBlocks or 0) + 1)
 		profile.BackpackDirt = GameConfig.GetDirtPercent(profile.DirtBlocks)
